@@ -1,0 +1,24 @@
+---
+id: WP04
+title: Implement TitleScene
+lane: planned
+depends_on: [WP03]
+---
+
+Create the TitleScene with the Oregon Trail main menu.
+
+## Steps
+1. Create `src/scenes/TitleScene.ts`
+2. Sky blue background with green ground and brown trail
+3. Display "The Oregon Trail" title, "Caulk the Wagon Edition" subtitle, "~ 1848 ~"
+4. Animated wagon rectangle moving across the trail
+5. Menu options: "1. Travel the trail", "2. Learn about the trail"
+6. Keyboard input: 1 starts game, 2 shows trail info overlay
+7. Hover effects on menu buttons (gold highlight)
+8. Info overlay with trail description and profession info
+
+## Acceptance
+- Title screen renders with all elements
+- Menu buttons are interactive (click + keyboard)
+- Info overlay shows/hides correctly
+- Scene cleans up listeners in shutdown()
