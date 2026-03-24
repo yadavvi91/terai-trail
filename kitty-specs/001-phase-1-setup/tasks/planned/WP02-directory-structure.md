@@ -1,8 +1,10 @@
 ---
 id: WP02
 title: Create directory structure & constants
-lane: "doing"
+lane: "done"
 depends_on: [WP01]
+reviewed_by: "Vishal Yadav"
+review_status: "approved"
 ---
 
 Create the Oregon Trail directory structure and foundational files.
@@ -28,3 +30,4 @@ Create the Oregon Trail directory structure and foundational files.
 ## Activity Log
 
 - 2026-03-24T20:59:17Z – unknown – lane=doing – Moved to doing
+- 2026-03-24T21:00:35Z – unknown – lane=done – Moved to done
