@@ -1,7 +1,7 @@
 ---
 id: WP01
 title: Scaffold Phaser 3 + Vite + TS template
-lane: planned
+lane: "doing"
 depends_on: []
 ---
 
@@ -16,3 +16,7 @@ Scaffold the project from the Phaser 3 + Vite + TypeScript template.
 - Template files present (src/, index.html, package.json, tsconfig.json, vite/)
 - `npm run dev` starts without errors
 - Default Phaser template renders in browser
+
+## Activity Log
+
+- 2026-03-24T20:57:49Z – unknown – lane=doing – Moved to doing
