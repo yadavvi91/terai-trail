@@ -1,7 +1,7 @@
 ---
 id: WP05
 title: Wire up main.ts and verify
-lane: planned
+lane: "doing"
 depends_on: [WP04]
 ---
 
@@ -20,3 +20,7 @@ Update the main entry point and verify everything works end-to-end.
 - All scene files exist (even if stubs)
 - TypeScript compiles cleanly
 - `npm run build` succeeds
+
+## Activity Log
+
+- 2026-03-24T21:02:34Z – unknown – lane=doing – Moved to doing
