@@ -1,8 +1,10 @@
 ---
 id: WP04
 title: Implement TitleScene
-lane: "doing"
+lane: "done"
 depends_on: [WP03]
+reviewed_by: "Vishal Yadav"
+review_status: "approved"
 ---
 
 Create the TitleScene with the Oregon Trail main menu.
@@ -26,3 +28,4 @@ Create the TitleScene with the Oregon Trail main menu.
 ## Activity Log
 
 - 2026-03-24T21:01:32Z – unknown – lane=doing – Moved to doing
+- 2026-03-24T21:02:26Z – unknown – lane=done – Moved to done
