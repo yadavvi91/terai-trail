@@ -1,0 +1,25 @@
+src/scenes/TravelScene.ts
+  c4b157ded3d96a80 2-8,10-13,16-49,51-438
+src/game/TrailData.ts
+  c4b157ded3d96a80 1-103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.17",
+  "base_commit_sha": "a466d2054ef49cfa4bc4448568478c73508937ad",
+  "prompts": {
+    "c4b157ded3d96a80": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b7f94ea-b189-45b5-b6ab-432f20351c74",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 537,
+      "total_deletions": 5,
+      "accepted_lines": 537,
+      "overriden_lines": 0
+    }
+  }
+}
