@@ -1,0 +1,29 @@
+package.json
+  f0d64ad2f153f435 2-4,7,9
+src/main.ts
+  f0d64ad2f153f435 1-2,4-13,15-33,35-37
+src/scenes/RiverCrossingScene.ts
+  f0d64ad2f153f435 2
+index.html
+  f0d64ad2f153f435 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.17",
+  "base_commit_sha": "a7635ccecf1723aa9588ddb41392fc2ca95f7c19",
+  "prompts": {
+    "f0d64ad2f153f435": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "152510db-346f-41d2-a072-51cc5b42ce95",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 41,
+      "total_deletions": 16,
+      "accepted_lines": 41,
+      "overriden_lines": 0
+    }
+  }
+}
