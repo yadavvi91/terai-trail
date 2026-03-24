@@ -1,18 +1,13 @@
 {
-    "name": "template-vite-ts",
-    "description": "A Phaser 3 TypeScript template using Vite.",
-    "version": "1.4.0",
+    "name": "caulk-the-wagon",
+    "description": "The Oregon Trail — a web-based game built with Phaser 3 and TypeScript.",
+    "version": "0.1.0",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/phaserjs/template-vite-ts.git"
+        "url": "git+https://github.com/yadavvi91/caulk-the-wagon.git"
     },
-    "author": "Phaser Studio <support@phaser.io> (https://phaser.io/)",
+    "author": "yadavvi91",
     "license": "MIT",
-    "licenseUrl": "http://www.opensource.org/licenses/mit-license.php",
-    "bugs": {
-        "url": "https://github.com/phaserjs/template-vite-ts/issues"
-    },
-    "homepage": "https://github.com/phaserjs/template-vite-ts#readme",
     "scripts": {
         "dev": "node log.js dev & vite --config vite/config.dev.mjs",
         "build": "node log.js build & vite build --config vite/config.prod.mjs",
