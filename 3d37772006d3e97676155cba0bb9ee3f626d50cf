@@ -1,0 +1,25 @@
+src/game/EventManager.ts
+  c4b157ded3d96a80 1-310
+src/scenes/EventScene.ts
+  c4b157ded3d96a80 2-4,7-12,14-75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "3d37772006d3e97676155cba0bb9ee3f626d50cf",
+  "prompts": {
+    "c4b157ded3d96a80": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b7f94ea-b189-45b5-b6ab-432f20351c74",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 381,
+      "total_deletions": 5,
+      "accepted_lines": 381,
+      "overriden_lines": 0
+    }
+  }
+}
