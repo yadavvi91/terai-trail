@@ -1,7 +1,29 @@
 /**
  * Shared drawing utilities for procedural art across all scenes.
  * All functions operate on a Phaser.GameObjects.Graphics instance.
+ * Uses only supported Phaser 3 Graphics API: fillRect, fillCircle, fillEllipse,
+ * fillTriangle, fillPoints, strokePoints, arc, moveTo, lineTo, beginPath/strokePath.
  */
+
+/** Compute points along a cubic bezier curve for use with fillPoints / strokePoints */
+function bezierPoints(
+    x0: number, y0: number,
+    cx1: number, cy1: number,
+    cx2: number, cy2: number,
+    x1: number, y1: number,
+    steps: number = 16,
+): Phaser.Types.Math.Vector2Like[] {
+    const pts: Phaser.Types.Math.Vector2Like[] = [];
+    for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const mt = 1 - t;
+        pts.push({
+            x: mt * mt * mt * x0 + 3 * mt * mt * t * cx1 + 3 * mt * t * t * cx2 + t * t * t * x1,
+            y: mt * mt * mt * y0 + 3 * mt * mt * t * cy1 + 3 * mt * t * t * cy2 + t * t * t * y1,
+        });
+    }
+    return pts;
+}
 
 export function drawWagon(
     g: Phaser.GameObjects.Graphics,
@@ -10,6 +32,33 @@ export function drawWagon(
     scale: number = 1,
 ): void {
     const s = scale;
+
+    // --- Canvas bonnet (arch) — draw FIRST so body covers bottom ---
+    // Approximate arch with bezier curve computed manually
+    const bonnetPts: Phaser.Types.Math.Vector2Like[] = [
+        { x: cx - 30 * s, y: baseY - 20 * s },
+        ...bezierPoints(
+            cx - 30 * s, baseY - 20 * s,
+            cx - 28 * s, baseY - 54 * s,
+            cx + 28 * s, baseY - 54 * s,
+            cx + 30 * s, baseY - 20 * s,
+        ),
+    ];
+    g.fillStyle(0xf5e6c8);
+    g.fillPoints(bonnetPts, true);
+
+    // Bonnet ribs (3 vertical arched lines)
+    g.lineStyle(1.5 * s, 0xc8b89a, 0.6);
+    for (let i = -1; i <= 1; i++) {
+        const ox = i * 14 * s;
+        const ribPts = bezierPoints(
+            cx + ox, baseY - 20 * s,
+            cx + ox - 4 * s, baseY - 48 * s,
+            cx + ox + 4 * s, baseY - 48 * s,
+            cx + ox, baseY - 20 * s,
+        );
+        g.strokePoints(ribPts, false);
+    }
 
     // --- Wagon tongue / yoke bar ---
     g.fillStyle(0x5a3a1a);
@@ -25,42 +74,21 @@ export function drawWagon(
         g.fillRect(cx - 36 * s + i * 14 * s, baseY - 20 * s, 2 * s, 24 * s);
     }
 
-    // --- Canvas bonnet (arch) ---
-    g.fillStyle(0xf5e6c8);
-    g.beginPath();
-    (g as any).moveTo(cx - 30 * s, baseY - 20 * s);
-    (g as any).bezierCurveTo(
-        cx - 28 * s, baseY - 52 * s,
-        cx + 28 * s, baseY - 52 * s,
-        cx + 30 * s, baseY - 20 * s,
-    );
-    g.closePath();
-    g.fillPath();
-
-    // Bonnet ribs
-    g.lineStyle(1.5 * s, 0xc8b89a, 0.6);
-    for (let i = -1; i <= 1; i++) {
-        g.beginPath();
-        (g as any).moveTo(cx + i * 14 * s, baseY - 20 * s);
-        (g as any).bezierCurveTo(
-            cx + i * 14 * s - 4 * s, baseY - 46 * s,
-            cx + i * 14 * s + 4 * s, baseY - 46 * s,
-            cx + i * 14 * s, baseY - 20 * s,
-        );
-        g.strokePath();
-    }
+    // --- Sideboards ---
+    g.fillStyle(0x7a4a22);
+    g.fillRect(cx - 38 * s, baseY - 24 * s, 76 * s, 4 * s);
 
     // --- Wheels ---
     const wheelY = baseY + 2 * s;
     drawWheel(g, cx - 28 * s, wheelY, 14 * s);
     drawWheel(g, cx + 28 * s, wheelY, 14 * s);
-
-    // --- Sideboards ---
-    g.fillStyle(0x7a4a22);
-    g.fillRect(cx - 38 * s, baseY - 24 * s, 76 * s, 4 * s);
 }
 
 function drawWheel(g: Phaser.GameObjects.Graphics, cx: number, cy: number, r: number): void {
+    // Fill wheel
+    g.fillStyle(0x3a2208);
+    g.fillCircle(cx, cy, r);
+
     // Rim
     g.lineStyle(3, 0x2a1a08);
     g.strokeCircle(cx, cy, r);
@@ -71,8 +99,8 @@ function drawWheel(g: Phaser.GameObjects.Graphics, cx: number, cy: number, r: nu
     for (let i = 0; i < spokeCount; i++) {
         const angle = (i / spokeCount) * Math.PI * 2;
         g.beginPath();
-        (g as any).moveTo(cx, cy);
-        (g as any).lineTo(cx + Math.cos(angle) * r, cy + Math.sin(angle) * r);
+        g.moveTo(cx, cy);
+        g.lineTo(cx + Math.cos(angle) * r, cy + Math.sin(angle) * r);
         g.strokePath();
     }
 
@@ -306,21 +334,21 @@ export function drawDeer(
     g.fillStyle(0xd09050);
     g.fillEllipse(cx + 18 * s * d, cy - 20 * s, 7 * s, 11 * s);
 
-    // Antlers
+    // Antlers — use lineTo (works in Phaser 3)
     g.lineStyle(2.5 * s, 0x6b4520);
     // Main beam
     g.beginPath();
-    (g as any).moveTo(cx + 20 * s * d, cy - 18 * s);
-    (g as any).lineTo(cx + 16 * s * d, cy - 34 * s);
+    g.moveTo(cx + 20 * s * d, cy - 18 * s);
+    g.lineTo(cx + 16 * s * d, cy - 34 * s);
     g.strokePath();
     // Tines
     g.beginPath();
-    (g as any).moveTo(cx + 16 * s * d, cy - 30 * s);
-    (g as any).lineTo(cx + 22 * s * d, cy - 38 * s);
+    g.moveTo(cx + 16 * s * d, cy - 30 * s);
+    g.lineTo(cx + 22 * s * d, cy - 38 * s);
     g.strokePath();
     g.beginPath();
-    (g as any).moveTo(cx + 15 * s * d, cy - 26 * s);
-    (g as any).lineTo(cx + 10 * s * d, cy - 32 * s);
+    g.moveTo(cx + 15 * s * d, cy - 26 * s);
+    g.lineTo(cx + 10 * s * d, cy - 32 * s);
     g.strokePath();
 
     // Legs
@@ -387,21 +415,23 @@ export function drawSquirrel(
 ): void {
     const d = flipped ? -1 : 1;
 
-    // Tail (behind body)
+    // Tail — approximate bezier curve with fillPoints
+    const tailPts = [
+        ...bezierPoints(
+            cx - 6 * s * d, cy + 4 * s,
+            cx - 22 * s * d, cy,
+            cx - 26 * s * d, cy - 20 * s,
+            cx - 8 * s * d, cy - 22 * s,
+        ),
+        ...bezierPoints(
+            cx - 8 * s * d, cy - 22 * s,
+            cx - 16 * s * d, cy - 18 * s,
+            cx - 14 * s * d, cy - 2 * s,
+            cx - 4 * s * d, cy,
+        ),
+    ];
     g.fillStyle(0x8b6030, 0.9);
-    g.beginPath();
-    (g as any).moveTo(cx - 6 * s * d, cy + 4 * s);
-    (g as any).bezierCurveTo(
-        cx - 22 * s * d, cy,
-        cx - 26 * s * d, cy - 20 * s,
-        cx - 8 * s * d, cy - 22 * s,
-    );
-    (g as any).bezierCurveTo(
-        cx - 16 * s * d, cy - 18 * s,
-        cx - 14 * s * d, cy - 2 * s,
-        cx - 4 * s * d, cy,
-    );
-    g.fillPath();
+    g.fillPoints(tailPts, true);
 
     // Body
     g.fillStyle(0xa07040);

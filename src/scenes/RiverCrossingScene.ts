@@ -69,15 +69,18 @@ export class RiverCrossingScene extends Scene {
         riverG.fillStyle(waterColor);
         riverG.fillRect(0, 268, GAME_WIDTH, 200);
 
-        // Water ripples / current lines
+        // Water ripples / current lines — use arc instead of bezier
         riverG.lineStyle(1.5, 0x5aaad8, 0.4);
         for (let row = 0; row < 5; row++) {
             for (let i = 0; i < 8; i++) {
                 const rx = i * 140 + (row % 2) * 70 + Phaser.Math.Between(-10, 10);
                 const ry = 290 + row * 36;
+                // Draw S-curve ripple with two small arcs
                 riverG.beginPath();
-                (riverG as any).moveTo(rx, ry);
-                (riverG as any).bezierCurveTo(rx + 20, ry - 5, rx + 40, ry + 5, rx + 60, ry);
+                riverG.arc(rx + 15, ry, 15, Math.PI, 0, false);
+                riverG.strokePath();
+                riverG.beginPath();
+                riverG.arc(rx + 45, ry, 15, 0, Math.PI, false);
                 riverG.strokePath();
             }
         }
