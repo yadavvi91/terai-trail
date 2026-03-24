@@ -1,0 +1,9 @@
+{
+  "feature_number": "001",
+  "slug": "001-phase-1-setup",
+  "feature_slug": "001-phase-1-setup",
+  "friendly_name": "phase 1 setup",
+  "mission": "software-dev",
+  "target_branch": "main",
+  "created_at": "2026-03-24T20:53:37.222868+00:00"
+}
