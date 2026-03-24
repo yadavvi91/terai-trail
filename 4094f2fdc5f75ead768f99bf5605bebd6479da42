@@ -1,0 +1,23 @@
+src/scenes/LandmarkScene.ts
+  c4b157ded3d96a80 2-8,10-16,19-30,32-322
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "4094f2fdc5f75ead768f99bf5605bebd6479da42",
+  "prompts": {
+    "c4b157ded3d96a80": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b7f94ea-b189-45b5-b6ab-432f20351c74",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 318,
+      "total_deletions": 5,
+      "accepted_lines": 318,
+      "overriden_lines": 0
+    }
+  }
+}
