@@ -6,26 +6,33 @@ import {
 import { Pace, Rations, Weather, MemberStatus } from '../utils/types';
 import { GameState } from '../game/GameState';
 import { getNextLandmark } from '../game/TrailData';
+import { drawWagon, drawOx, drawMountain, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
 
-// Parallax layers scroll at different speeds
-const PARALLAX = { SKY: 0, MOUNTAINS: 0.02, HILLS: 0.06, GROUND: 0.14 };
-const TICK_MS = 1200; // ms between daily ticks (1 day of travel)
+const TICK_MS = 1200;
 const GROUND_Y = GAME_HEIGHT - 80;
 
-export class TravelScene extends Scene {
-    // Parallax objects
-    private mountains: Phaser.GameObjects.Graphics[] = [];
-    private hills: Phaser.GameObjects.Graphics[] = [];
-    private groundTiles: Phaser.GameObjects.Rectangle[] = [];
-    private trailTiles: Phaser.GameObjects.Rectangle[] = [];
-    private clouds: Phaser.GameObjects.Ellipse[] = [];
+// Scrollable layer item
+interface ScrollLayer {
+    g: Phaser.GameObjects.Graphics;
+    baseX: number;
+    width: number;
+    speed: number; // px per scroll unit
+}
 
-    // Wagon
-    private wagonBody!: Phaser.GameObjects.Rectangle;
-    private wagonCover!: Phaser.GameObjects.Rectangle;
-    private wheelL!: Phaser.GameObjects.Arc;
-    private wheelR!: Phaser.GameObjects.Arc;
-    private oxen!: Phaser.GameObjects.Rectangle[];
+export class TravelScene extends Scene {
+    // Parallax layers
+    private mtnLayers: ScrollLayer[] = [];
+    private hillLayers: ScrollLayer[] = [];
+    private groundLayers: ScrollLayer[] = [];
+    private cloudLayers: { g: Phaser.GameObjects.Graphics; x: number; speed: number }[] = [];
+    private sunG!: Phaser.GameObjects.Graphics;
+    private scrollOffset: number = 0;
+
+    // Wagon graphics (redrawn each tick)
+    private wagonG!: Phaser.GameObjects.Graphics;
+    private dustG!: Phaser.GameObjects.Graphics;
+    private dustParticles: { x: number; y: number; alpha: number; r: number }[] = [];
+    private isMoving: boolean = false;
 
     // HUD
     private dateText!: Phaser.GameObjects.Text;
@@ -37,11 +44,10 @@ export class TravelScene extends Scene {
     private paceText!: Phaser.GameObjects.Text;
     private rationsText!: Phaser.GameObjects.Text;
     private statusMsg!: Phaser.GameObjects.Text;
-    private paused: boolean = false;
+    private milesBar!: Phaser.GameObjects.Rectangle;
 
-    // Tick timer
     private tickTimer!: Phaser.Time.TimerEvent;
-    private scrollOffset: number = 0;
+    private paused: boolean = false;
 
     constructor() {
         super(SCENES.TRAVEL);
@@ -50,8 +56,16 @@ export class TravelScene extends Scene {
     create(): void {
         this.paused = false;
         this.scrollOffset = 0;
+        this.isMoving = false;
+        this.dustParticles = [];
+        this.mtnLayers = [];
+        this.hillLayers = [];
+        this.groundLayers = [];
+        this.cloudLayers = [];
 
-        this.buildBackground();
+        this.buildSky();
+        this.buildParallax();
+        this.buildGroundAndTrail();
         this.buildWagon();
         this.buildHUD();
         this.buildControls();
@@ -62,156 +76,184 @@ export class TravelScene extends Scene {
             callbackScope: this,
             loop: true,
         });
-
         this.updateHUD();
     }
 
-    // ─── Background ───────────────────────────────────────────────────────────
+    // ─── Sky ───────────────────────────────────────────────────────────────────
 
-    private buildBackground(): void {
-        // Sky
-        this.cameras.main.setBackgroundColor(COLORS.SKY_BLUE);
-
-        // Clouds (2)
-        for (let i = 0; i < 4; i++) {
-            const cloud = this.add.ellipse(
-                Phaser.Math.Between(0, GAME_WIDTH),
-                Phaser.Math.Between(40, 160),
-                Phaser.Math.Between(100, 200),
-                Phaser.Math.Between(30, 60),
-                0xffffff, 0.8
-            );
-            this.clouds.push(cloud);
+    private buildSky(): void {
+        this.cameras.main.setBackgroundColor(0x1a6ea8);
+        for (let i = 0; i < 10; i++) {
+            const t = i / 9;
+            const r = Math.round(0x1a + t * (0x87 - 0x1a));
+            const g = Math.round(0x6e + t * (0xce - 0x6e));
+            const b = Math.round(0xa8 + t * (0xe8 - 0xa8));
+            this.add.rectangle(GAME_WIDTH / 2, (i + 0.5) * (GROUND_Y / 10), GAME_WIDTH, GROUND_Y / 10 + 2, (r << 16) | (g << 8) | b);
         }
 
-        // Far mountains (2 peaks, repeating)
-        for (let x = -100; x < GAME_WIDTH + 300; x += 300) {
-            this.mountains.push(this.drawMountain(x, GROUND_Y - 100, 150, 0x8b9dc3));
-            this.mountains.push(this.drawMountain(x + 160, GROUND_Y - 140, 180, 0x7a8db5));
+        this.sunG = this.add.graphics();
+        drawSun(this.sunG, GAME_WIDTH - 100, 90, 38);
+
+        // Clouds
+        const cloudPositions = [
+            { x: 150, y: 55, s: 0.85 },
+            { x: 480, y: 38, s: 0.7 },
+            { x: 780, y: 70, s: 1.0 },
+            { x: 1050, y: 45, s: 0.65 },
+        ];
+        cloudPositions.forEach((pos) => {
+            const g = this.add.graphics();
+            drawCloud(g, pos.x, pos.y, pos.s);
+            this.cloudLayers.push({ g, x: pos.x, speed: 0.008 + Math.random() * 0.006 });
+        });
+    }
+
+    // ─── Parallax mountains + hills ───────────────────────────────────────────
+
+    private buildParallax(): void {
+        // Far mountains — 2 sets side by side so we can scroll endlessly
+        for (let pass = 0; pass < 2; pass++) {
+            const g = this.add.graphics();
+            const baseX = pass * (GAME_WIDTH + 100);
+            this.drawMountainLayer(g, baseX);
+            this.mtnLayers.push({ g, baseX, width: GAME_WIDTH + 100, speed: 0.18 });
         }
 
-        // Near hills
-        for (let x = -80; x < GAME_WIDTH + 200; x += 200) {
-            this.hills.push(this.drawHill(x, GROUND_Y - 20, 120, 0x5a9e50));
-        }
-
-        // Ground strip
-        for (let x = 0; x < GAME_WIDTH + 200; x += 200) {
-            const g = this.add.rectangle(x + 100, GROUND_Y + 40, 202, 80, COLORS.GRASS_GREEN);
-            this.groundTiles.push(g);
-        }
-
-        // Trail
-        for (let x = 0; x < GAME_WIDTH + 200; x += 200) {
-            const t = this.add.rectangle(x + 100, GROUND_Y + 12, 202, 18, COLORS.TRAIL_BROWN);
-            this.trailTiles.push(t);
+        // Near hills — 2 sets
+        for (let pass = 0; pass < 2; pass++) {
+            const g = this.add.graphics();
+            const baseX = pass * (GAME_WIDTH + 60);
+            this.drawHillLayer(g, baseX);
+            this.hillLayers.push({ g, baseX, width: GAME_WIDTH + 60, speed: 0.55 });
         }
     }
 
-    private drawMountain(x: number, baseY: number, width: number, color: number): Phaser.GameObjects.Graphics {
-        const g = this.add.graphics();
-        g.fillStyle(color, 1);
-        g.fillTriangle(x, baseY, x + width / 2, baseY - width * 0.8, x + width, baseY);
-        return g;
+    private drawMountainLayer(g: Phaser.GameObjects.Graphics, offsetX: number): void {
+        drawMountain(g, offsetX + 150, GROUND_Y + 10, 240, 200, 0x6a7fa8, true);
+        drawMountain(g, offsetX + 370, GROUND_Y + 10, 200, 180, 0x5a7098, true);
+        drawMountain(g, offsetX + 560, GROUND_Y + 10, 280, 220, 0x7a8fb8, true);
+        drawMountain(g, offsetX + 780, GROUND_Y + 10, 220, 195, 0x607898, true);
+        drawMountain(g, offsetX + 960, GROUND_Y + 10, 260, 205, 0x6a8098, true);
     }
 
-    private drawHill(x: number, baseY: number, width: number, color: number): Phaser.GameObjects.Graphics {
-        const g = this.add.graphics();
-        g.fillStyle(color, 1);
-        g.fillEllipse(x + width / 2, baseY, width, width * 0.5);
-        return g;
+    private drawHillLayer(g: Phaser.GameObjects.Graphics, offsetX: number): void {
+        drawHill(g, offsetX + 100,  GROUND_Y + 8, 240, 0x3a7830);
+        drawHill(g, offsetX + 330,  GROUND_Y + 8, 200, 0x3d8a33);
+        drawHill(g, offsetX + 520,  GROUND_Y + 8, 260, 0x347030);
+        drawHill(g, offsetX + 740,  GROUND_Y + 8, 220, 0x3a7830);
+        drawHill(g, offsetX + 940,  GROUND_Y + 8, 180, 0x3d8a33);
+        drawHill(g, offsetX + 1080, GROUND_Y + 8, 200, 0x347030);
+    }
+
+    // ─── Ground & trail ────────────────────────────────────────────────────────
+
+    private buildGroundAndTrail(): void {
+        // Green ground
+        this.add.rectangle(GAME_WIDTH / 2, GROUND_Y + 45, GAME_WIDTH, 100, 0x3d8b37);
+
+        // Dirt trail
+        this.add.rectangle(GAME_WIDTH / 2, GROUND_Y + 16, GAME_WIDTH, 28, 0x9e7b3a);
+
+        // Trail ruts (2 lines)
+        this.add.rectangle(GAME_WIDTH / 2, GROUND_Y + 10, GAME_WIDTH, 3, 0x6a4e20);
+        this.add.rectangle(GAME_WIDTH / 2, GROUND_Y + 22, GAME_WIDTH, 3, 0x6a4e20);
+
+        // Scrolling grass tufts (2 sets)
+        for (let pass = 0; pass < 2; pass++) {
+            const g = this.add.graphics();
+            const baseX = pass * (GAME_WIDTH + 40);
+            for (let i = 0; i < 22; i++) {
+                const gx = baseX + (i / 22) * (GAME_WIDTH + 40);
+                const gy = GROUND_Y + Phaser.Math.Between(28, 52);
+                g.fillStyle(0x2d6a22, 0.7 + Math.random() * 0.3);
+                g.fillRect(gx, gy, 3, Phaser.Math.Between(6, 14));
+                g.fillStyle(0x2d6a22, 0.5);
+                g.fillRect(gx + 4, gy + 3, 2, Phaser.Math.Between(4, 10));
+            }
+            this.groundLayers.push({ g, baseX, width: GAME_WIDTH + 40, speed: 1.0 });
+        }
     }
 
     // ─── Wagon ─────────────────────────────────────────────────────────────────
 
     private buildWagon(): void {
-        const wx = 280;
-        const wy = GROUND_Y - 18;
+        this.dustG = this.add.graphics();
+        this.wagonG = this.add.graphics();
+        this.redrawWagon();
+    }
 
-        // Oxen
-        this.oxen = [];
-        for (let i = 0; i < 2; i++) {
-            const ox = this.add.rectangle(wx - 80 - i * 40, wy + 4, 32, 18, 0x8b6914);
-            this.oxen.push(ox);
-        }
-
-        this.wagonBody = this.add.rectangle(wx, wy, 80, 30, COLORS.DARK_BROWN);
-        this.wagonCover = this.add.rectangle(wx, wy - 22, 64, 22, COLORS.PARCHMENT);
-
-        const wheelY = wy + 12;
-        this.wheelL = this.add.arc(wx - 28, wheelY, 13, 0, 360, false, 0x4a3728);
-        this.wheelR = this.add.arc(wx + 28, wheelY, 13, 0, 360, false, 0x4a3728);
-
-        // Spokes (decorative inner circles)
-        this.add.arc(wx - 28, wheelY, 5, 0, 360, false, 0x8b6914);
-        this.add.arc(wx + 28, wheelY, 5, 0, 360, false, 0x8b6914);
+    private redrawWagon(): void {
+        this.wagonG.clear();
+        const wx = 260;
+        const wy = GROUND_Y - 4;
+        drawOx(this.wagonG, wx - 92, wy, 0.8);
+        drawOx(this.wagonG, wx - 58, wy, 0.8);
+        drawWagon(this.wagonG, wx, wy, 0.9);
     }
 
     // ─── HUD ───────────────────────────────────────────────────────────────────
 
     private buildHUD(): void {
-        // Top bar background
-        this.add.rectangle(GAME_WIDTH / 2, 22, GAME_WIDTH, 44, 0x000000, 0.65);
+        // Top bar
+        this.add.rectangle(GAME_WIDTH / 2, 26, GAME_WIDTH, 52, 0x000000, 0.72).setDepth(10);
+
+        // Progress bar background
+        this.add.rectangle(GAME_WIDTH / 2, 46, GAME_WIDTH - 200, 6, 0x333333, 0.8).setDepth(10);
+        this.milesBar = this.add.rectangle(8, 46, 0, 6, COLORS.GRASS_GREEN, 0.9).setOrigin(0, 0.5).setDepth(11);
 
         const hudStyle = { ...TEXT_STYLES.HUD, fontSize: '13px' };
 
-        this.dateText    = this.add.text(10, 8,  '', hudStyle);
-        this.milesText   = this.add.text(200, 8, '', hudStyle);
-        this.nextText    = this.add.text(400, 8, '', hudStyle);
-        this.weatherText = this.add.text(680, 8, '', hudStyle);
-        this.healthText  = this.add.text(820, 8, '', hudStyle);
-        this.foodText    = this.add.text(940, 8, '', { ...hudStyle, color: HEX_COLORS.GOLD });
+        this.dateText    = this.add.text(10, 8,  '', hudStyle).setDepth(11);
+        this.milesText   = this.add.text(200, 8, '', hudStyle).setDepth(11);
+        this.nextText    = this.add.text(420, 8, '', hudStyle).setDepth(11);
+        this.weatherText = this.add.text(720, 8, '', hudStyle).setDepth(11);
+        this.healthText  = this.add.text(840, 8, '', hudStyle).setDepth(11);
+        this.foodText    = this.add.text(955, 8, '', { ...hudStyle, color: HEX_COLORS.GOLD }).setDepth(11);
 
         // Bottom control bar
-        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 28, GAME_WIDTH, 56, 0x000000, 0.7);
+        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 28, GAME_WIDTH, 56, 0x1a1208, 0.88).setDepth(10);
+        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 52, GAME_WIDTH, 2, COLORS.TRAIL_BROWN, 0.5).setDepth(10);
 
-        this.add.text(10, GAME_HEIGHT - 48, 'PACE:', hudStyle);
-        this.paceText = this.add.text(70, GAME_HEIGHT - 48, '', { ...hudStyle, color: HEX_COLORS.GOLD });
+        this.add.text(12, GAME_HEIGHT - 48, 'PACE:', { ...hudStyle, color: HEX_COLORS.TRAIL_BROWN }).setDepth(11);
+        this.paceText = this.add.text(70, GAME_HEIGHT - 48, '', { ...hudStyle, color: HEX_COLORS.GOLD }).setDepth(11);
 
-        this.add.text(10, GAME_HEIGHT - 28, 'RATIONS:', hudStyle);
-        this.rationsText = this.add.text(80, GAME_HEIGHT - 28, '', { ...hudStyle, color: HEX_COLORS.GOLD });
+        this.add.text(12, GAME_HEIGHT - 28, 'RATIONS:', { ...hudStyle, color: HEX_COLORS.TRAIL_BROWN }).setDepth(11);
+        this.rationsText = this.add.text(84, GAME_HEIGHT - 28, '', { ...hudStyle, color: HEX_COLORS.GOLD }).setDepth(11);
 
         this.statusMsg = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 38, '', {
             ...hudStyle,
             fontSize: '14px',
             color: HEX_COLORS.PARCHMENT,
-        }).setOrigin(0.5);
+        }).setOrigin(0.5).setDepth(11);
     }
 
     private buildControls(): void {
         const btnStyle = { ...TEXT_STYLES.HUD, fontSize: '13px', color: HEX_COLORS.PARCHMENT };
+        const depth = 11;
 
         // Pace buttons
-        const paceOptions: Pace[] = [Pace.STEADY, Pace.STRENUOUS, Pace.GRUELING];
-        paceOptions.forEach((pace, i) => {
-            const btn = this.add.text(GAME_WIDTH - 480 + i * 110, GAME_HEIGHT - 48, `[${pace}]`, btnStyle)
-                .setInteractive({ useHandCursor: true });
+        const paceOptions: [string, Pace][] = [['Steady', Pace.STEADY], ['Strenuous', Pace.STRENUOUS], ['Grueling', Pace.GRUELING]];
+        paceOptions.forEach(([label, pace], i) => {
+            const btn = this.add.text(GAME_WIDTH - 500 + i * 120, GAME_HEIGHT - 48, `[${label}]`, btnStyle)
+                .setInteractive({ useHandCursor: true }).setDepth(depth);
             btn.on('pointerover', () => btn.setColor(HEX_COLORS.GOLD));
             btn.on('pointerout', () => btn.setColor(HEX_COLORS.PARCHMENT));
-            btn.on('pointerdown', () => {
-                GameState.getInstance().pace = pace;
-                this.updateHUD();
-            });
+            btn.on('pointerdown', () => { GameState.getInstance().pace = pace; this.updateHUD(); });
         });
 
-        // Rations buttons
-        const rationOptions: Rations[] = [Rations.FILLING, Rations.MEAGER, Rations.BARE_BONES];
-        rationOptions.forEach((rations, i) => {
-            const btn = this.add.text(GAME_WIDTH - 480 + i * 130, GAME_HEIGHT - 28, `[${rations}]`, btnStyle)
-                .setInteractive({ useHandCursor: true });
+        const rationOptions: [string, Rations][] = [['Filling', Rations.FILLING], ['Meager', Rations.MEAGER], ['Bare Bones', Rations.BARE_BONES]];
+        rationOptions.forEach(([label, rations], i) => {
+            const btn = this.add.text(GAME_WIDTH - 500 + i * 140, GAME_HEIGHT - 28, `[${label}]`, btnStyle)
+                .setInteractive({ useHandCursor: true }).setDepth(depth);
             btn.on('pointerover', () => btn.setColor(HEX_COLORS.GOLD));
             btn.on('pointerout', () => btn.setColor(HEX_COLORS.PARCHMENT));
-            btn.on('pointerdown', () => {
-                GameState.getInstance().rations = rations;
-                this.updateHUD();
-            });
+            btn.on('pointerdown', () => { GameState.getInstance().rations = rations; this.updateHUD(); });
         });
 
-        // Hunt button
-        const huntBtn = this.add.text(GAME_WIDTH - 100, GAME_HEIGHT - 48, '[HUNT]', {
-            ...btnStyle,
-            color: HEX_COLORS.GREEN,
-        }).setInteractive({ useHandCursor: true });
+        // Action buttons
+        const huntBtn = this.add.text(GAME_WIDTH - 80, GAME_HEIGHT - 48, '[ Hunt ]', {
+            ...btnStyle, color: HEX_COLORS.GREEN,
+        }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(depth);
         huntBtn.on('pointerover', () => huntBtn.setColor(HEX_COLORS.GOLD));
         huntBtn.on('pointerout', () => huntBtn.setColor(HEX_COLORS.GREEN));
         huntBtn.on('pointerdown', () => {
@@ -220,27 +262,85 @@ export class TravelScene extends Scene {
             this.scene.pause();
         });
 
-        // Rest button
-        const restBtn = this.add.text(GAME_WIDTH - 100, GAME_HEIGHT - 28, '[REST]', btnStyle)
-            .setInteractive({ useHandCursor: true });
+        const restBtn = this.add.text(GAME_WIDTH - 80, GAME_HEIGHT - 28, '[ Rest ]', btnStyle)
+            .setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(depth);
         restBtn.on('pointerover', () => restBtn.setColor(HEX_COLORS.GOLD));
         restBtn.on('pointerout', () => restBtn.setColor(HEX_COLORS.PARCHMENT));
         restBtn.on('pointerdown', () => {
-            const gs = GameState.getInstance();
-            gs.pace = Pace.STOPPED;
+            GameState.getInstance().pace = Pace.STOPPED;
             this.updateHUD();
             this.showStatus('Your party is resting...');
         });
 
-        // Keyboard shortcuts
-        this.input.keyboard?.on('keydown-ONE', () => {
-            GameState.getInstance().pace = Pace.STEADY; this.updateHUD();
+        this.input.keyboard?.on('keydown-ONE', () => { GameState.getInstance().pace = Pace.STEADY; this.updateHUD(); });
+        this.input.keyboard?.on('keydown-TWO', () => { GameState.getInstance().pace = Pace.STRENUOUS; this.updateHUD(); });
+        this.input.keyboard?.on('keydown-THREE', () => { GameState.getInstance().pace = Pace.GRUELING; this.updateHUD(); });
+    }
+
+    // ─── Update loop ───────────────────────────────────────────────────────────
+
+    update(_time: number, delta: number): void {
+        const dt = delta / 1000;
+        const gs = GameState.getInstance();
+        const moving = gs.pace !== Pace.STOPPED;
+
+        if (moving) {
+            const scrollSpeed = 60; // visual scroll px per second
+            this.scrollOffset += scrollSpeed * dt;
+
+            // Scroll mountains
+            this.mtnLayers.forEach(layer => {
+                const dx = scrollSpeed * layer.speed * dt;
+                layer.baseX -= dx;
+                if (layer.baseX < -(layer.width)) layer.baseX += layer.width * 2;
+                layer.g.setX(layer.baseX);
+            });
+
+            // Scroll hills
+            this.hillLayers.forEach(layer => {
+                const dx = scrollSpeed * layer.speed * dt;
+                layer.baseX -= dx;
+                if (layer.baseX < -(layer.width)) layer.baseX += layer.width * 2;
+                layer.g.setX(layer.baseX);
+            });
+
+            // Scroll grass
+            this.groundLayers.forEach(layer => {
+                const dx = scrollSpeed * layer.speed * dt;
+                layer.baseX -= dx;
+                if (layer.baseX < -(layer.width)) layer.baseX += layer.width * 2;
+                layer.g.setX(layer.baseX);
+            });
+
+            // Drift clouds
+            this.cloudLayers.forEach(cl => {
+                cl.x -= scrollSpeed * cl.speed * dt;
+                if (cl.x < -200) cl.x += GAME_WIDTH + 400;
+                cl.g.setX(cl.x - (cl.g as any)._baseX || 0);
+                cl.g.x = cl.x;
+            });
+
+            // Wagon bob
+            const wy = GROUND_Y - 4 + Math.sin(this.scrollOffset * 0.05) * 1.5;
+            this.wagonG.y = wy - (GROUND_Y - 4);
+
+            // Dust
+            if (Math.random() < 0.5) {
+                this.dustParticles.push({ x: 130, y: GROUND_Y + 8, alpha: 0.45, r: 3 + Math.random() * 7 });
+            }
+        }
+
+        // Update dust
+        this.dustParticles = this.dustParticles.filter(p => p.alpha > 0.02);
+        this.dustParticles.forEach(p => {
+            p.x -= 30 * dt;
+            p.alpha -= dt * 0.6;
+            p.r += dt * 4;
         });
-        this.input.keyboard?.on('keydown-TWO', () => {
-            GameState.getInstance().pace = Pace.STRENUOUS; this.updateHUD();
-        });
-        this.input.keyboard?.on('keydown-THREE', () => {
-            GameState.getInstance().pace = Pace.GRUELING; this.updateHUD();
+        this.dustG.clear();
+        this.dustParticles.forEach(p => {
+            this.dustG.fillStyle(0xc8a870, p.alpha);
+            this.dustG.fillCircle(p.x, p.y, p.r);
         });
     }
 
@@ -250,18 +350,16 @@ export class TravelScene extends Scene {
         if (this.paused) return;
         const gs = GameState.getInstance();
 
-        // Advance date
         gs.advanceDay();
 
-        // Miles traveled
-        const paceKey = gs.pace.toUpperCase().replace(' ', '_') as keyof typeof MILES_PER_DAY;
         const milesKey = gs.pace === Pace.STOPPED ? 'STOPPED' :
                          gs.pace === Pace.STEADY ? 'STEADY' :
                          gs.pace === Pace.STRENUOUS ? 'STRENUOUS' : 'GRUELING';
         const miles = MILES_PER_DAY[milesKey];
+        const prevMiles = gs.milesTraveled;
         gs.milesTraveled = Math.min(TOTAL_TRAIL_MILES, gs.milesTraveled + miles);
 
-        // Consume food
+        // Food consumption
         const alive = gs.party.filter(m => m.status !== MemberStatus.DEAD).length;
         const rationKey = gs.rations === Rations.FILLING ? 'FILLING' :
                           gs.rations === Rations.MEAGER ? 'MEAGER' : 'BARE_BONES';
@@ -269,7 +367,6 @@ export class TravelScene extends Scene {
         const foodActual = Math.min(gs.supplies.food, foodNeeded);
         gs.supplies.food = Math.max(0, gs.supplies.food - foodActual);
 
-        // Health effects from starvation
         if (foodActual < foodNeeded) {
             gs.party.forEach(m => {
                 if (m.status !== MemberStatus.DEAD) {
@@ -282,26 +379,20 @@ export class TravelScene extends Scene {
             });
         }
 
-        // Occasional weather change
+        // Weather
         if (Math.random() < 0.08) {
             const weathers = [Weather.CLEAR, Weather.CLEAR, Weather.RAINY, Weather.HOT, Weather.SNOWY];
             gs.weather = weathers[Math.floor(Math.random() * weathers.length)];
         }
 
-        // Scroll parallax
-        this.scrollOffset += miles * 0.4;
-        this.scrollParallax();
-        this.bobWagon(miles > 0);
-
-        // Check for landmark
-        const next = getNextLandmark(gs.milesTraveled - miles);
-        const reached = getNextLandmark(gs.milesTraveled - miles - 1);
+        // Check landmark
+        const next = getNextLandmark(prevMiles);
         if (next && gs.milesTraveled >= next.miles) {
             this.onLandmarkReached(next);
             return;
         }
 
-        // Random event check
+        // Random event
         if (Math.random() < 0.12 && gs.pace !== Pace.STOPPED) {
             this.tickTimer.paused = true;
             this.scene.launch(SCENES.EVENT);
@@ -309,76 +400,19 @@ export class TravelScene extends Scene {
             return;
         }
 
-        // Check victory
-        if (gs.milesTraveled >= TOTAL_TRAIL_MILES) {
+        if (gs.milesTraveled >= TOTAL_TRAIL_MILES || gs.isGameOver()) {
             this.tickTimer.remove();
-            this.time.delayedCall(800, () => this.scene.start(SCENES.GAME_OVER));
-            return;
-        }
-
-        // Check game over
-        if (gs.isGameOver()) {
-            this.tickTimer.remove();
-            this.time.delayedCall(800, () => this.scene.start(SCENES.GAME_OVER));
+            this.time.delayedCall(600, () => this.scene.start(SCENES.GAME_OVER));
             return;
         }
 
         this.updateHUD();
     }
 
-    private onLandmarkReached(landmark: { isRiver: boolean; isFort: boolean; name: string }): void {
+    private onLandmarkReached(landmark: { isRiver: boolean; isFort: boolean }): void {
         this.tickTimer.paused = true;
-        if (landmark.isRiver) {
-            this.scene.launch(SCENES.RIVER_CROSSING);
-        } else if (landmark.isFort) {
-            this.scene.launch(SCENES.LANDMARK);
-        } else {
-            this.scene.launch(SCENES.LANDMARK);
-        }
+        this.scene.launch(landmark.isRiver ? SCENES.RIVER_CROSSING : SCENES.LANDMARK);
         this.scene.pause();
-    }
-
-    // ─── Parallax scroll ───────────────────────────────────────────────────────
-
-    private scrollParallax(): void {
-        const o = this.scrollOffset;
-
-        this.clouds.forEach((c, i) => {
-            c.x = ((c.x - 0.3 + GAME_WIDTH) % (GAME_WIDTH + 200));
-        });
-
-        this.mountains.forEach(m => {
-            m.x = ((m.x - PARALLAX.MOUNTAINS * 60 + GAME_WIDTH + 300) % (GAME_WIDTH + 400)) - 100;
-        });
-
-        this.hills.forEach(h => {
-            h.x = ((h.x - PARALLAX.HILLS * 60 + GAME_WIDTH + 200) % (GAME_WIDTH + 280)) - 80;
-        });
-
-        this.groundTiles.forEach(g => {
-            g.x = ((g.x - PARALLAX.GROUND * 60 + GAME_WIDTH + 200) % (GAME_WIDTH + 200));
-        });
-
-        this.trailTiles.forEach(t => {
-            t.x = ((t.x - PARALLAX.GROUND * 60 + GAME_WIDTH + 200) % (GAME_WIDTH + 200));
-        });
-    }
-
-    private bobWagon(moving: boolean): void {
-        if (!moving) return;
-        this.tweens.add({
-            targets: [this.wagonBody, this.wagonCover],
-            y: '-=2',
-            duration: 80,
-            yoyo: true,
-            ease: 'Sine.easeInOut',
-        });
-        // Spin wheels
-        this.tweens.add({
-            targets: [this.wheelL, this.wheelR],
-            angle: '+=30',
-            duration: TICK_MS * 0.8,
-        });
     }
 
     // ─── HUD update ────────────────────────────────────────────────────────────
@@ -391,21 +425,26 @@ export class TravelScene extends Scene {
             ? Math.round(alive.reduce((s, m) => s + m.health, 0) / alive.length)
             : 0;
 
-        this.dateText.setText(`Date: ${gs.getFormattedDate()}`);
-        this.milesText.setText(`Miles: ${Math.round(gs.milesTraveled)} / ${TOTAL_TRAIL_MILES}`);
-        this.nextText.setText(next ? `Next: ${next.name} (${next.miles - Math.round(gs.milesTraveled)} mi)` : 'Almost there!');
+        this.dateText.setText(`📅 ${gs.getFormattedDate()}`);
+        this.milesText.setText(`🛤  ${Math.round(gs.milesTraveled)} / ${TOTAL_TRAIL_MILES} mi`);
+        this.nextText.setText(next ? `⛳ ${next.name}  (${next.miles - Math.round(gs.milesTraveled)} mi)` : '🏁 Almost there!');
         this.weatherText.setText(`☁ ${gs.weather}`);
-        this.healthText.setText(`♥ ${avgHealth}%`);
-        this.foodText.setText(`Food: ${Math.round(gs.supplies.food)} lbs`);
+        this.healthText.setText(`❤ ${avgHealth}%`);
+        this.foodText.setText(`🍗 ${Math.round(gs.supplies.food)} lbs`);
         this.paceText.setText(gs.pace);
         this.rationsText.setText(gs.rations);
 
+        // Progress bar
+        const pct = gs.milesTraveled / TOTAL_TRAIL_MILES;
+        const barW = GAME_WIDTH - 200;
+        this.milesBar.setSize(Math.max(4, pct * barW), 6);
+
         // Sky tint for weather
         const skyColors: Record<Weather, number> = {
-            [Weather.CLEAR]: COLORS.SKY_BLUE,
-            [Weather.RAINY]: 0x6b7f9e,
-            [Weather.HOT]: 0xe8a44a,
-            [Weather.SNOWY]: 0xc0d0e0,
+            [Weather.CLEAR]: 0x1a6ea8,
+            [Weather.RAINY]: 0x4a5a6e,
+            [Weather.HOT]:   0xd0883a,
+            [Weather.SNOWY]: 0xa0b8c8,
         };
         this.cameras.main.setBackgroundColor(skyColors[gs.weather]);
     }
@@ -415,16 +454,9 @@ export class TravelScene extends Scene {
         this.time.delayedCall(3000, () => this.statusMsg.setText(''));
     }
 
-    // ─── Resume from sub-scenes ────────────────────────────────────────────────
-
     resume(): void {
         const gs = GameState.getInstance();
-        if (gs.isGameOver()) {
-            this.tickTimer.remove();
-            this.scene.start(SCENES.GAME_OVER);
-            return;
-        }
-        if (gs.milesTraveled >= TOTAL_TRAIL_MILES) {
+        if (gs.isGameOver() || gs.milesTraveled >= TOTAL_TRAIL_MILES) {
             this.tickTimer.remove();
             this.scene.start(SCENES.GAME_OVER);
             return;
