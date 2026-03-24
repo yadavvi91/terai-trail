@@ -1,0 +1,29 @@
+src/main.ts
+  c4b157ded3d96a80 1,21-26
+public/style.css
+  c4b157ded3d96a80 1,4-7,9-11,16,21-28
+src/scenes/RiverCrossingScene.ts
+  c4b157ded3d96a80 72,78,80-83
+src/ui/DrawUtils.ts
+  c4b157ded3d96a80 4-5,8-27,36-61,77-79,88-91,102-103,337,341-342,346-347,350-351,418-432,434
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "6fc1f77db0c96be492326bcfa340f329abc911ea",
+  "prompts": {
+    "c4b157ded3d96a80": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b7f94ea-b189-45b5-b6ab-432f20351c74",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 112,
+      "total_deletions": 59,
+      "accepted_lines": 112,
+      "overriden_lines": 0
+    }
+  }
+}
