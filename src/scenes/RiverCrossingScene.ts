@@ -3,7 +3,7 @@ import { SCENES, GAME_WIDTH, GAME_HEIGHT, COLORS, HEX_COLORS, TEXT_STYLES } from
 import { MemberStatus } from '../utils/types';
 import { GameState } from '../game/GameState';
 import { getNextLandmark } from '../game/TrailData';
-import { drawWagon, drawOx } from '../ui/DrawUtils';
+import { drawWagon, drawOx, drawPerson } from '../ui/DrawUtils';
 
 type CrossingMethod = 'ford' | 'caulk' | 'ferry' | 'wait';
 
@@ -94,9 +94,14 @@ export class RiverCrossingScene extends Scene {
 
         // Wagon waiting on bank
         const wG = this.add.graphics();
-        drawOx(wG, GAME_WIDTH - 200, GAME_HEIGHT - 108, 0.65);
-        drawOx(wG, GAME_WIDTH - 170, GAME_HEIGHT - 108, 0.65);
-        drawWagon(wG, GAME_WIDTH - 130, GAME_HEIGHT - 108, 0.65);
+        drawOx(wG, GAME_WIDTH - 200, GAME_HEIGHT - 108, 0.8);
+        drawOx(wG, GAME_WIDTH - 164, GAME_HEIGHT - 108, 0.8);
+        drawWagon(wG, GAME_WIDTH - 120, GAME_HEIGHT - 108, 0.8);
+        // People waiting by the bank
+        drawPerson(wG, GAME_WIDTH - 62, GAME_HEIGHT - 110, 0.8);
+        drawPerson(wG, GAME_WIDTH - 36, GAME_HEIGHT - 110, 0.75, false, 1);
+        drawPerson(wG, 80,  GAME_HEIGHT - 110, 0.8, true);    // person looking at river
+        drawPerson(wG, 108, GAME_HEIGHT - 110, 0.72, true, 1);
 
         // Depth indicator post
         const postG = this.add.graphics();

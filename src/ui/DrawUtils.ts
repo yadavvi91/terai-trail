@@ -33,55 +33,91 @@ export function drawWagon(
 ): void {
     const s = scale;
 
-    // --- Canvas bonnet (arch) — draw FIRST so body covers bottom ---
-    // Approximate arch with bezier curve computed manually
+    // --- Canvas bonnet (arch) — drawn FIRST so body covers the bottom edge ---
+    // Arch outline computed from bezier points
     const bonnetPts: Phaser.Types.Math.Vector2Like[] = [
-        { x: cx - 30 * s, y: baseY - 20 * s },
+        { x: cx - 32 * s, y: baseY - 18 * s },
         ...bezierPoints(
-            cx - 30 * s, baseY - 20 * s,
-            cx - 28 * s, baseY - 54 * s,
-            cx + 28 * s, baseY - 54 * s,
-            cx + 30 * s, baseY - 20 * s,
+            cx - 32 * s, baseY - 18 * s,
+            cx - 30 * s, baseY - 58 * s,
+            cx + 30 * s, baseY - 58 * s,
+            cx + 32 * s, baseY - 18 * s,
         ),
     ];
-    g.fillStyle(0xf5e6c8);
+    // Drop shadow for bonnet
+    g.fillStyle(0x000000, 0.12);
+    const bonnetShadow = bonnetPts.map(p => ({ x: (p.x as number) + 2, y: (p.y as number) + 2 }));
+    g.fillPoints(bonnetShadow, true);
+    // Main bonnet — cream/canvas color
+    g.fillStyle(0xf0e2c0);
     g.fillPoints(bonnetPts, true);
+    // Bonnet highlight (top lighter)
+    g.fillStyle(0xfaf2e0, 0.5);
+    const bonnetHiPts: Phaser.Types.Math.Vector2Like[] = [
+        { x: cx - 20 * s, y: baseY - 22 * s },
+        ...bezierPoints(
+            cx - 20 * s, baseY - 22 * s,
+            cx - 18 * s, baseY - 58 * s,
+            cx + 4 * s, baseY - 58 * s,
+            cx + 6 * s, baseY - 22 * s,
+        ),
+    ];
+    g.fillPoints(bonnetHiPts, true);
 
-    // Bonnet ribs (3 vertical arched lines)
-    g.lineStyle(1.5 * s, 0xc8b89a, 0.6);
+    // Bonnet ribs (hoops that hold the canvas)
+    g.lineStyle(1.5 * s, 0xd4b890, 0.7);
     for (let i = -1; i <= 1; i++) {
         const ox = i * 14 * s;
         const ribPts = bezierPoints(
-            cx + ox, baseY - 20 * s,
-            cx + ox - 4 * s, baseY - 48 * s,
-            cx + ox + 4 * s, baseY - 48 * s,
-            cx + ox, baseY - 20 * s,
+            cx + ox, baseY - 18 * s,
+            cx + ox - 2 * s, baseY - 52 * s,
+            cx + ox + 2 * s, baseY - 52 * s,
+            cx + ox, baseY - 18 * s,
         );
         g.strokePoints(ribPts, false);
     }
 
     // --- Wagon tongue / yoke bar ---
-    g.fillStyle(0x5a3a1a);
-    g.fillRect(cx - 62 * s, baseY - 8 * s, 32 * s, 5 * s);
+    g.fillStyle(0x4a2e10);
+    g.fillRect(cx - 64 * s, baseY - 10 * s, 34 * s, 5 * s);
+    // Tongue detail
+    g.fillStyle(0x3a2008);
+    g.fillRect(cx - 64 * s, baseY - 9 * s, 34 * s, 2 * s);
 
-    // --- Body ---
-    g.fillStyle(0x5c3516);
-    g.fillRect(cx - 36 * s, baseY - 20 * s, 72 * s, 24 * s);
+    // --- Main body (box) ---
+    // Shadow/depth on bottom
+    g.fillStyle(0x2a1208);
+    g.fillRect(cx - 37 * s, baseY - 2 * s, 74 * s, 6 * s);
 
-    // Body planks (darker lines)
-    g.fillStyle(0x3d1f08, 0.5);
-    for (let i = 1; i < 5; i++) {
-        g.fillRect(cx - 36 * s + i * 14 * s, baseY - 20 * s, 2 * s, 24 * s);
+    // Body panels
+    g.fillStyle(0x6b3a18);
+    g.fillRect(cx - 36 * s, baseY - 22 * s, 72 * s, 26 * s);
+
+    // Body plank lines
+    g.fillStyle(0x3d1a06);
+    for (let i = 1; i < 6; i++) {
+        g.fillRect(cx - 36 * s + i * 12 * s, baseY - 22 * s, 1.5 * s, 26 * s);
     }
+    // Horizontal grain lines
+    g.fillStyle(0x3d1a06, 0.3);
+    g.fillRect(cx - 36 * s, baseY - 14 * s, 72 * s, 1.5 * s);
+    g.fillRect(cx - 36 * s, baseY - 6 * s, 72 * s, 1.5 * s);
 
-    // --- Sideboards ---
-    g.fillStyle(0x7a4a22);
-    g.fillRect(cx - 38 * s, baseY - 24 * s, 76 * s, 4 * s);
+    // --- Sideboards (top rails) ---
+    g.fillStyle(0x8b5a28);
+    g.fillRect(cx - 38 * s, baseY - 26 * s, 76 * s, 5 * s);
+    // Sideboard highlight
+    g.fillStyle(0xaa7240, 0.5);
+    g.fillRect(cx - 38 * s, baseY - 26 * s, 76 * s, 2 * s);
 
     // --- Wheels ---
-    const wheelY = baseY + 2 * s;
-    drawWheel(g, cx - 28 * s, wheelY, 14 * s);
-    drawWheel(g, cx + 28 * s, wheelY, 14 * s);
+    const wheelY = baseY + 4 * s;
+    drawWheel(g, cx - 30 * s, wheelY, 16 * s);
+    drawWheel(g, cx + 30 * s, wheelY, 16 * s);
+
+    // --- Axle ---
+    g.fillStyle(0x2a1208);
+    g.fillRect(cx - 34 * s, wheelY - 2 * s, 68 * s, 4 * s);
 }
 
 function drawWheel(g: Phaser.GameObjects.Graphics, cx: number, cy: number, r: number): void {
@@ -118,40 +154,109 @@ export function drawOx(
     scale: number = 1,
 ): void {
     const s = scale;
-    const bodyColor = 0x8b6914;
-    const shadowColor = 0x5c4010;
+    const bodyColor = 0x6b4c20;
+    const darkColor  = 0x3d2a08;
+    const lightColor = 0x9a7040;
 
-    // Body
+    // Belly shadow
+    g.fillStyle(darkColor);
+    g.fillEllipse(cx, baseY - 5 * s, 42 * s, 18 * s);
+
+    // Main body
     g.fillStyle(bodyColor);
-    g.fillEllipse(cx, baseY - 8 * s, 34 * s, 16 * s);
+    g.fillEllipse(cx, baseY - 9 * s, 40 * s, 20 * s);
+
+    // Back hump (oxen have a slight hump)
+    g.fillStyle(lightColor);
+    g.fillEllipse(cx - 6 * s, baseY - 18 * s, 18 * s, 10 * s);
+
+    // Neck
+    g.fillStyle(bodyColor);
+    g.fillRect(cx + 14 * s, baseY - 16 * s, 12 * s, 14 * s);
+
+    // Dewlap (the chin flap)
+    g.fillStyle(darkColor);
+    g.fillEllipse(cx + 22 * s, baseY - 4 * s, 8 * s, 14 * s);
 
     // Head
     g.fillStyle(bodyColor);
-    g.fillEllipse(cx + 18 * s, baseY - 10 * s, 14 * s, 11 * s);
+    g.fillEllipse(cx + 22 * s, baseY - 13 * s, 18 * s, 14 * s);
 
-    // Snout
-    g.fillStyle(shadowColor);
-    g.fillEllipse(cx + 24 * s, baseY - 8 * s, 7 * s, 5 * s);
+    // Muzzle / snout
+    g.fillStyle(lightColor);
+    g.fillEllipse(cx + 29 * s, baseY - 11 * s, 10 * s, 7 * s);
+    // Nostrils
+    g.fillStyle(darkColor);
+    g.fillCircle(cx + 27 * s, baseY - 10 * s, 1.5 * s);
+    g.fillCircle(cx + 31 * s, baseY - 10 * s, 1.5 * s);
 
-    // Legs
-    g.fillStyle(shadowColor);
-    for (let i = -1; i <= 1; i += 2) {
-        g.fillRect(cx + i * 10 * s - 3 * s, baseY, 6 * s, 10 * s);
-    }
-    // Front legs
-    for (let i = -1; i <= 1; i += 2) {
-        g.fillRect(cx + 14 * s + i * 4 * s - 3 * s, baseY, 5 * s, 9 * s);
-    }
+    // Eye
+    g.fillStyle(0x1a0e04);
+    g.fillCircle(cx + 24 * s, baseY - 16 * s, 2 * s);
+    g.fillStyle(0xffffff);
+    g.fillCircle(cx + 24 * s - 0.5 * s, baseY - 16.5 * s, 0.7 * s);
 
-    // Horn
-    g.fillStyle(0xd4b870);
+    // Horns
+    g.fillStyle(0xe8d080);
     g.fillTriangle(
-        cx + 20 * s, baseY - 16 * s,
-        cx + 14 * s, baseY - 13 * s,
-        cx + 22 * s, baseY - 12 * s,
+        cx + 18 * s, baseY - 20 * s,
+        cx + 14 * s, baseY - 30 * s,
+        cx + 22 * s, baseY - 20 * s,
     );
+    g.fillTriangle(
+        cx + 26 * s, baseY - 20 * s,
+        cx + 30 * s, baseY - 28 * s,
+        cx + 30 * s, baseY - 20 * s,
+    );
+    // Horn tips (dark)
+    g.fillStyle(0x8a7040);
+    g.fillCircle(cx + 14 * s, baseY - 30 * s, 1.5 * s);
+    g.fillCircle(cx + 30 * s, baseY - 28 * s, 1.5 * s);
+
+    // Ears
+    g.fillStyle(lightColor);
+    g.fillEllipse(cx + 14 * s, baseY - 19 * s, 6 * s, 10 * s);
+
+    // Legs — back pair
+    g.fillStyle(darkColor);
+    g.fillRect(cx - 14 * s, baseY - 1 * s, 7 * s, 14 * s);
+    g.fillRect(cx - 4 * s,  baseY - 1 * s, 7 * s, 13 * s);
+    // Legs — front pair
+    g.fillRect(cx + 8 * s,  baseY - 1 * s, 7 * s, 13 * s);
+    g.fillRect(cx + 17 * s, baseY - 1 * s, 7 * s, 12 * s);
+
+    // Hooves
+    g.fillStyle(0x1a1008);
+    g.fillRect(cx - 14 * s, baseY + 10 * s, 7 * s, 4 * s);
+    g.fillRect(cx - 4 * s,  baseY + 10 * s, 7 * s, 4 * s);
+    g.fillRect(cx + 8 * s,  baseY + 9 * s,  7 * s, 4 * s);
+    g.fillRect(cx + 17 * s, baseY + 9 * s,  7 * s, 4 * s);
+
+    // Tail
+    g.fillStyle(bodyColor);
+    g.fillRect(cx - 22 * s, baseY - 8 * s, 3 * s, 14 * s);
+    g.fillStyle(darkColor);
+    g.fillEllipse(cx - 22 * s + 1.5 * s, baseY + 7 * s, 6 * s, 10 * s); // tail tuft
 }
 
+/** Lighten (positive factor) or darken (negative) a hex color */
+function shadeColor(color: number, factor: number): number {
+    const r = Math.min(255, Math.max(0, ((color >> 16) & 0xff) + Math.round(255 * factor)));
+    const gg = Math.min(255, Math.max(0, ((color >> 8) & 0xff) + Math.round(255 * factor)));
+    const b = Math.min(255, Math.max(0, (color & 0xff) + Math.round(255 * factor)));
+    return (r << 16) | (gg << 8) | b;
+}
+
+/** Deterministic pseudo-random using a seed (no Math.random so the mountains look the same each render) */
+function seededNoise(seed: number): number {
+    const x = Math.sin(seed * 127.1 + 311.7) * 43758.5453;
+    return x - Math.floor(x);
+}
+
+/**
+ * Draw a realistic mountain with jagged silhouette using fillPoints.
+ * Much more detailed than simple triangles.
+ */
 export function drawMountain(
     g: Phaser.GameObjects.Graphics,
     cx: number,
@@ -161,37 +266,142 @@ export function drawMountain(
     color: number,
     snowCap: boolean = true,
 ): void {
-    // Main body — slightly irregular triangle using 5 points
-    g.fillStyle(color);
-    g.fillTriangle(
-        cx - width / 2, baseY,
-        cx - width * 0.08, baseY - height,
-        cx + width / 2, baseY,
-    );
-    // Second subtriangle to widen the base slightly
-    g.fillTriangle(
-        cx - width * 0.4, baseY,
-        cx + width * 0.05, baseY - height * 0.92,
-        cx + width * 0.55, baseY,
-    );
+    const seed = cx * 0.01 + width * 0.007; // stable seed from position
+    const peakOffset = (seededNoise(seed) - 0.5) * width * 0.12; // slight peak off-center
+    const peakX = cx + peakOffset;
+    const peakY = baseY - height;
 
+    // ── Build jagged silhouette outline ──────────────────────────────────────
+    // We trace from left base → up the left slope (with jagged steps) → peak
+    // → down right slope (with jagged steps) → right base
+    const steps = 18;
+    const leftSlope: Phaser.Types.Math.Vector2Like[] = [];
+    const rightSlope: Phaser.Types.Math.Vector2Like[] = [];
+
+    const leftBaseX  = cx - width * 0.5;
+    const rightBaseX = cx + width * 0.5;
+
+    for (let i = 0; i <= steps; i++) {
+        const t = i / steps; // 0 = base, 1 = peak
+        // Jag amplitude decreases near the peak
+        const jagAmp = width * 0.028 * (1 - t * 0.7);
+        const jag = (seededNoise(seed + i * 3.7) - 0.5) * 2 * jagAmp;
+
+        // Left slope — x goes from leftBaseX to peakX
+        const lx = leftBaseX + (peakX - leftBaseX) * t + jag;
+        const ly = baseY - height * t;
+        leftSlope.push({ x: lx, y: ly });
+
+        // Right slope — x goes from peakX to rightBaseX
+        const rx = peakX + (rightBaseX - peakX) * t + (seededNoise(seed + i * 5.1) - 0.5) * 2 * jagAmp;
+        const ry = baseY - height * (1 - t);
+        rightSlope.unshift({ x: rx, y: ry });
+    }
+
+    const fullOutline: Phaser.Types.Math.Vector2Like[] = [
+        { x: leftBaseX, y: baseY },
+        ...leftSlope,
+        ...rightSlope,
+        { x: rightBaseX, y: baseY },
+    ];
+
+    // ── Base fill (entire mountain) ───────────────────────────────────────────
+    g.fillStyle(shadeColor(color, -0.08));
+    g.fillPoints(fullOutline, true);
+
+    // ── Left face (lighter — lit side) ───────────────────────────────────────
+    const litFace: Phaser.Types.Math.Vector2Like[] = [
+        { x: leftBaseX, y: baseY },
+        ...leftSlope,
+        { x: leftBaseX + (rightBaseX - leftBaseX) * 0.12, y: baseY },
+    ];
+    g.fillStyle(shadeColor(color, 0.12));
+    g.fillPoints(litFace, true);
+
+    // ── Right face (darker — shadow side) ────────────────────────────────────
+    const shadowFace: Phaser.Types.Math.Vector2Like[] = [
+        { x: peakX, y: peakY },
+        ...rightSlope,
+        { x: peakX, y: baseY },
+    ];
+    g.fillStyle(0x000000, 0.22);
+    g.fillPoints(shadowFace, true);
+
+    // ── Secondary sub-peak on left ────────────────────────────────────────────
+    const subPeakX = leftBaseX + width * 0.28;
+    const subPeakY = baseY - height * 0.58;
+    g.fillStyle(shadeColor(color, 0.05));
+    const subPeak: Phaser.Types.Math.Vector2Like[] = [
+        { x: leftBaseX, y: baseY },
+        { x: leftBaseX + width * 0.12, y: baseY - height * 0.28 + (seededNoise(seed + 20) - 0.5) * 12 },
+        { x: subPeakX, y: subPeakY },
+        { x: subPeakX + width * 0.14, y: baseY - height * 0.36 },
+        { x: subPeakX + width * 0.26, y: baseY },
+    ];
+    g.fillPoints(subPeak, true);
+
+    // ── Horizontal stratification / rock bands ────────────────────────────────
+    g.lineStyle(1, shadeColor(color, -0.25), 0.35);
+    for (let band = 1; band <= 4; band++) {
+        const t = 0.25 + band * 0.15;
+        const bw = width * (1 - t) * 0.38;
+        const by2 = peakY + height * t;
+        g.beginPath();
+        g.moveTo(peakX - bw + (seededNoise(seed + band * 7) - 0.5) * 20, by2);
+        g.lineTo(peakX + bw * 0.85 + (seededNoise(seed + band * 11) - 0.5) * 20, by2 + (seededNoise(seed + band * 3) - 0.5) * 8);
+        g.strokePath();
+    }
+
+    // ── Snow cap ──────────────────────────────────────────────────────────────
     if (snowCap) {
-        // Snow cap
-        g.fillStyle(0xeef2f8, 0.85);
+        const snowLine = 0.32; // how far down the snow goes
+
+        // Build snow polygon from the jagged left and right silhouettes
+        const snowPts: Phaser.Types.Math.Vector2Like[] = [];
+
+        // Trace left slope from peak downward to snow line
+        for (let i = 0; i <= steps; i++) {
+            const t = i / steps;
+            if (t > snowLine + 0.04) break;
+            snowPts.push(leftSlope[i]);
+        }
+        // Add snow-line crossing on left
+        const snowY = peakY + height * snowLine;
+        snowPts.push({ x: peakX - width * snowLine * 0.72, y: snowY });
+        // Add snow-line crossing on right
+        snowPts.push({ x: peakX + width * snowLine * 0.58, y: snowY + seededNoise(seed + 30) * 12 });
+        // Trace right slope from snow line up to peak
+        for (let i = steps; i >= 0; i--) {
+            const t = 1 - i / steps; // t from peak (0) to base (1)
+            if (t > snowLine + 0.04) break;
+            snowPts.push(rightSlope[steps - i] ?? { x: peakX, y: peakY });
+        }
+
+        // Main snow — bright white
+        g.fillStyle(0xedf4ff, 0.94);
+        g.fillPoints(snowPts, true);
+
+        // Snow shadow (blue tint on right)
+        const snowShadow: Phaser.Types.Math.Vector2Like[] = [
+            { x: peakX, y: peakY },
+            { x: peakX + width * snowLine * 0.58, y: snowY + 10 },
+            { x: peakX + width * snowLine * 0.3, y: snowY },
+        ];
+        g.fillStyle(0xb8d0f0, 0.55);
+        g.fillPoints(snowShadow, true);
+
+        // Sub-peak snow patch
+        g.fillStyle(0xe8f2ff, 0.7);
         g.fillTriangle(
-            cx - width * 0.18, baseY - height * 0.72,
-            cx - width * 0.02, baseY - height,
-            cx + width * 0.12, baseY - height * 0.72,
+            subPeakX - 12, subPeakY + 10,
+            subPeakX, subPeakY,
+            subPeakX + 10, subPeakY + 8,
         );
     }
 
-    // Shadow side
-    g.fillStyle(0x000000, 0.12);
-    g.fillTriangle(
-        cx + width * 0.05, baseY - height * 0.92,
-        cx + width * 0.55, baseY,
-        cx - width * 0.01, baseY,
-    );
+    // ── Atmospheric haze at mountain base ─────────────────────────────────────
+    g.fillStyle(0x8aa8d0, 0.08);
+    g.fillRect(cx - width * 0.55, baseY - height * 0.22, width * 1.1, height * 0.22);
 }
 
 export function drawHill(
@@ -201,11 +411,57 @@ export function drawHill(
     width: number,
     color: number,
 ): void {
+    const seed = cx * 0.013 + width * 0.009;
+    const h = width * 0.38;
+
+    // Build irregular hill outline using a dome of points with noise
+    const steps = 24;
+    const pts: Phaser.Types.Math.Vector2Like[] = [{ x: cx - width * 0.5, y: baseY + 4 }];
+    for (let i = 0; i <= steps; i++) {
+        const t = i / steps; // 0 = left edge, 1 = right edge
+        const angle = Math.PI * t; // 0 to π
+        const baseH = Math.sin(angle) * h;
+        // Add noise to height — more variation in the middle
+        const noise = seededNoise(seed + i * 2.3) * h * 0.18 * Math.sin(angle);
+        pts.push({
+            x: cx - width * 0.5 + t * width,
+            y: baseY - baseH - noise,
+        });
+    }
+    pts.push({ x: cx + width * 0.5, y: baseY + 4 });
+
+    // Base hill fill
     g.fillStyle(color);
-    // Main mound — use overlapping ellipses for an irregular silhouette
-    g.fillEllipse(cx, baseY, width, width * 0.45);
-    g.fillEllipse(cx - width * 0.2, baseY + 4, width * 0.7, width * 0.35);
-    g.fillEllipse(cx + width * 0.22, baseY + 2, width * 0.65, width * 0.3);
+    g.fillPoints(pts, true);
+
+    // Lighter highlight on the top-left (lit by sun)
+    const highlightPts: Phaser.Types.Math.Vector2Like[] = [{ x: cx - width * 0.25, y: baseY + 2 }];
+    for (let i = 0; i <= 12; i++) {
+        const t = i / 12;
+        const angle = Math.PI * (0.1 + t * 0.55);
+        highlightPts.push({
+            x: cx - width * 0.38 + t * width * 0.45,
+            y: baseY - Math.sin(angle) * h * 0.92,
+        });
+    }
+    g.fillStyle(shadeColor(color, 0.12), 0.5);
+    g.fillPoints(highlightPts, true);
+
+    // Darker shadow on the right flank
+    g.fillStyle(shadeColor(color, -0.15), 0.6);
+    g.fillTriangle(
+        cx + width * 0.06, baseY - h * 0.7,
+        cx + width * 0.5,  baseY + 4,
+        cx + width * 0.0,  baseY + 4,
+    );
+
+    // Grass tufts at the base of the hill
+    g.fillStyle(shadeColor(color, 0.2));
+    for (let i = 0; i < 6; i++) {
+        const tx = cx - width * 0.42 + i * width * 0.15;
+        const jitter = (seededNoise(seed + i * 1.7) - 0.5) * 12;
+        g.fillRect(tx + jitter, baseY + 1, 3, seededNoise(seed + i) * 8 + 4);
+    }
 }
 
 export function drawCloud(
@@ -247,6 +503,206 @@ export function drawSun(
     // Highlight
     g.fillStyle(0xffee99, 0.5);
     g.fillCircle(cx - r * 0.25, cy - r * 0.25, r * 0.45);
+}
+
+// ─── Pioneer person ──────────────────────────────────────────────────────────
+
+/**
+ * Draw a simple pioneer person silhouette walking (facing right by default).
+ * cx/baseY = center-x and foot position.
+ */
+export function drawPerson(
+    g: Phaser.GameObjects.Graphics,
+    cx: number,
+    baseY: number,
+    scale: number = 1,
+    flipped: boolean = false,
+    legPhase: number = 0, // 0 or 1 for walking animation
+): void {
+    const s = scale;
+    const d = flipped ? -1 : 1;
+
+    // Legs
+    g.fillStyle(0x4a3020);
+    if (legPhase === 0) {
+        g.fillRect(cx - 4 * s, baseY - 18 * s, 5 * s, 18 * s); // back leg
+        g.fillRect(cx + 2 * s, baseY - 22 * s, 5 * s, 22 * s); // front leg
+    } else {
+        g.fillRect(cx - 4 * s, baseY - 22 * s, 5 * s, 22 * s);
+        g.fillRect(cx + 2 * s, baseY - 18 * s, 5 * s, 18 * s);
+    }
+
+    // Boots
+    g.fillStyle(0x2a1a08);
+    g.fillRect(cx - 4 * s, baseY - 4 * s, 7 * s, 5 * s);
+    g.fillRect(cx + 2 * s, baseY - 4 * s, 7 * s, 5 * s);
+
+    // Body / torso
+    g.fillStyle(0x7a5a38);
+    g.fillRect(cx - 7 * s, baseY - 40 * s, 14 * s, 22 * s);
+
+    // Arms (swinging opposite to legs)
+    g.fillStyle(0x7a5a38);
+    if (legPhase === 0) {
+        // Right arm forward, left arm back
+        g.fillRect(cx + 7 * s * d, baseY - 40 * s, 4 * s, 14 * s);
+        g.fillRect(cx - 9 * s * d, baseY - 36 * s, 4 * s, 12 * s);
+    } else {
+        g.fillRect(cx + 7 * s * d, baseY - 36 * s, 4 * s, 12 * s);
+        g.fillRect(cx - 9 * s * d, baseY - 40 * s, 4 * s, 14 * s);
+    }
+
+    // Head
+    g.fillStyle(0xd4956a);
+    g.fillCircle(cx, baseY - 48 * s, 9 * s);
+
+    // Hat (wide brim pioneer hat)
+    g.fillStyle(0x3a2510);
+    g.fillRect(cx - 8 * s, baseY - 60 * s, 16 * s, 12 * s); // crown
+    g.fillRect(cx - 12 * s, baseY - 49 * s, 24 * s, 3 * s);  // brim
+
+    // Hat band
+    g.fillStyle(0x8b6914);
+    g.fillRect(cx - 8 * s, baseY - 50 * s, 16 * s, 3 * s);
+}
+
+/**
+ * A woman pioneer — slightly different hat (bonnet) and dress silhouette.
+ */
+export function drawWoman(
+    g: Phaser.GameObjects.Graphics,
+    cx: number,
+    baseY: number,
+    scale: number = 1,
+    flipped: boolean = false,
+    legPhase: number = 0,
+): void {
+    const s = scale;
+    const d = flipped ? -1 : 1;
+
+    // Skirt / dress (triangular)
+    g.fillStyle(0x7a5090);
+    g.fillTriangle(
+        cx - 10 * s, baseY - 18 * s,
+        cx + 10 * s, baseY - 18 * s,
+        cx + (legPhase === 0 ? 13 : 11) * s, baseY,
+    );
+    g.fillTriangle(
+        cx - 10 * s, baseY - 18 * s,
+        cx - (legPhase === 0 ? 13 : 11) * s, baseY,
+        cx + 10 * s, baseY - 18 * s,
+    );
+
+    // Feet
+    g.fillStyle(0x2a1a08);
+    g.fillRect(cx - 8 * s, baseY - 3 * s, 6 * s, 4 * s);
+    g.fillRect(cx + 2 * s, baseY - 3 * s, 6 * s, 4 * s);
+
+    // Bodice
+    g.fillStyle(0x5a3a70);
+    g.fillRect(cx - 7 * s, baseY - 38 * s, 14 * s, 20 * s);
+
+    // Arms
+    g.fillStyle(0x5a3a70);
+    g.fillRect(cx + 7 * s * d, baseY - 38 * s, 4 * s, 12 * s);
+    g.fillRect(cx - 9 * s * d, baseY - 36 * s, 4 * s, 10 * s);
+
+    // Head
+    g.fillStyle(0xd4956a);
+    g.fillCircle(cx, baseY - 46 * s, 8 * s);
+
+    // Bonnet
+    g.fillStyle(0xf0e0c0);
+    g.fillEllipse(cx, baseY - 50 * s, 20 * s, 14 * s);
+    g.fillStyle(0xe8d4b0);
+    g.fillEllipse(cx + 6 * s * d, baseY - 46 * s, 10 * s, 8 * s); // brim
+}
+
+/**
+ * A child — smaller, simpler.
+ */
+export function drawChild(
+    g: Phaser.GameObjects.Graphics,
+    cx: number,
+    baseY: number,
+    scale: number = 1,
+    legPhase: number = 0,
+): void {
+    const s = scale;
+
+    // Legs
+    g.fillStyle(0x4a3020);
+    if (legPhase === 0) {
+        g.fillRect(cx - 3 * s, baseY - 14 * s, 4 * s, 14 * s);
+        g.fillRect(cx + 1 * s, baseY - 17 * s, 4 * s, 17 * s);
+    } else {
+        g.fillRect(cx - 3 * s, baseY - 17 * s, 4 * s, 17 * s);
+        g.fillRect(cx + 1 * s, baseY - 14 * s, 4 * s, 14 * s);
+    }
+
+    // Shoes
+    g.fillStyle(0x2a1a08);
+    g.fillRect(cx - 3 * s, baseY - 3 * s, 5 * s, 4 * s);
+    g.fillRect(cx + 1 * s, baseY - 3 * s, 5 * s, 4 * s);
+
+    // Body
+    g.fillStyle(0x8a6848);
+    g.fillRect(cx - 5 * s, baseY - 30 * s, 10 * s, 16 * s);
+
+    // Arms
+    g.fillStyle(0x8a6848);
+    g.fillRect(cx + 5 * s, baseY - 30 * s, 3 * s, 10 * s);
+    g.fillRect(cx - 8 * s, baseY - 28 * s, 3 * s, 8 * s);
+
+    // Head
+    g.fillStyle(0xd4956a);
+    g.fillCircle(cx, baseY - 37 * s, 7 * s);
+
+    // Hair
+    g.fillStyle(0x5a3010);
+    g.fillEllipse(cx, baseY - 42 * s, 14 * s, 8 * s);
+}
+
+/**
+ * A small pig / farm animal.
+ */
+export function drawPig(
+    g: Phaser.GameObjects.Graphics,
+    cx: number,
+    baseY: number,
+    scale: number = 1,
+): void {
+    const s = scale;
+
+    // Body
+    g.fillStyle(0xe8a0a0);
+    g.fillEllipse(cx, baseY - 6 * s, 26 * s, 14 * s);
+
+    // Head
+    g.fillEllipse(cx + 14 * s, baseY - 8 * s, 14 * s, 12 * s);
+
+    // Snout
+    g.fillStyle(0xdd8888);
+    g.fillCircle(cx + 20 * s, baseY - 7 * s, 5 * s);
+    g.fillStyle(0xaa5555);
+    g.fillCircle(cx + 19 * s, baseY - 8 * s, 1.5 * s);
+    g.fillCircle(cx + 21 * s, baseY - 6 * s, 1.5 * s);
+
+    // Ear
+    g.fillStyle(0xdd9090);
+    g.fillTriangle(cx + 12 * s, baseY - 14 * s, cx + 8 * s, baseY - 14 * s, cx + 10 * s, baseY - 8 * s);
+
+    // Legs
+    g.fillStyle(0xe09898);
+    [-8, -2, 4, 10].forEach(lx => {
+        g.fillRect(cx + lx * s, baseY - 1 * s, 4 * s, 5 * s);
+    });
+
+    // Tail — curled circle hint
+    g.fillStyle(0xe8a0a0);
+    g.fillCircle(cx - 14 * s, baseY - 8 * s, 4 * s);
+    g.fillStyle(0xf0b8b8);
+    g.fillCircle(cx - 13 * s, baseY - 9 * s, 2 * s);
 }
 
 // ─── Animal silhouettes for HuntingScene ─────────────────────────────────────

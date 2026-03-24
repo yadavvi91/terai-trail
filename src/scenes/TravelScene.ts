@@ -6,7 +6,7 @@ import {
 import { Pace, Rations, Weather, MemberStatus } from '../utils/types';
 import { GameState } from '../game/GameState';
 import { getNextLandmark } from '../game/TrailData';
-import { drawWagon, drawOx, drawMountain, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
+import { drawWagon, drawOx, drawPerson, drawWoman, drawChild, drawPig, drawMountain, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
 
 const TICK_MS = 1200;
 const GROUND_Y = GAME_HEIGHT - 80;
@@ -33,6 +33,8 @@ export class TravelScene extends Scene {
     private dustG!: Phaser.GameObjects.Graphics;
     private dustParticles: { x: number; y: number; alpha: number; r: number }[] = [];
     private isMoving: boolean = false;
+    private walkFrame: number = 0;
+    private walkTimer: number = 0;
 
     // HUD
     private dateText!: Phaser.GameObjects.Text;
@@ -62,6 +64,8 @@ export class TravelScene extends Scene {
         this.hillLayers = [];
         this.groundLayers = [];
         this.cloudLayers = [];
+        this.walkFrame = 0;
+        this.walkTimer = 0;
 
         this.buildSky();
         this.buildParallax();
@@ -182,13 +186,37 @@ export class TravelScene extends Scene {
         this.redrawWagon();
     }
 
-    private redrawWagon(): void {
+    private redrawWagon(dt: number = 0): void {
+        // Walking frame toggle
+        this.walkTimer += dt;
+        if (this.walkTimer > 280) {
+            this.walkFrame = this.walkFrame === 0 ? 1 : 0;
+            this.walkTimer = 0;
+        }
+
         this.wagonG.clear();
         const wx = 260;
         const wy = GROUND_Y - 4;
-        drawOx(this.wagonG, wx - 92, wy, 0.8);
-        drawOx(this.wagonG, wx - 58, wy, 0.8);
-        drawWagon(this.wagonG, wx, wy, 0.9);
+
+        // Oxen
+        drawOx(this.wagonG, wx - 100, wy, 1.0);
+        drawOx(this.wagonG, wx - 64, wy, 1.0);
+
+        // Wagon
+        drawWagon(this.wagonG, wx, wy, 1.0);
+
+        // Party members walking alongside (mix of men, women, children)
+        const gs = GameState.getInstance();
+        const alive = gs.party.filter(m => m.status !== MemberStatus.DEAD).length;
+        const wf = this.walkFrame;
+        const wf1 = wf === 0 ? 1 : 0;
+        if (alive > 0) drawPerson(this.wagonG, wx + 52, wy + 2, 0.88, false, wf);
+        if (alive > 1) drawWoman(this.wagonG,  wx + 78, wy + 2, 0.85, false, wf1);
+        if (alive > 2) drawChild(this.wagonG,  wx + 100, wy + 4, 0.72, wf);
+        if (alive > 3) drawChild(this.wagonG,  wx + 116, wy + 4, 0.65, wf1);
+        if (alive > 4) drawPerson(this.wagonG, wx + 134, wy + 2, 0.80, false, wf);
+        // Pig trotting alongside
+        drawPig(this.wagonG, wx - 130, wy + 4, 0.8);
     }
 
     // ─── HUD ───────────────────────────────────────────────────────────────────
@@ -342,6 +370,9 @@ export class TravelScene extends Scene {
             this.dustG.fillStyle(0xc8a870, p.alpha);
             this.dustG.fillCircle(p.x, p.y, p.r);
         });
+
+        // Redraw wagon + people with animation
+        this.redrawWagon(delta);
     }
 
     // ─── Daily Tick ────────────────────────────────────────────────────────────

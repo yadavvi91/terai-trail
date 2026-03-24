@@ -1,12 +1,14 @@
 import { Scene } from 'phaser';
 import { SCENES, GAME_WIDTH, GAME_HEIGHT, COLORS, TEXT_STYLES, HEX_COLORS } from '../utils/constants';
-import { drawWagon, drawOx, drawMountain, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
+import { drawWagon, drawOx, drawPerson, drawWoman, drawChild, drawPig, drawMountain, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
 
 export class TitleScene extends Scene {
     private wagonG!: Phaser.GameObjects.Graphics;
     private wagonX: number = -120;
     private dustParticles: { x: number; y: number; alpha: number; r: number }[] = [];
     private dustG!: Phaser.GameObjects.Graphics;
+    private walkFrame: number = 0;
+    private walkTimer: number = 0;
 
     constructor() {
         super(SCENES.TITLE);
@@ -15,6 +17,8 @@ export class TitleScene extends Scene {
     create(): void {
         this.wagonX = -120;
         this.dustParticles = [];
+        this.walkFrame = 0;
+        this.walkTimer = 0;
 
         const groundY = GAME_HEIGHT - 90;
 
@@ -162,13 +166,34 @@ export class TitleScene extends Scene {
             this.dustG.fillCircle(p.x, p.y, p.r);
         });
 
+        // Walking animation frame
+        this.walkTimer += dt;
+        if (this.walkTimer > 280) {
+            this.walkFrame = this.walkFrame === 0 ? 1 : 0;
+            this.walkTimer = 0;
+        }
+
         this.wagonG.clear();
         const wx = this.wagonX;
         const wy = groundY - 2;
-        // Oxen
-        drawOx(this.wagonG, wx - 88, wy, 0.75);
-        drawOx(this.wagonG, wx - 56, wy, 0.75);
-        drawWagon(this.wagonG, wx, wy, 0.9);
+
+        // Oxen pulling the wagon
+        drawOx(this.wagonG, wx - 100, wy, 1.0);
+        drawOx(this.wagonG, wx - 62, wy, 1.0);
+
+        // Wagon
+        drawWagon(this.wagonG, wx, wy, 1.0);
+
+        // People walking alongside
+        const wf = this.walkFrame;
+        const wf1 = wf === 0 ? 1 : 0;
+        drawPerson(this.wagonG, wx + 55,  wy + 2, 0.9, false, wf);   // man
+        drawWoman(this.wagonG,  wx + 82,  wy + 2, 0.88, false, wf1); // woman
+        drawPerson(this.wagonG, wx + 110, wy + 2, 0.85, false, wf);  // man
+        drawChild(this.wagonG,  wx + 132, wy + 4, 0.75, wf1);        // child
+        drawChild(this.wagonG,  wx + 150, wy + 4, 0.65, wf);         // smaller child
+        // Pig trotting alongside
+        drawPig(this.wagonG, wx - 130, wy + 4, 0.75);
     }
 
     private createMenuButton(x: number, y: number, label: string): Phaser.GameObjects.Text {
