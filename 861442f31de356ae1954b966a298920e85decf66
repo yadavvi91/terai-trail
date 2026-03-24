@@ -1,0 +1,23 @@
+src/scenes/BootScene.ts
+  f0d64ad2f153f435 1-56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.17",
+  "base_commit_sha": "861442f31de356ae1954b966a298920e85decf66",
+  "prompts": {
+    "f0d64ad2f153f435": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "152510db-346f-41d2-a072-51cc5b42ce95",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 56,
+      "total_deletions": 0,
+      "accepted_lines": 56,
+      "overriden_lines": 0
+    }
+  }
+}
