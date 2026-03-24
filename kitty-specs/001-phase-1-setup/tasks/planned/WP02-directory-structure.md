@@ -1,7 +1,7 @@
 ---
 id: WP02
 title: Create directory structure & constants
-lane: planned
+lane: "doing"
 depends_on: [WP01]
 ---
 
@@ -24,3 +24,7 @@ Create the Oregon Trail directory structure and foundational files.
 ## Acceptance
 - All directories exist
 - constants.ts and types.ts compile cleanly
+
+## Activity Log
+
+- 2026-03-24T20:59:17Z – unknown – lane=doing – Moved to doing
