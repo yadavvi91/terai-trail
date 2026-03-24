@@ -1,6 +1,6 @@
 import { Scene } from 'phaser';
 import { SCENES, GAME_WIDTH, GAME_HEIGHT, COLORS, TEXT_STYLES, HEX_COLORS } from '../utils/constants';
-import { drawWagon, drawOx, drawPerson, drawWoman, drawChild, drawPig, drawMountain, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
+import { drawWagon, drawOx, drawPerson, drawWoman, drawChild, drawPig, drawTree, drawMountain, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
 
 export class TitleScene extends Scene {
     private wagonG!: Phaser.GameObjects.Graphics;
@@ -22,65 +22,101 @@ export class TitleScene extends Scene {
 
         const groundY = GAME_HEIGHT - 90;
 
-        // ── Sky gradient (simulate with layered rects) ──
-        this.cameras.main.setBackgroundColor(0x1a6ea8);
-        for (let i = 0; i < 12; i++) {
-            const t = i / 11;
-            const r = Math.round(0x1a + t * (0x87 - 0x1a));
-            const g = Math.round(0x6e + t * (0xce - 0x6e));
-            const b = Math.round(0xa8 + t * (0xe8 - 0xa8));
-            const color = (r << 16) | (g << 8) | b;
-            this.add.rectangle(GAME_WIDTH / 2, (i + 0.5) * ((groundY) / 12), GAME_WIDTH, (groundY) / 12 + 1, color);
+        // ── Sky gradient — deep blue at top, warm amber at horizon ──
+        this.cameras.main.setBackgroundColor(0x0d3a6e);
+        const skySteps = 16;
+        for (let i = 0; i < skySteps; i++) {
+            const t = i / (skySteps - 1);
+            // Top = deep blue, horizon = warm sky blue with amber tint
+            const r = Math.round(0x0d + t * (0x72 - 0x0d));
+            const gv = Math.round(0x3a + t * (0xb8 - 0x3a));
+            const b = Math.round(0x6e + t * (0xd8 - 0x6e));
+            const color = (r << 16) | (gv << 8) | b;
+            this.add.rectangle(GAME_WIDTH / 2, (i + 0.5) * (groundY / skySteps), GAME_WIDTH, groundY / skySteps + 2, color);
         }
+        // Horizon warm glow
+        this.add.rectangle(GAME_WIDTH / 2, groundY - 12, GAME_WIDTH, 30, 0xf0c890, 0.22);
+        this.add.rectangle(GAME_WIDTH / 2, groundY - 4,  GAME_WIDTH, 16, 0xf0b060, 0.18);
 
         // ── Sun ──
         const bg = this.add.graphics();
-        drawSun(bg, GAME_WIDTH - 130, 100, 44);
+        drawSun(bg, GAME_WIDTH - 140, 90, 48);
 
-        // ── Distant mountains ──
-        const mtns = this.add.graphics();
-        drawMountain(mtns, 180,  groundY - 10, 220, 190, 0x6a7fa8, true);
-        drawMountain(mtns, 420,  groundY - 10, 260, 220, 0x5a7098, true);
-        drawMountain(mtns, 660,  groundY - 10, 200, 170, 0x7a8fb8, true);
-        drawMountain(mtns, 850,  groundY - 10, 240, 200, 0x607898, true);
-        drawMountain(mtns, 1020, groundY - 10, 180, 150, 0x6a8098, true);
+        // ── Far mountains (distant, desaturated/hazy) ──
+        const farMtns = this.add.graphics();
+        drawMountain(farMtns, 80,   groundY - 5, 200, 160, 0x8090a8, true);
+        drawMountain(farMtns, 280,  groundY - 5, 260, 200, 0x7888a0, true);
+        drawMountain(farMtns, 520,  groundY - 5, 220, 185, 0x8898b0, true);
+        drawMountain(farMtns, 760,  groundY - 5, 280, 215, 0x6878a0, true);
+        drawMountain(farMtns, 980,  groundY - 5, 200, 170, 0x7890a8, true);
+
+        // ── Mid mountains (closer, more saturated) ──
+        const midMtns = this.add.graphics();
+        drawMountain(midMtns, 200, groundY, 180, 165, 0x5a7098, true);
+        drawMountain(midMtns, 430, groundY, 220, 195, 0x4d6890, true);
+        drawMountain(midMtns, 680, groundY, 190, 175, 0x607898, true);
+        drawMountain(midMtns, 880, groundY, 240, 180, 0x546c90, true);
 
         // ── Near hills ──
         const hills = this.add.graphics();
-        drawHill(hills, 100,  groundY + 5, 220, 0x3a7830);
-        drawHill(hills, 340,  groundY + 5, 180, 0x3d8a33);
-        drawHill(hills, 580,  groundY + 5, 200, 0x347030);
-        drawHill(hills, 800,  groundY + 5, 190, 0x3a7830);
-        drawHill(hills, 980,  groundY + 5, 160, 0x3d8a33);
+        drawHill(hills, 100,  groundY + 8, 240, 0x2d6428);
+        drawHill(hills, 340,  groundY + 8, 200, 0x337030);
+        drawHill(hills, 580,  groundY + 8, 220, 0x2d6428);
+        drawHill(hills, 800,  groundY + 8, 210, 0x337030);
+        drawHill(hills, 1010, groundY + 8, 190, 0x2d6428);
+
+        // ── Trees on distant hilltops ──
+        const treeG = this.add.graphics();
+        drawTree(treeG, 60,  groundY + 2, 55, 0x2a5820, false);
+        drawTree(treeG, 100, groundY - 5, 65, 0x234d1a, false);
+        drawTree(treeG, 135, groundY - 2, 48, 0x2a5820, false);
+        drawTree(treeG, 880, groundY - 3, 58, 0x234d1a, false);
+        drawTree(treeG, 920, groundY + 2, 62, 0x2a5820, false);
+        drawTree(treeG, 960, groundY - 6, 72, 0x234d1a, true); // pine
+        drawTree(treeG, 990, groundY - 2, 55, 0x234d1a, true);
 
         // ── Ground ──
-        this.add.rectangle(GAME_WIDTH / 2, groundY + 40, GAME_WIDTH, 100, 0x3d8b37);
+        this.add.rectangle(GAME_WIDTH / 2, groundY + 40, GAME_WIDTH, 100, 0x3a7d30);
+        // Lighter ground strip near horizon
+        this.add.rectangle(GAME_WIDTH / 2, groundY + 6, GAME_WIDTH, 16, 0x4a9038, 0.6);
         // Trail dirt path
-        this.add.rectangle(GAME_WIDTH / 2, groundY + 14, GAME_WIDTH, 22, 0x9e7b3a);
+        this.add.rectangle(GAME_WIDTH / 2, groundY + 14, GAME_WIDTH, 24, 0x9e7b3a);
         // Trail ruts
-        this.add.rectangle(GAME_WIDTH / 2, groundY + 10, GAME_WIDTH, 3, 0x7a5a1e);
-        this.add.rectangle(GAME_WIDTH / 2, groundY + 18, GAME_WIDTH, 3, 0x7a5a1e);
+        this.add.rectangle(GAME_WIDTH / 2, groundY + 8,  GAME_WIDTH, 3, 0x6a4e1e);
+        this.add.rectangle(GAME_WIDTH / 2, groundY + 20, GAME_WIDTH, 3, 0x6a4e1e);
+        // Wildflowers alongside trail
+        const flowerG = this.add.graphics();
+        [[120, 0xffdd44], [210, 0xff8844], [350, 0xffdd44], [490, 0xff6644],
+         [610, 0xffdd44], [730, 0xff8844], [850, 0xffdd44], [950, 0xff6644]].forEach(([fx, fc]) => {
+            flowerG.fillStyle(fc as number, 0.8);
+            flowerG.fillCircle(fx as number, groundY + 28, 3);
+            flowerG.fillCircle((fx as number) + 12, groundY + 32, 2.5);
+        });
         // Prairie grass tufts
-        for (let i = 0; i < 18; i++) {
-            const gx = (i / 18) * GAME_WIDTH + 20;
-            const gy = groundY + Phaser.Math.Between(22, 38);
-            this.add.rectangle(gx, gy, 3, Phaser.Math.Between(6, 14), 0x2d6a22);
+        const grassG = this.add.graphics();
+        for (let i = 0; i < 28; i++) {
+            const gx = (i / 28) * GAME_WIDTH + 10;
+            const gy = groundY + 24 + (i % 3) * 8;
+            grassG.fillStyle(i % 2 === 0 ? 0x2d6a22 : 0x3a7828, 0.75);
+            grassG.fillRect(gx, gy, 2.5, 10 + (i % 4) * 3);
+            grassG.fillRect(gx + 5, gy + 2, 2, 8 + (i % 3) * 2);
         }
 
         // ── Clouds ──
         const cloudG = this.add.graphics();
-        drawCloud(cloudG, 200, 60, 0.9);
-        drawCloud(cloudG, 550, 40, 0.7);
-        drawCloud(cloudG, 820, 80, 1.1);
+        drawCloud(cloudG, 150, 55, 1.1);
+        drawCloud(cloudG, 420, 32, 0.75);
+        drawCloud(cloudG, 680, 65, 0.9);
+        drawCloud(cloudG, 900, 40, 0.6);
 
-        // ── Birds (simple v-shapes) ──
+        // ── Birds (V-shapes soaring near sun) ──
         const birdG = this.add.graphics();
-        birdG.lineStyle(2, 0x1a3a5c, 0.7);
-        [[680, 55], [710, 48], [730, 60], [760, 44]].forEach(([bx, by]) => {
+        birdG.lineStyle(2, 0x1a3a6e, 0.65);
+        [[640, 60], [672, 50], [696, 68], [720, 44], [740, 58]].forEach(([bx, by]) => {
             birdG.beginPath();
-            (birdG as any).moveTo(bx - 8, by);
-            (birdG as any).lineTo(bx, by - 5);
-            (birdG as any).lineTo(bx + 8, by);
+            birdG.moveTo((bx as number) - 9, by as number);
+            birdG.lineTo(bx as number, (by as number) - 6);
+            birdG.lineTo((bx as number) + 9, by as number);
             birdG.strokePath();
         });
 

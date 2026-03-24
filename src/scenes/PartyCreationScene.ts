@@ -4,7 +4,7 @@ import {
     Profession, PROFESSION_DATA,
 } from '../utils/constants';
 import { GameState } from '../game/GameState';
-import { drawMountain, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
+import { drawMountain, drawHill, drawTree, drawCloud, drawSun } from '../ui/DrawUtils';
 
 const MEMBER_LABELS = ['Trail Leader', 'Companion 2', 'Companion 3', 'Companion 4', 'Companion 5'];
 
@@ -45,37 +45,49 @@ export class PartyCreationScene extends Scene {
     private buildBackground(): void {
         const groundY = GAME_HEIGHT - 60;
 
-        // Sky gradient
-        this.cameras.main.setBackgroundColor(0x1a6ea8);
-        for (let i = 0; i < 8; i++) {
-            const t = i / 7;
-            const r = Math.round(0x1a + t * (0x87 - 0x1a));
-            const g = Math.round(0x6e + t * (0xce - 0x6e));
-            const b = Math.round(0xa8 + t * (0xe8 - 0xa8));
-            this.add.rectangle(GAME_WIDTH / 2, 30 + i * 50, GAME_WIDTH, 52, (r << 16) | (g << 8) | b);
+        // Sky gradient — deeper blue at top
+        this.cameras.main.setBackgroundColor(0x0d3a6e);
+        for (let i = 0; i < 12; i++) {
+            const t = i / 11;
+            const r = Math.round(0x0d + t * (0x70 - 0x0d));
+            const gv = Math.round(0x3a + t * (0xb4 - 0x3a));
+            const b = Math.round(0x6e + t * (0xd8 - 0x6e));
+            this.add.rectangle(GAME_WIDTH / 2, 26 + i * 38, GAME_WIDTH, 40, (r << 16) | (gv << 8) | b);
         }
+        // Horizon glow
+        this.add.rectangle(GAME_WIDTH / 2, groundY - 10, GAME_WIDTH, 25, 0xf0c880, 0.18);
 
         const sunG = this.add.graphics();
-        drawSun(sunG, 100, 80, 34);
+        drawSun(sunG, 110, 78, 36);
 
         const cloudG = this.add.graphics();
-        drawCloud(cloudG, 300, 55, 0.75);
-        drawCloud(cloudG, 780, 40, 0.65);
+        drawCloud(cloudG, 300, 50, 0.78);
+        drawCloud(cloudG, 580, 34, 0.6);
+        drawCloud(cloudG, 820, 60, 0.7);
 
         const mtnG = this.add.graphics();
-        drawMountain(mtnG, 200,  groundY + 10, 220, 180, 0x6a7fa8, true);
-        drawMountain(mtnG, 450,  groundY + 10, 260, 210, 0x5a7098, true);
-        drawMountain(mtnG, 700,  groundY + 10, 200, 170, 0x7a8fb8, true);
-        drawMountain(mtnG, 920,  groundY + 10, 240, 195, 0x607898, true);
+        drawMountain(mtnG, 80,  groundY + 8, 180, 155, 0x8090a8, true);
+        drawMountain(mtnG, 240, groundY + 8, 220, 180, 0x6a7fa8, true);
+        drawMountain(mtnG, 460, groundY + 8, 260, 210, 0x5a7098, true);
+        drawMountain(mtnG, 700, groundY + 8, 200, 172, 0x7a8fb8, true);
+        drawMountain(mtnG, 920, groundY + 8, 240, 195, 0x607898, true);
 
         const hillG = this.add.graphics();
-        drawHill(hillG, 100,  groundY + 8, 200, 0x3a7830);
-        drawHill(hillG, 340,  groundY + 8, 180, 0x3d8a33);
-        drawHill(hillG, 580,  groundY + 8, 220, 0x347030);
-        drawHill(hillG, 820,  groundY + 8, 190, 0x3a7830);
-        drawHill(hillG, 1020, groundY + 8, 170, 0x3d8a33);
+        drawHill(hillG, 100,  groundY + 8, 200, 0x2d6428);
+        drawHill(hillG, 340,  groundY + 8, 190, 0x337030);
+        drawHill(hillG, 580,  groundY + 8, 220, 0x2d6428);
+        drawHill(hillG, 820,  groundY + 8, 195, 0x337030);
+        drawHill(hillG, 1020, groundY + 8, 175, 0x2d6428);
 
-        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 20, GAME_WIDTH, 80, 0x3d8b37);
+        // Trees silhouetted on hillsides
+        const treeG = this.add.graphics();
+        drawTree(treeG, 55,  groundY + 2, 58, 0x234d1a, false);
+        drawTree(treeG, 88,  groundY - 6, 70, 0x2a5820, false);
+        drawTree(treeG, 920, groundY + 2, 62, 0x234d1a, true);
+        drawTree(treeG, 956, groundY - 4, 68, 0x2a5820, false);
+        drawTree(treeG, 990, groundY - 8, 78, 0x234d1a, false);
+
+        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 18, GAME_WIDTH, 80, 0x3a7d30);
         this.add.rectangle(GAME_WIDTH / 2, groundY + 14, GAME_WIDTH, 20, 0x9e7b3a);
     }
 

@@ -505,6 +505,57 @@ export function drawSun(
     g.fillCircle(cx - r * 0.25, cy - r * 0.25, r * 0.45);
 }
 
+// ─── Tree ────────────────────────────────────────────────────────────────────
+
+/**
+ * Draw a deciduous or pine tree silhouette.
+ */
+export function drawTree(
+    g: Phaser.GameObjects.Graphics,
+    cx: number,
+    baseY: number,
+    height: number,
+    color: number = 0x2d6020,
+    pine: boolean = false,
+): void {
+    const tw = height * (pine ? 0.45 : 0.7);
+
+    // Trunk
+    g.fillStyle(0x5a3a18);
+    g.fillRect(cx - height * 0.06, baseY - height * 0.25, height * 0.12, height * 0.25);
+
+    if (pine) {
+        // Pine — stacked triangles
+        g.fillStyle(color);
+        g.fillTriangle(cx - tw * 0.5, baseY - height * 0.28, cx, baseY - height, cx + tw * 0.5, baseY - height * 0.28);
+        g.fillStyle(shadeColor(color, 0.06));
+        g.fillTriangle(cx - tw * 0.65, baseY - height * 0.48, cx, baseY - height * 0.62, cx + tw * 0.65, baseY - height * 0.48);
+        g.fillStyle(shadeColor(color, 0.1));
+        g.fillTriangle(cx - tw * 0.78, baseY - height * 0.65, cx, baseY - height * 0.22, cx + tw * 0.78, baseY - height * 0.65);
+        // Shadow
+        g.fillStyle(0x000000, 0.2);
+        g.fillTriangle(cx, baseY - height, cx + tw * 0.5, baseY - height * 0.28, cx + tw * 0.14, baseY - height * 0.28);
+    } else {
+        // Deciduous — irregular rounded canopy from overlapping ellipses
+        const seed = cx * 0.017 + height * 0.023;
+        g.fillStyle(shadeColor(color, -0.1));
+        g.fillEllipse(cx, baseY - height * 0.62, tw * 0.9, height * 0.56);
+        g.fillStyle(color);
+        g.fillEllipse(cx - tw * 0.18, baseY - height * 0.68, tw * 0.72, height * 0.5);
+        g.fillEllipse(cx + tw * 0.16, baseY - height * 0.64, tw * 0.68, height * 0.46);
+        g.fillStyle(shadeColor(color, 0.12));
+        g.fillEllipse(cx - tw * 0.1, baseY - height * 0.8, tw * 0.5, height * 0.36);
+        // Highlight
+        g.fillStyle(shadeColor(color, 0.2), 0.4);
+        g.fillEllipse(cx - tw * 0.14, baseY - height * 0.84, tw * 0.28, height * 0.2);
+        // Shadow on right
+        g.fillStyle(0x000000, 0.18);
+        g.fillEllipse(cx + tw * 0.2, baseY - height * 0.6, tw * 0.42, height * 0.44);
+        // Use seed to suppress unused variable warning
+        void seed;
+    }
+}
+
 // ─── Pioneer person ──────────────────────────────────────────────────────────
 
 /**

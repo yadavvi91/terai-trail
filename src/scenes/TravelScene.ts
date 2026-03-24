@@ -6,7 +6,7 @@ import {
 import { Pace, Rations, Weather, MemberStatus } from '../utils/types';
 import { GameState } from '../game/GameState';
 import { getNextLandmark } from '../game/TrailData';
-import { drawWagon, drawOx, drawPerson, drawWoman, drawChild, drawPig, drawMountain, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
+import { drawWagon, drawOx, drawPerson, drawWoman, drawChild, drawPig, drawTree, drawMountain, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
 
 const TICK_MS = 1200;
 const GROUND_Y = GAME_HEIGHT - 80;
@@ -141,12 +141,21 @@ export class TravelScene extends Scene {
     }
 
     private drawHillLayer(g: Phaser.GameObjects.Graphics, offsetX: number): void {
-        drawHill(g, offsetX + 100,  GROUND_Y + 8, 240, 0x3a7830);
-        drawHill(g, offsetX + 330,  GROUND_Y + 8, 200, 0x3d8a33);
-        drawHill(g, offsetX + 520,  GROUND_Y + 8, 260, 0x347030);
-        drawHill(g, offsetX + 740,  GROUND_Y + 8, 220, 0x3a7830);
-        drawHill(g, offsetX + 940,  GROUND_Y + 8, 180, 0x3d8a33);
-        drawHill(g, offsetX + 1080, GROUND_Y + 8, 200, 0x347030);
+        drawHill(g, offsetX + 100,  GROUND_Y + 8, 240, 0x2d6428);
+        drawHill(g, offsetX + 330,  GROUND_Y + 8, 200, 0x337030);
+        drawHill(g, offsetX + 520,  GROUND_Y + 8, 260, 0x2d6428);
+        drawHill(g, offsetX + 740,  GROUND_Y + 8, 220, 0x337030);
+        drawHill(g, offsetX + 940,  GROUND_Y + 8, 180, 0x2d6428);
+        drawHill(g, offsetX + 1080, GROUND_Y + 8, 200, 0x337030);
+        // Trees on hillsides
+        drawTree(g, offsetX + 60,  GROUND_Y + 4, 62, 0x234d1a, false);
+        drawTree(g, offsetX + 90,  GROUND_Y - 4, 74, 0x2a5820, false);
+        drawTree(g, offsetX + 280, GROUND_Y + 2, 55, 0x234d1a, false);
+        drawTree(g, offsetX + 480, GROUND_Y - 2, 68, 0x2a5820, false);
+        drawTree(g, offsetX + 510, GROUND_Y + 4, 58, 0x234d1a, true);  // pine
+        drawTree(g, offsetX + 720, GROUND_Y - 4, 72, 0x2a5820, false);
+        drawTree(g, offsetX + 900, GROUND_Y + 2, 60, 0x234d1a, true);
+        drawTree(g, offsetX + 930, GROUND_Y - 6, 80, 0x2a5820, false);
     }
 
     // ─── Ground & trail ────────────────────────────────────────────────────────

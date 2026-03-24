@@ -5,7 +5,8 @@ import {
 } from '../utils/constants';
 import { MemberStatus } from '../utils/types';
 import { GameState } from '../game/GameState';
-import { getNextLandmark, getCurrentLandmark } from '../game/TrailData';
+import { getCurrentLandmark } from '../game/TrailData';
+import { drawMountain, drawHill, drawTree, drawCloud, drawSun } from '../ui/DrawUtils';
 
 // Fort price multipliers (forts charge more than Independence prices)
 const FORT_MULTIPLIERS: Record<string, number> = {
@@ -36,10 +37,34 @@ export class LandmarkScene extends Scene {
         const lm = getCurrentLandmark(gs.milesTraveled);
         this.landmark = lm ?? { name: 'Landmark', description: 'A notable stop on the trail.', isFort: false, miles: 0 };
 
-        // Background
-        this.cameras.main.setBackgroundColor(COLORS.SKY_BLUE);
-        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 60, GAME_WIDTH, 120, COLORS.GRASS_GREEN);
-        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 60, GAME_WIDTH, 20, COLORS.TRAIL_BROWN);
+        // Background — scenic sky + terrain
+        this.cameras.main.setBackgroundColor(0x2a6ea8);
+        for (let i = 0; i < 10; i++) {
+            const t = i / 9;
+            const r = Math.round(0x2a + t * (0x7a - 0x2a));
+            const gv = Math.round(0x6e + t * (0xb8 - 0x6e));
+            const b = Math.round(0xa8 + t * (0xd8 - 0xa8));
+            this.add.rectangle(GAME_WIDTH / 2, 30 + i * 50, GAME_WIDTH, 52, (r << 16) | (gv << 8) | b);
+        }
+        const skyG = this.add.graphics();
+        drawSun(skyG, GAME_WIDTH - 120, 80, 38);
+        drawCloud(skyG, 200, 50, 0.8);
+        drawCloud(skyG, 600, 35, 0.65);
+
+        const terrG = this.add.graphics();
+        drawMountain(terrG, 150,  GAME_HEIGHT - 130, 200, 160, 0x5a7098, true);
+        drawMountain(terrG, 350,  GAME_HEIGHT - 130, 240, 190, 0x4d6890, true);
+        drawMountain(terrG, 800,  GAME_HEIGHT - 130, 220, 175, 0x607898, true);
+        drawMountain(terrG, 980,  GAME_HEIGHT - 130, 180, 155, 0x546c90, true);
+        drawHill(terrG, 80,   GAME_HEIGHT - 110, 200, 0x2d6428);
+        drawHill(terrG, 920,  GAME_HEIGHT - 110, 220, 0x337030);
+        drawTree(terrG, 40,   GAME_HEIGHT - 112, 60, 0x234d1a, false);
+        drawTree(terrG, 70,   GAME_HEIGHT - 120, 72, 0x2a5820, true);
+        drawTree(terrG, 950,  GAME_HEIGHT - 118, 65, 0x234d1a, false);
+        drawTree(terrG, 985,  GAME_HEIGHT - 124, 75, 0x2a5820, false);
+
+        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 55, GAME_WIDTH, 110, 0x3a7d30);
+        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 102, GAME_WIDTH, 22, 0x9e7b3a);
 
         // Landmark visual — simple building silhouette for forts, rock for others
         if (this.landmark.isFort) {
