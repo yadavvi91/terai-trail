@@ -1,0 +1,31 @@
+src/game/GameState.ts
+  c4b157ded3d96a80 1-90
+src/scenes/PartyCreationScene.ts
+  c4b157ded3d96a80 2-6,8,11-21,23-27,29-194
+src/game/Party.ts
+  c4b157ded3d96a80 1-44
+src/scenes/StoreScene.ts
+  c4b157ded3d96a80 2-6,8-25,28-39,41-45,47-228
+src/main.ts
+  c4b157ded3d96a80 21-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.17",
+  "base_commit_sha": "d71b869dbebe7f2c87e39d94e237fe1de905f721",
+  "prompts": {
+    "c4b157ded3d96a80": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b7f94ea-b189-45b5-b6ab-432f20351c74",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 549,
+      "total_deletions": 8,
+      "accepted_lines": 549,
+      "overriden_lines": 0
+    }
+  }
+}
