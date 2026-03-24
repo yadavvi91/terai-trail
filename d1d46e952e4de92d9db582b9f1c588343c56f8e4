@@ -1,0 +1,33 @@
+kitty-specs/002-phase-2-game-state/spec.md
+  c4b157ded3d96a80 1-21
+kitty-specs/002-phase-2-game-state/tasks/planned/WP04-wire-and-verify.md
+  c4b157ded3d96a80 1-9
+kitty-specs/002-phase-2-game-state/tasks.md
+  c4b157ded3d96a80 1-37
+kitty-specs/002-phase-2-game-state/tasks/planned/WP03-store-scene.md
+  c4b157ded3d96a80 1-9
+kitty-specs/002-phase-2-game-state/tasks/planned/WP01-game-state.md
+  c4b157ded3d96a80 1-8
+kitty-specs/002-phase-2-game-state/tasks/planned/WP02-party-creation-scene.md
+  c4b157ded3d96a80 1-9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.17",
+  "base_commit_sha": "d1d46e952e4de92d9db582b9f1c588343c56f8e4",
+  "prompts": {
+    "c4b157ded3d96a80": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b7f94ea-b189-45b5-b6ab-432f20351c74",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 93,
+      "total_deletions": 0,
+      "accepted_lines": 93,
+      "overriden_lines": 0
+    }
+  }
+}
