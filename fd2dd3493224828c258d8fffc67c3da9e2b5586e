@@ -1,0 +1,29 @@
+src/scenes/TitleScene.ts
+  c4b157ded3d96a80 3,10-11,20-21,169-175,179-196
+src/scenes/RiverCrossingScene.ts
+  c4b157ded3d96a80 6,97-104
+src/scenes/TravelScene.ts
+  c4b157ded3d96a80 9,36-37,67-68,189-196,200-219,373-375
+src/ui/DrawUtils.ts
+  c4b157ded3d96a80 36-37,39,41-44,47-52,54-65,67-68,72-75,81-90,92-94,96-99,101-104,106-111,114-120,157-159,161-173,175-179,183,185-191,193-197,199-200,202-204,207-209,211-239,242-253,256-259,269-299,301-341,343-355,357-394,396-398,402-404,414-433,435-464,508-707
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "fd2dd3493224828c258d8fffc67c3da9e2b5586e",
+  "prompts": {
+    "c4b157ded3d96a80": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b7f94ea-b189-45b5-b6ab-432f20351c74",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 699,
+      "total_deletions": 182,
+      "accepted_lines": 614,
+      "overriden_lines": 0
+    }
+  }
+}
