@@ -1,8 +1,10 @@
 ---
 id: WP05
 title: Wire up main.ts and verify
-lane: "doing"
+lane: "done"
 depends_on: [WP04]
+reviewed_by: "Vishal Yadav"
+review_status: "approved"
 ---
 
 Update the main entry point and verify everything works end-to-end.
@@ -24,3 +26,4 @@ Update the main entry point and verify everything works end-to-end.
 ## Activity Log
 
 - 2026-03-24T21:02:34Z – unknown – lane=doing – Moved to doing
+- 2026-03-24T21:07:51Z – unknown – lane=done – Moved to done
