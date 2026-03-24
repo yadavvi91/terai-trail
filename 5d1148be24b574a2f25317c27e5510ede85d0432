@@ -1,0 +1,23 @@
+src/scenes/GameOverScene.ts
+  c4b157ded3d96a80 2-7,10-13,15-221
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "5d1148be24b574a2f25317c27e5510ede85d0432",
+  "prompts": {
+    "c4b157ded3d96a80": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b7f94ea-b189-45b5-b6ab-432f20351c74",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 217,
+      "total_deletions": 5,
+      "accepted_lines": 217,
+      "overriden_lines": 0
+    }
+  }
+}
