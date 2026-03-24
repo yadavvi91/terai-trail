@@ -1,7 +1,7 @@
 ---
 id: WP04
 title: Implement TitleScene
-lane: planned
+lane: "doing"
 depends_on: [WP03]
 ---
 
@@ -22,3 +22,7 @@ Create the TitleScene with the Oregon Trail main menu.
 - Menu buttons are interactive (click + keyboard)
 - Info overlay shows/hides correctly
 - Scene cleans up listeners in shutdown()
+
+## Activity Log
+
+- 2026-03-24T21:01:32Z – unknown – lane=doing – Moved to doing
