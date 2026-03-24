@@ -1,0 +1,23 @@
+src/scenes/RiverCrossingScene.ts
+  c4b157ded3d96a80 2-5,7-17,20-27,29-37,39-247
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "3735254ee94f43cf205d667bd79a4777dc1b7962",
+  "prompts": {
+    "c4b157ded3d96a80": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b7f94ea-b189-45b5-b6ab-432f20351c74",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 242,
+      "total_deletions": 4,
+      "accepted_lines": 242,
+      "overriden_lines": 0
+    }
+  }
+}
