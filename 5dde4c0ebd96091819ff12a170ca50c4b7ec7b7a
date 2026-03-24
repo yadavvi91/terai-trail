@@ -1,0 +1,25 @@
+src/utils/types.ts
+  f0d64ad2f153f435 1-62
+src/utils/constants.ts
+  f0d64ad2f153f435 1-113
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.17",
+  "base_commit_sha": "5dde4c0ebd96091819ff12a170ca50c4b7ec7b7a",
+  "prompts": {
+    "f0d64ad2f153f435": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "152510db-346f-41d2-a072-51cc5b42ce95",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 177,
+      "total_deletions": 2,
+      "accepted_lines": 175,
+      "overriden_lines": 0
+    }
+  }
+}
