@@ -17,7 +17,7 @@ const phasermsg = () => {
 }   
 
 export default defineConfig({
-    base: './',
+    base: '/caulk-the-wagon/',
     logLevel: 'warning',
     build: {
         rollupOptions: {
