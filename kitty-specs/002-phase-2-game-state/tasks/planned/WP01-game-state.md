@@ -1,7 +1,7 @@
 ---
 id: WP01
 title: Implement GameState singleton & Party model
-lane: doing
+lane: "done"
 spec: 002-phase-2-game-state
 ---
 

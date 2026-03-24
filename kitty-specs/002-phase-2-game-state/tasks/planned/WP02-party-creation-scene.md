@@ -1,7 +1,7 @@
 ---
 id: WP02
 title: Implement PartyCreationScene
-lane: planned
+lane: "done"
 spec: 002-phase-2-game-state
 depends_on: [WP01]
 ---

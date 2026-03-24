@@ -1,7 +1,7 @@
 ---
 id: WP04
 title: Wire PartyCreation into game flow & verify
-lane: planned
+lane: "done"
 spec: 002-phase-2-game-state
 depends_on: [WP02, WP03]
 ---
