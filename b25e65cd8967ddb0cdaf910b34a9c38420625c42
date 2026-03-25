@@ -1,0 +1,23 @@
+src/scenes/EventScene.ts
+  c4b157ded3d96a80 5,23-31,41-161,167,169-171,177,180-199,202-207,209-212,215,223,226-228,240,252-255,260-261,276-283
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "b25e65cd8967ddb0cdaf910b34a9c38420625c42",
+  "prompts": {
+    "c4b157ded3d96a80": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b7f94ea-b189-45b5-b6ab-432f20351c74",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 188,
+      "total_deletions": 15,
+      "accepted_lines": 188,
+      "overriden_lines": 0
+    }
+  }
+}
