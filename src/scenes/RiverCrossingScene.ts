@@ -83,33 +83,58 @@ export class RiverCrossingScene extends Scene {
         drawTree(farBankG, 900, 240, 58, 0x1e4010, true);
         drawTree(farBankG, 970, 240, 54, 0x1e4a14, false);
 
-        // River water
+        // River water — gradient from near (lighter) to far (darker)
         const riverG = this.add.graphics();
-        // Base river color (darker if deep)
-        const waterColor = depth > 4 ? 0x1a4a7a : depth > 2 ? 0x2262a0 : 0x3a80c8;
-        riverG.fillStyle(waterColor);
-        riverG.fillRect(0, 268, GAME_WIDTH, 200);
+        const deepColor = depth > 4 ? 0x1a4a7a : depth > 2 ? 0x2262a0 : 0x3a80c8;
+        // Multi-strip water gradient
+        const strips = 10;
+        for (let i = 0; i < strips; i++) {
+            const t = i / (strips - 1);
+            // Far (dark) → near (lighter)
+            const r = Math.round(((deepColor >> 16) & 0xff) + t * 30);
+            const gv = Math.round(((deepColor >> 8) & 0xff) + t * 25);
+            const b = Math.round((deepColor & 0xff) + t * 20);
+            riverG.fillStyle((r << 16) | (gv << 8) | b);
+            riverG.fillRect(0, 268 + i * 20, GAME_WIDTH, 22);
+        }
 
-        // Water ripples / current lines — use arc instead of bezier
-        riverG.lineStyle(1.5, 0x5aaad8, 0.4);
-        for (let row = 0; row < 5; row++) {
-            for (let i = 0; i < 8; i++) {
-                const rx = i * 140 + (row % 2) * 70 + Phaser.Math.Between(-10, 10);
-                const ry = 290 + row * 36;
-                // Draw S-curve ripple with two small arcs
+        // Water ripples — arcs with varying size
+        riverG.lineStyle(1.5, 0x5aaad8, 0.35);
+        for (let row = 0; row < 6; row++) {
+            for (let i = 0; i < 9; i++) {
+                const rx = i * 120 + (row % 2) * 60 + Phaser.Math.Between(-15, 15);
+                const ry = 285 + row * 32;
+                const arcR = 12 + Phaser.Math.Between(0, 8);
                 riverG.beginPath();
-                riverG.arc(rx + 15, ry, 15, Math.PI, 0, false);
+                riverG.arc(rx + arcR, ry, arcR, Math.PI, 0, false);
                 riverG.strokePath();
                 riverG.beginPath();
-                riverG.arc(rx + 45, ry, 15, 0, Math.PI, false);
+                riverG.arc(rx + arcR * 3, ry, arcR * 0.8, 0, Math.PI, false);
                 riverG.strokePath();
             }
         }
 
-        // Near bank
+        // Shimmer/reflection highlights on water
+        riverG.fillStyle(0xaaccee, 0.12);
+        for (let i = 0; i < 16; i++) {
+            const sx = Phaser.Math.Between(20, GAME_WIDTH - 20);
+            const sy = Phaser.Math.Between(275, 450);
+            riverG.fillEllipse(sx, sy, Phaser.Math.Between(20, 50), 4);
+        }
+
+        // Near bank — with some rocks/pebbles
         const nearBankG = this.add.graphics();
         nearBankG.fillStyle(0x9e7b3a);
         nearBankG.fillRect(0, 468, GAME_WIDTH, GAME_HEIGHT - 468);
+        // Muddy water edge
+        nearBankG.fillStyle(0x6a5a30, 0.5);
+        nearBankG.fillRect(0, 464, GAME_WIDTH, 8);
+        // River bank pebbles
+        nearBankG.fillStyle(0x7a6a4a);
+        for (let i = 0; i < 20; i++) {
+            const px = Phaser.Math.Between(10, GAME_WIDTH - 10);
+            nearBankG.fillEllipse(px, 475 + (i % 3) * 4, Phaser.Math.Between(4, 10), Phaser.Math.Between(3, 6));
+        }
         nearBankG.fillStyle(0x3d8b37);
         nearBankG.fillRect(0, GAME_HEIGHT - 80, GAME_WIDTH, 80);
 

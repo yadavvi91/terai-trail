@@ -318,29 +318,107 @@ export class LandmarkScene extends Scene {
 
     private drawFort(cx: number, baseY: number): void {
         const g = this.add.graphics();
-        g.fillStyle(COLORS.DARK_BROWN);
-        // Wall
-        g.fillRect(cx - 60, baseY - 50, 120, 50);
-        // Gate
-        g.fillStyle(0x2a1a0a);
-        g.fillRect(cx - 15, baseY - 30, 30, 30);
-        // Towers
-        g.fillStyle(COLORS.DARK_BROWN);
-        g.fillRect(cx - 70, baseY - 70, 20, 70);
-        g.fillRect(cx + 50, baseY - 70, 20, 70);
-        // Battlements
-        g.fillStyle(COLORS.DARK_BROWN);
-        for (let i = -3; i <= 3; i++) {
-            g.fillRect(cx + i * 14 - 4, baseY - 64, 8, 14);
+
+        // Fort wall — log cabin style
+        g.fillStyle(0x5a3a1a);
+        g.fillRect(cx - 80, baseY - 55, 160, 55);
+        // Log texture
+        for (let i = 0; i < 8; i++) {
+            g.fillStyle(i % 2 === 0 ? 0x4a2e14 : 0x5c3818, 0.8);
+            g.fillRect(cx - 80, baseY - 55 + i * 7, 160, 6);
+        }
+
+        // Gate — arched doorway
+        g.fillStyle(0x1a0e04);
+        g.fillRect(cx - 18, baseY - 38, 36, 38);
+        g.fillEllipse(cx, baseY - 38, 36, 20);
+        // Gate planks
+        g.fillStyle(0x3a2010, 0.5);
+        g.fillRect(cx - 1, baseY - 38, 2, 38);
+
+        // Left tower
+        g.fillStyle(0x5a3a1a);
+        g.fillRect(cx - 90, baseY - 80, 28, 80);
+        g.fillStyle(0x4a2e14);
+        g.fillRect(cx - 90, baseY - 80, 28, 4); // cap
+        // Tower window
+        g.fillStyle(0x1a0e04);
+        g.fillRect(cx - 82, baseY - 60, 12, 14);
+        g.fillStyle(0x3a6a90, 0.5); // blue glass hint
+        g.fillRect(cx - 80, baseY - 58, 8, 10);
+
+        // Right tower
+        g.fillStyle(0x5a3a1a);
+        g.fillRect(cx + 62, baseY - 80, 28, 80);
+        g.fillStyle(0x4a2e14);
+        g.fillRect(cx + 62, baseY - 80, 28, 4);
+        g.fillStyle(0x1a0e04);
+        g.fillRect(cx + 70, baseY - 60, 12, 14);
+        g.fillStyle(0x3a6a90, 0.5);
+        g.fillRect(cx + 72, baseY - 58, 8, 10);
+
+        // Pointed tower roofs
+        g.fillStyle(0x8b5a28);
+        g.fillTriangle(cx - 96, baseY - 80, cx - 76, baseY - 100, cx - 56, baseY - 80);
+        g.fillTriangle(cx + 56, baseY - 80, cx + 76, baseY - 100, cx + 96, baseY - 80);
+
+        // Flag on right tower
+        g.fillStyle(0x5a3a1a);
+        g.fillRect(cx + 75, baseY - 100, 3, 30);
+        g.fillStyle(0xcc3333);
+        g.fillTriangle(cx + 78, baseY - 100, cx + 78, baseY - 82, cx + 96, baseY - 91);
+
+        // Stockade fence extending from towers
+        g.fillStyle(0x4a2e14);
+        for (let i = 0; i < 4; i++) {
+            g.fillRect(cx - 118 + i * 8, baseY - 44, 6, 44);
+            g.fillTriangle(cx - 118 + i * 8, baseY - 44, cx - 115 + i * 8, baseY - 50, cx - 112 + i * 8, baseY - 44);
+        }
+        for (let i = 0; i < 4; i++) {
+            g.fillRect(cx + 92 + i * 8, baseY - 44, 6, 44);
+            g.fillTriangle(cx + 92 + i * 8, baseY - 44, cx + 95 + i * 8, baseY - 50, cx + 98 + i * 8, baseY - 44);
         }
     }
 
     private drawRock(cx: number, baseY: number): void {
         const g = this.add.graphics();
+
+        // Shadow
+        g.fillStyle(0x000000, 0.2);
+        g.fillEllipse(cx + 5, baseY + 10, 140, 30);
+
+        // Main rock mass — multiple overlapping irregular shapes
+        g.fillStyle(0x7a7a7a);
+        g.fillEllipse(cx, baseY - 5, 130, 85);
         g.fillStyle(0x8a8a8a);
-        g.fillEllipse(cx, baseY, 120, 80);
+        g.fillEllipse(cx - 25, baseY - 20, 80, 60);
+        g.fillStyle(0x6a6a6a);
+        g.fillEllipse(cx + 20, baseY + 5, 90, 55);
+
+        // Top boulder
         g.fillStyle(0x9a9a9a);
-        g.fillEllipse(cx - 20, baseY - 15, 70, 50);
+        g.fillEllipse(cx - 10, baseY - 40, 60, 45);
+
+        // Highlight (sunlit edge)
+        g.fillStyle(0xb0b0a0, 0.4);
+        g.fillEllipse(cx - 30, baseY - 40, 35, 30);
+
+        // Cracks / detail lines
+        g.lineStyle(1.5, 0x5a5a5a, 0.6);
+        g.beginPath();
+        g.moveTo(cx - 20, baseY - 40);
+        g.lineTo(cx + 10, baseY - 10);
+        g.lineTo(cx + 25, baseY + 10);
+        g.strokePath();
+        g.beginPath();
+        g.moveTo(cx - 40, baseY - 10);
+        g.lineTo(cx - 15, baseY + 5);
+        g.strokePath();
+
+        // Moss patches
+        g.fillStyle(0x4a6a30, 0.5);
+        g.fillEllipse(cx + 30, baseY - 15, 20, 12);
+        g.fillEllipse(cx - 35, baseY + 5, 18, 10);
     }
 
     shutdown(): void {
