@@ -243,31 +243,71 @@ export class TravelScene extends Scene {
     // ─── HUD ───────────────────────────────────────────────────────────────────
 
     private buildHUD(): void {
-        // Top bar
-        this.add.rectangle(GAME_WIDTH / 2, 26, GAME_WIDTH, 52, 0x000000, 0.72).setDepth(10);
+        // Top bar — leather-textured panel
+        this.add.rectangle(GAME_WIDTH / 2, 26, GAME_WIDTH, 52, 0x1a1008, 0.85).setDepth(10);
+        this.add.rectangle(GAME_WIDTH / 2, 52, GAME_WIDTH, 2, 0x8b6914, 0.4).setDepth(10); // gold trim at bottom
+        // Subtle grain texture on top bar
+        const hudGrain = this.add.graphics().setDepth(10);
+        hudGrain.fillStyle(0x000000, 0.08);
+        for (let i = 0; i < 20; i++) {
+            hudGrain.fillRect(i * 52, 0, 50, 52);
+        }
 
-        // Progress bar background
-        this.add.rectangle(GAME_WIDTH / 2, 46, GAME_WIDTH - 200, 6, 0x333333, 0.8).setDepth(10);
-        this.milesBar = this.add.rectangle(8, 46, 0, 6, COLORS.GRASS_GREEN, 0.9).setOrigin(0, 0.5).setDepth(11);
+        // Progress bar — styled with border and gradient
+        this.add.rectangle(GAME_WIDTH / 2, 46, GAME_WIDTH - 160, 10, 0x1a1208).setDepth(10);
+        this.add.rectangle(GAME_WIDTH / 2, 46, GAME_WIDTH - 160, 10).setStrokeStyle(1, 0x8b6914, 0.5).setDepth(10);
+        this.milesBar = this.add.rectangle(82, 46, 0, 8, COLORS.GRASS_GREEN, 0.9).setOrigin(0, 0.5).setDepth(11);
+
+        // Progress bar landmarks
+        const barW = GAME_WIDTH - 164;
+        const barStartX = 82;
+        const landmarkG = this.add.graphics().setDepth(10);
+        landmarkG.fillStyle(0x8b6914, 0.5);
+        [0.25, 0.5, 0.75].forEach(pct => {
+            landmarkG.fillRect(barStartX + pct * barW - 1, 41, 2, 10);
+        });
 
         const hudStyle = { ...TEXT_STYLES.HUD, fontSize: '13px' };
+        const labelStyle = { ...hudStyle, color: HEX_COLORS.TRAIL_BROWN, fontSize: '11px' };
 
-        this.dateText    = this.add.text(10, 8,  '', hudStyle).setDepth(11);
-        this.milesText   = this.add.text(200, 8, '', hudStyle).setDepth(11);
-        this.nextText    = this.add.text(420, 8, '', hudStyle).setDepth(11);
-        this.weatherText = this.add.text(720, 8, '', hudStyle).setDepth(11);
-        this.healthText  = this.add.text(840, 8, '', hudStyle).setDepth(11);
-        this.foodText    = this.add.text(955, 8, '', { ...hudStyle, color: HEX_COLORS.GOLD }).setDepth(11);
+        // Date with label
+        this.add.text(10, 4, '📅', { fontSize: '12px' }).setDepth(11);
+        this.dateText    = this.add.text(28, 6,  '', hudStyle).setDepth(11);
 
-        // Bottom control bar
-        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 28, GAME_WIDTH, 56, 0x1a1208, 0.88).setDepth(10);
-        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 52, GAME_WIDTH, 2, COLORS.TRAIL_BROWN, 0.5).setDepth(10);
+        // Miles
+        this.add.text(200, 4, '🗺️', { fontSize: '12px' }).setDepth(11);
+        this.milesText   = this.add.text(220, 6, '', hudStyle).setDepth(11);
 
-        this.add.text(12, GAME_HEIGHT - 48, 'PACE:', { ...hudStyle, color: HEX_COLORS.TRAIL_BROWN }).setDepth(11);
-        this.paceText = this.add.text(70, GAME_HEIGHT - 48, '', { ...hudStyle, color: HEX_COLORS.GOLD }).setDepth(11);
+        // Next landmark
+        this.add.text(420, 4, '📍', { fontSize: '12px' }).setDepth(11);
+        this.nextText    = this.add.text(440, 6, '', hudStyle).setDepth(11);
 
-        this.add.text(12, GAME_HEIGHT - 28, 'RATIONS:', { ...hudStyle, color: HEX_COLORS.TRAIL_BROWN }).setDepth(11);
-        this.rationsText = this.add.text(84, GAME_HEIGHT - 28, '', { ...hudStyle, color: HEX_COLORS.GOLD }).setDepth(11);
+        // Weather
+        this.weatherText = this.add.text(720, 6, '', hudStyle).setDepth(11);
+
+        // Health
+        this.add.text(840, 4, '❤️', { fontSize: '12px' }).setDepth(11);
+        this.healthText  = this.add.text(858, 6, '', hudStyle).setDepth(11);
+
+        // Food
+        this.add.text(955, 4, '🍖', { fontSize: '12px' }).setDepth(11);
+        this.foodText    = this.add.text(975, 6, '', { ...hudStyle, color: HEX_COLORS.GOLD }).setDepth(11);
+
+        // Bottom control bar — wooden panel
+        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 28, GAME_WIDTH, 56, 0x1a1208, 0.9).setDepth(10);
+        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 54, GAME_WIDTH, 2, 0x8b6914, 0.4).setDepth(10); // gold trim
+        // Bottom bar grain
+        const btmGrain = this.add.graphics().setDepth(10);
+        btmGrain.fillStyle(0x000000, 0.06);
+        for (let i = 0; i < 20; i++) {
+            btmGrain.fillRect(i * 52, GAME_HEIGHT - 56, 50, 56);
+        }
+
+        this.add.text(12, GAME_HEIGHT - 48, 'PACE:', { ...labelStyle, letterSpacing: 1 }).setDepth(11);
+        this.paceText = this.add.text(62, GAME_HEIGHT - 48, '', { ...hudStyle, color: HEX_COLORS.GOLD }).setDepth(11);
+
+        this.add.text(12, GAME_HEIGHT - 28, 'RATIONS:', { ...labelStyle, letterSpacing: 1 }).setDepth(11);
+        this.rationsText = this.add.text(78, GAME_HEIGHT - 28, '', { ...hudStyle, color: HEX_COLORS.GOLD }).setDepth(11);
 
         this.statusMsg = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 38, '', {
             ...hudStyle,
