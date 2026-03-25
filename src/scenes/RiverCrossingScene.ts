@@ -3,7 +3,7 @@ import { SCENES, GAME_WIDTH, GAME_HEIGHT, COLORS, HEX_COLORS, TEXT_STYLES } from
 import { MemberStatus } from '../utils/types';
 import { GameState } from '../game/GameState';
 import { getNextLandmark } from '../game/TrailData';
-import { drawWagon, drawOx, drawPerson } from '../ui/DrawUtils';
+import { drawWagon, drawOx, drawPerson, drawTree, drawMountain, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
 
 type CrossingMethod = 'ford' | 'caulk' | 'ferry' | 'wait';
 
@@ -40,27 +40,48 @@ export class RiverCrossingScene extends Scene {
     }
 
     private buildRiverScene(depth: number): void {
-        // Sky
-        this.cameras.main.setBackgroundColor(0x5a8ab0);
-        for (let i = 0; i < 8; i++) {
-            const t = i / 7;
-            const r = Math.round(0x5a + t * (0x87 - 0x5a));
-            const g2 = Math.round(0x8a + t * (0xce - 0x8a));
-            const b = Math.round(0xb0 + t * (0xe8 - 0xb0));
-            this.add.rectangle(GAME_WIDTH / 2, 30 + i * 32, GAME_WIDTH, 34, (r << 16) | (g2 << 8) | b);
+        // Sky gradient
+        this.cameras.main.setBackgroundColor(0x1a5a90);
+        for (let i = 0; i < 10; i++) {
+            const t = i / 9;
+            const r = Math.round(0x1a + t * (0x6a - 0x1a));
+            const g2 = Math.round(0x5a + t * (0xb0 - 0x5a));
+            const b = Math.round(0x90 + t * (0xd4 - 0x90));
+            this.add.rectangle(GAME_WIDTH / 2, 20 + i * 26, GAME_WIDTH, 28, (r << 16) | (g2 << 8) | b);
         }
 
-        // Far bank (trees silhouette)
+        // Distant mountains beyond the far bank
+        const skyG = this.add.graphics();
+        drawSun(skyG, 120, 55, 32);
+        drawCloud(skyG, 400, 40, 0.7);
+        drawCloud(skyG, 750, 30, 0.55);
+        drawMountain(skyG, 200, 245, 200, 140, 0x6a80a0, true);
+        drawMountain(skyG, 500, 245, 260, 170, 0x5a7090, true);
+        drawMountain(skyG, 800, 245, 220, 150, 0x6a80a0, true);
+
+        // Far bank hills
         const farBankG = this.add.graphics();
+        drawHill(farBankG, 150, 248, 200, 0x2a5820);
+        drawHill(farBankG, 400, 248, 240, 0x306828);
+        drawHill(farBankG, 650, 248, 220, 0x2a5820);
+        drawHill(farBankG, 900, 248, 200, 0x306828);
         farBankG.fillStyle(0x2a5a1a);
         farBankG.fillRect(0, 240, GAME_WIDTH, 28);
-        // Tree line
-        farBankG.fillStyle(0x1e4010);
-        for (let i = 0; i < 22; i++) {
-            const tx = i * 50 - 10;
-            const th = Phaser.Math.Between(35, 65);
-            farBankG.fillTriangle(tx, 240, tx + 18, 240 - th, tx + 36, 240);
-        }
+        // Tree line along far bank (using proper drawTree)
+        drawTree(farBankG, 40,  240, 50, 0x1e4010, true);
+        drawTree(farBankG, 90,  240, 60, 0x1e4a14, false);
+        drawTree(farBankG, 140, 240, 52, 0x1e4010, true);
+        drawTree(farBankG, 210, 240, 58, 0x1e4a14, false);
+        drawTree(farBankG, 280, 240, 48, 0x1e4010, true);
+        drawTree(farBankG, 340, 240, 55, 0x1e4a14, false);
+        drawTree(farBankG, 420, 240, 62, 0x1e4010, false);
+        drawTree(farBankG, 500, 240, 50, 0x1e4a14, true);
+        drawTree(farBankG, 580, 240, 56, 0x1e4010, false);
+        drawTree(farBankG, 660, 240, 48, 0x1e4a14, true);
+        drawTree(farBankG, 740, 240, 60, 0x1e4010, false);
+        drawTree(farBankG, 820, 240, 52, 0x1e4a14, false);
+        drawTree(farBankG, 900, 240, 58, 0x1e4010, true);
+        drawTree(farBankG, 970, 240, 54, 0x1e4a14, false);
 
         // River water
         const riverG = this.add.graphics();

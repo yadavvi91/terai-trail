@@ -5,6 +5,7 @@ import {
 } from '../utils/constants';
 import { MemberStatus } from '../utils/types';
 import { GameState } from '../game/GameState';
+import { drawMountain, drawHill, drawTree, drawCloud, drawSun, drawWagon, drawOx, drawPerson, drawWoman, drawChild } from '../ui/DrawUtils';
 
 export class GameOverScene extends Scene {
     constructor() {
@@ -20,44 +21,70 @@ export class GameOverScene extends Scene {
     // ─── Victory ───────────────────────────────────────────────────────────────
 
     private buildVictoryScreen(gs: GameState): void {
-        // Sky gradient — warm golden
-        for (let i = 0; i < 10; i++) {
-            const t = i / 9;
-            const r = Math.round(0x30 + t * (0x8a - 0x30));
-            const g2 = Math.round(0x90 + t * (0xd0 - 0x90));
-            const b = Math.round(0x20 + t * (0x60 - 0x20));
-            this.add.rectangle(GAME_WIDTH / 2, 30 + i * 60, GAME_WIDTH, 62, (r << 16) | (g2 << 8) | b);
+        // Sky gradient — warm golden hour
+        for (let i = 0; i < 14; i++) {
+            const t = i / 13;
+            const r = Math.round(0x20 + t * (0x80 - 0x20));
+            const g2 = Math.round(0x70 + t * (0xc0 - 0x70));
+            const b = Math.round(0x10 + t * (0x50 - 0x10));
+            this.add.rectangle(GAME_WIDTH / 2, 30 + i * 45, GAME_WIDTH, 47, (r << 16) | (g2 << 8) | b);
         }
-        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 50, GAME_WIDTH, 100, 0x3d8b37);
-        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 95, GAME_WIDTH, 20, 0x9e7b3a);
+        // Warm horizon glow
+        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 125, GAME_WIDTH, 40, 0xf0c060, 0.25);
 
-        // Sun rays
+        // Sun with golden rays
         const sunG = this.add.graphics();
-        sunG.fillStyle(0xffd700, 0.25);
-        for (let i = 0; i < 16; i++) {
-            const angle = (i / 16) * Math.PI * 2;
+        drawSun(sunG, GAME_WIDTH / 2, 30, 50);
+        // Extra dramatic rays
+        sunG.fillStyle(0xffd700, 0.12);
+        for (let i = 0; i < 20; i++) {
+            const angle = (i / 20) * Math.PI * 2;
             sunG.fillTriangle(
-                GAME_WIDTH / 2, 0,
-                GAME_WIDTH / 2 + Math.cos(angle - 0.15) * GAME_WIDTH,
-                Math.sin(angle - 0.15) * GAME_WIDTH,
-                GAME_WIDTH / 2 + Math.cos(angle + 0.15) * GAME_WIDTH,
-                Math.sin(angle + 0.15) * GAME_WIDTH,
+                GAME_WIDTH / 2, 30,
+                GAME_WIDTH / 2 + Math.cos(angle - 0.08) * GAME_WIDTH * 0.8,
+                30 + Math.sin(angle - 0.08) * GAME_WIDTH * 0.8,
+                GAME_WIDTH / 2 + Math.cos(angle + 0.08) * GAME_WIDTH * 0.8,
+                30 + Math.sin(angle + 0.08) * GAME_WIDTH * 0.8,
             );
         }
 
-        // Mountains in background
+        // Clouds
+        const cG = this.add.graphics();
+        drawCloud(cG, 180, 65, 0.8);
+        drawCloud(cG, 780, 50, 0.65);
+
+        // Oregon mountains (green, lush — we made it to the Willamette Valley!)
         const mG = this.add.graphics();
-        mG.fillStyle(0x3a6a40);
-        mG.fillTriangle(100, GAME_HEIGHT - 100, 260, GAME_HEIGHT - 300, 420, GAME_HEIGHT - 100);
-        mG.fillTriangle(280, GAME_HEIGHT - 100, 480, GAME_HEIGHT - 340, 680, GAME_HEIGHT - 100);
-        mG.fillTriangle(580, GAME_HEIGHT - 100, 760, GAME_HEIGHT - 280, 940, GAME_HEIGHT - 100);
-        mG.fillTriangle(820, GAME_HEIGHT - 100, 980, GAME_HEIGHT - 320, GAME_WIDTH + 20, GAME_HEIGHT - 100);
-        // Snow
-        mG.fillStyle(0xf0f4f8, 0.7);
-        mG.fillTriangle(260, GAME_HEIGHT - 300, 240, GAME_HEIGHT - 260, 280, GAME_HEIGHT - 260);
-        mG.fillTriangle(480, GAME_HEIGHT - 340, 456, GAME_HEIGHT - 290, 504, GAME_HEIGHT - 290);
-        mG.fillTriangle(760, GAME_HEIGHT - 280, 740, GAME_HEIGHT - 240, 780, GAME_HEIGHT - 240);
-        mG.fillTriangle(980, GAME_HEIGHT - 320, 958, GAME_HEIGHT - 272, 1002, GAME_HEIGHT - 272);
+        drawMountain(mG, 120, GAME_HEIGHT - 100, 240, 250, 0x3a6848, true);
+        drawMountain(mG, 380, GAME_HEIGHT - 100, 300, 290, 0x2d5a40, true);
+        drawMountain(mG, 660, GAME_HEIGHT - 100, 260, 240, 0x3a6848, true);
+        drawMountain(mG, 920, GAME_HEIGHT - 100, 280, 270, 0x2d5a40, true);
+
+        // Green hills and trees
+        const hG = this.add.graphics();
+        drawHill(hG, 120, GAME_HEIGHT - 92, 200, 0x2d6428);
+        drawHill(hG, 380, GAME_HEIGHT - 92, 240, 0x337030);
+        drawHill(hG, 620, GAME_HEIGHT - 92, 200, 0x2d6428);
+        drawHill(hG, 860, GAME_HEIGHT - 92, 220, 0x337030);
+        drawTree(hG, 50,  GAME_HEIGHT - 94, 65, 0x234d1a, false);
+        drawTree(hG, 200, GAME_HEIGHT - 100, 78, 0x2a5820, true);
+        drawTree(hG, 480, GAME_HEIGHT - 96, 70, 0x234d1a, false);
+        drawTree(hG, 750, GAME_HEIGHT - 98, 74, 0x2a5820, false);
+        drawTree(hG, 950, GAME_HEIGHT - 94, 65, 0x234d1a, true);
+
+        // Ground
+        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 45, GAME_WIDTH, 90, 0x3a8030);
+        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 86, GAME_WIDTH, 18, 0x9e7b3a);
+
+        // Wagon arrived! Draw it parked in the valley
+        const wG = this.add.graphics();
+        drawOx(wG, 160, GAME_HEIGHT - 68, 0.85);
+        drawOx(wG, 195, GAME_HEIGHT - 68, 0.85);
+        drawWagon(wG, 260, GAME_HEIGHT - 68, 0.85);
+        // People celebrating
+        drawPerson(wG, 310, GAME_HEIGHT - 66, 0.8, false, 0);
+        drawWoman(wG,  340, GAME_HEIGHT - 66, 0.78, false, 1);
+        drawChild(wG,  365, GAME_HEIGHT - 64, 0.65, 0);
 
         // Title
         this.add.text(GAME_WIDTH / 2, 60, '🎉  YOU MADE IT!  🎉', {
