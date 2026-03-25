@@ -3,7 +3,9 @@ import { SCENES, GAME_WIDTH, GAME_HEIGHT, COLORS, HEX_COLORS, TEXT_STYLES } from
 import { MemberStatus } from '../utils/types';
 import { GameState } from '../game/GameState';
 import { getNextLandmark } from '../game/TrailData';
-import { drawWagon, drawOx, drawPerson, drawTree, drawMountain, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
+import { drawTree, drawMountain, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
+import { drawIsoWagon, drawIsoOx, drawIsoPerson } from '../ui/IsoDrawUtils';
+import { TILE_WIDTH, TILE_HEIGHT, drawIsoTile } from '../utils/isometric';
 import { addMuteButton } from '../ui/MuteButton';
 import { SoundManager } from '../audio/SoundManager';
 
@@ -126,32 +128,44 @@ export class RiverCrossingScene extends Scene {
             riverG.fillEllipse(sx, sy, Phaser.Math.Between(20, 50), 4);
         }
 
-        // Near bank — with some rocks/pebbles
+        // Near bank — isometric diamond tile grid
         const nearBankG = this.add.graphics();
-        nearBankG.fillStyle(0x9e7b3a);
-        nearBankG.fillRect(0, 468, GAME_WIDTH, GAME_HEIGHT - 468);
         // Muddy water edge
         nearBankG.fillStyle(0x6a5a30, 0.5);
         nearBankG.fillRect(0, 464, GAME_WIDTH, 8);
+        // Iso ground tiles for the bank
+        const bankBaseY = 472;
+        const bankCols = 18;
+        const bankRows = 6;
+        const bankOffsetX = GAME_WIDTH / 2;
+        for (let row = 0; row < bankRows; row++) {
+            for (let col = 0; col < bankCols; col++) {
+                const sx = bankOffsetX + (col - row) * (TILE_WIDTH / 2) - (bankCols * TILE_WIDTH / 4);
+                const sy = bankBaseY + (col + row) * (TILE_HEIGHT / 2);
+                const isGrass = row >= 3;
+                const color = isGrass
+                    ? (((col + row) % 3 === 0) ? 0x3d8b37 : ((col + row) % 3 === 1) ? 0x358030 : 0x3a8534)
+                    : (((col + row) % 2 === 0) ? 0x9e7b3a : 0x8a6d32);
+                drawIsoTile(nearBankG, sx, sy, color);
+            }
+        }
         // River bank pebbles
         nearBankG.fillStyle(0x7a6a4a);
         for (let i = 0; i < 20; i++) {
             const px = Phaser.Math.Between(10, GAME_WIDTH - 10);
             nearBankG.fillEllipse(px, 475 + (i % 3) * 4, Phaser.Math.Between(4, 10), Phaser.Math.Between(3, 6));
         }
-        nearBankG.fillStyle(0x3d8b37);
-        nearBankG.fillRect(0, GAME_HEIGHT - 80, GAME_WIDTH, 80);
 
-        // Wagon waiting on bank
+        // Wagon waiting on bank (isometric)
         const wG = this.add.graphics();
-        drawOx(wG, GAME_WIDTH - 200, GAME_HEIGHT - 108, 0.8);
-        drawOx(wG, GAME_WIDTH - 164, GAME_HEIGHT - 108, 0.8);
-        drawWagon(wG, GAME_WIDTH - 120, GAME_HEIGHT - 108, 0.8);
-        // People waiting by the bank
-        drawPerson(wG, GAME_WIDTH - 62, GAME_HEIGHT - 110, 0.8);
-        drawPerson(wG, GAME_WIDTH - 36, GAME_HEIGHT - 110, 0.75, false, 1);
-        drawPerson(wG, 80,  GAME_HEIGHT - 110, 0.8, true);    // person looking at river
-        drawPerson(wG, 108, GAME_HEIGHT - 110, 0.72, true, 1);
+        drawIsoOx(wG, GAME_WIDTH - 200, GAME_HEIGHT - 108, 0.8);
+        drawIsoOx(wG, GAME_WIDTH - 164, GAME_HEIGHT - 108, 0.8);
+        drawIsoWagon(wG, GAME_WIDTH - 120, GAME_HEIGHT - 108, 0.8);
+        // People waiting by the bank (isometric)
+        drawIsoPerson(wG, GAME_WIDTH - 62, GAME_HEIGHT - 110, 0.8);
+        drawIsoPerson(wG, GAME_WIDTH - 36, GAME_HEIGHT - 110, 0.75, 0x6a4a30);
+        drawIsoPerson(wG, 80,  GAME_HEIGHT - 110, 0.8);
+        drawIsoPerson(wG, 108, GAME_HEIGHT - 110, 0.72, 0x6a4a30);
 
         // Depth indicator post
         const postG = this.add.graphics();

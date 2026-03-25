@@ -7,6 +7,8 @@ import { MemberStatus } from '../utils/types';
 import { GameState } from '../game/GameState';
 import { getCurrentLandmark } from '../game/TrailData';
 import { drawMountain, drawHill, drawTree, drawCloud, drawSun } from '../ui/DrawUtils';
+import { drawIsoBuilding } from '../ui/IsoDrawUtils';
+import { TILE_WIDTH, TILE_HEIGHT, drawIsoTile } from '../utils/isometric';
 import { addMuteButton } from '../ui/MuteButton';
 import { SoundManager } from '../audio/SoundManager';
 
@@ -65,12 +67,28 @@ export class LandmarkScene extends Scene {
         drawTree(terrG, 950,  GAME_HEIGHT - 118, 65, 0x234d1a, false);
         drawTree(terrG, 985,  GAME_HEIGHT - 124, 75, 0x2a5820, false);
 
-        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 55, GAME_WIDTH, 110, 0x3a7d30);
-        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 102, GAME_WIDTH, 22, 0x9e7b3a);
+        // Isometric ground tiles
+        const groundG = this.add.graphics();
+        const groundBaseY = GAME_HEIGHT - 110;
+        const groundCols = 18;
+        const groundRows = 6;
+        const groundOffsetX = GAME_WIDTH / 2;
+        for (let row = 0; row < groundRows; row++) {
+            for (let col = 0; col < groundCols; col++) {
+                const sx = groundOffsetX + (col - row) * (TILE_WIDTH / 2) - (groundCols * TILE_WIDTH / 4);
+                const sy = groundBaseY + (col + row) * (TILE_HEIGHT / 2);
+                const isTrail = row === 0;
+                const color = isTrail
+                    ? (((col + row) % 2 === 0) ? 0x9e7b3a : 0x8a6d32)
+                    : (((col + row) % 3 === 0) ? 0x3a7d30 : ((col + row) % 3 === 1) ? 0x358028 : 0x3a8534);
+                drawIsoTile(groundG, sx, sy, color);
+            }
+        }
 
-        // Landmark visual — simple building silhouette for forts, rock for others
+        // Landmark visual — isometric building for forts, rock for others
         if (this.landmark.isFort) {
-            this.drawFort(GAME_WIDTH / 2, GAME_HEIGHT - 120);
+            const fortG = this.add.graphics();
+            drawIsoBuilding(fortG, GAME_WIDTH / 2, GAME_HEIGHT - 120, 100, 50, 0x5a3a1a);
         } else {
             this.drawRock(GAME_WIDTH / 2, GAME_HEIGHT - 140);
         }
@@ -318,70 +336,6 @@ export class LandmarkScene extends Scene {
             align: 'center',
         }).setOrigin(0.5);
         this.time.delayedCall(3000, () => { bg.destroy(); msg.destroy(); });
-    }
-
-    private drawFort(cx: number, baseY: number): void {
-        const g = this.add.graphics();
-
-        // Fort wall — log cabin style
-        g.fillStyle(0x5a3a1a);
-        g.fillRect(cx - 80, baseY - 55, 160, 55);
-        // Log texture
-        for (let i = 0; i < 8; i++) {
-            g.fillStyle(i % 2 === 0 ? 0x4a2e14 : 0x5c3818, 0.8);
-            g.fillRect(cx - 80, baseY - 55 + i * 7, 160, 6);
-        }
-
-        // Gate — arched doorway
-        g.fillStyle(0x1a0e04);
-        g.fillRect(cx - 18, baseY - 38, 36, 38);
-        g.fillEllipse(cx, baseY - 38, 36, 20);
-        // Gate planks
-        g.fillStyle(0x3a2010, 0.5);
-        g.fillRect(cx - 1, baseY - 38, 2, 38);
-
-        // Left tower
-        g.fillStyle(0x5a3a1a);
-        g.fillRect(cx - 90, baseY - 80, 28, 80);
-        g.fillStyle(0x4a2e14);
-        g.fillRect(cx - 90, baseY - 80, 28, 4); // cap
-        // Tower window
-        g.fillStyle(0x1a0e04);
-        g.fillRect(cx - 82, baseY - 60, 12, 14);
-        g.fillStyle(0x3a6a90, 0.5); // blue glass hint
-        g.fillRect(cx - 80, baseY - 58, 8, 10);
-
-        // Right tower
-        g.fillStyle(0x5a3a1a);
-        g.fillRect(cx + 62, baseY - 80, 28, 80);
-        g.fillStyle(0x4a2e14);
-        g.fillRect(cx + 62, baseY - 80, 28, 4);
-        g.fillStyle(0x1a0e04);
-        g.fillRect(cx + 70, baseY - 60, 12, 14);
-        g.fillStyle(0x3a6a90, 0.5);
-        g.fillRect(cx + 72, baseY - 58, 8, 10);
-
-        // Pointed tower roofs
-        g.fillStyle(0x8b5a28);
-        g.fillTriangle(cx - 96, baseY - 80, cx - 76, baseY - 100, cx - 56, baseY - 80);
-        g.fillTriangle(cx + 56, baseY - 80, cx + 76, baseY - 100, cx + 96, baseY - 80);
-
-        // Flag on right tower
-        g.fillStyle(0x5a3a1a);
-        g.fillRect(cx + 75, baseY - 100, 3, 30);
-        g.fillStyle(0xcc3333);
-        g.fillTriangle(cx + 78, baseY - 100, cx + 78, baseY - 82, cx + 96, baseY - 91);
-
-        // Stockade fence extending from towers
-        g.fillStyle(0x4a2e14);
-        for (let i = 0; i < 4; i++) {
-            g.fillRect(cx - 118 + i * 8, baseY - 44, 6, 44);
-            g.fillTriangle(cx - 118 + i * 8, baseY - 44, cx - 115 + i * 8, baseY - 50, cx - 112 + i * 8, baseY - 44);
-        }
-        for (let i = 0; i < 4; i++) {
-            g.fillRect(cx + 92 + i * 8, baseY - 44, 6, 44);
-            g.fillTriangle(cx + 92 + i * 8, baseY - 44, cx + 95 + i * 8, baseY - 50, cx + 98 + i * 8, baseY - 44);
-        }
     }
 
     private drawRock(cx: number, baseY: number): void {

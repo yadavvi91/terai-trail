@@ -5,7 +5,9 @@ import {
 } from '../utils/constants';
 import { MemberStatus } from '../utils/types';
 import { GameState } from '../game/GameState';
-import { drawMountain, drawHill, drawTree, drawCloud, drawSun, drawWagon, drawOx, drawPerson, drawWoman, drawChild } from '../ui/DrawUtils';
+import { drawMountain, drawHill, drawTree, drawCloud, drawSun } from '../ui/DrawUtils';
+import { drawIsoWagon, drawIsoOx, drawIsoPerson } from '../ui/IsoDrawUtils';
+import { TILE_WIDTH, TILE_HEIGHT, drawIsoTile } from '../utils/isometric';
 import { addMuteButton } from '../ui/MuteButton';
 import { SoundManager } from '../audio/SoundManager';
 
@@ -83,19 +85,33 @@ export class GameOverScene extends Scene {
         drawTree(hG, 750, GAME_HEIGHT - 98, 74, 0x2a5820, false);
         drawTree(hG, 950, GAME_HEIGHT - 94, 65, 0x234d1a, true);
 
-        // Ground
-        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 45, GAME_WIDTH, 90, 0x3a8030);
-        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 86, GAME_WIDTH, 18, 0x9e7b3a);
+        // Isometric ground tiles
+        const groundG = this.add.graphics();
+        const groundBaseY = GAME_HEIGHT - 92;
+        const groundCols = 18;
+        const groundRows = 6;
+        const groundOffsetX = GAME_WIDTH / 2;
+        for (let row = 0; row < groundRows; row++) {
+            for (let col = 0; col < groundCols; col++) {
+                const sx = groundOffsetX + (col - row) * (TILE_WIDTH / 2) - (groundCols * TILE_WIDTH / 4);
+                const sy = groundBaseY + (col + row) * (TILE_HEIGHT / 2);
+                const isTrail = row === 0;
+                const color = isTrail
+                    ? (((col + row) % 2 === 0) ? 0x9e7b3a : 0x8a6d32)
+                    : (((col + row) % 3 === 0) ? 0x3a8030 : ((col + row) % 3 === 1) ? 0x358028 : 0x3a8534);
+                drawIsoTile(groundG, sx, sy, color);
+            }
+        }
 
-        // Wagon arrived! Draw it parked in the valley
+        // Wagon arrived! Isometric wagon parked in the valley
         const wG = this.add.graphics();
-        drawOx(wG, 160, GAME_HEIGHT - 68, 0.85);
-        drawOx(wG, 195, GAME_HEIGHT - 68, 0.85);
-        drawWagon(wG, 260, GAME_HEIGHT - 68, 0.85);
-        // People celebrating
-        drawPerson(wG, 310, GAME_HEIGHT - 66, 0.8, false, 0);
-        drawWoman(wG,  340, GAME_HEIGHT - 66, 0.78, false, 1);
-        drawChild(wG,  365, GAME_HEIGHT - 64, 0.65, 0);
+        drawIsoOx(wG, 160, GAME_HEIGHT - 68, 0.85);
+        drawIsoOx(wG, 195, GAME_HEIGHT - 68, 0.85);
+        drawIsoWagon(wG, 260, GAME_HEIGHT - 68, 0.85);
+        // People celebrating (isometric)
+        drawIsoPerson(wG, 310, GAME_HEIGHT - 66, 0.8);
+        drawIsoPerson(wG, 340, GAME_HEIGHT - 66, 0.78, 0x8a4a60);
+        drawIsoPerson(wG, 365, GAME_HEIGHT - 64, 0.55);
 
         // Title
         this.add.text(GAME_WIDTH / 2, 60, '🎉  YOU MADE IT!  🎉', {
@@ -230,9 +246,20 @@ export class GameOverScene extends Scene {
             treeG.fillRect(tx - 10, ty - h * 0.5, 10, 2);
         });
 
-        // Ground
-        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 35, GAME_WIDTH, 70, 0x1a1408);
-        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 65, GAME_WIDTH, 10, 0x141008, 0.6);
+        // Isometric ground tiles (dark/dead ground)
+        const deathGroundG = this.add.graphics();
+        const dGroundBaseY = GAME_HEIGHT - 70;
+        const dCols = 18;
+        const dRows = 5;
+        const dOffsetX = GAME_WIDTH / 2;
+        for (let row = 0; row < dRows; row++) {
+            for (let col = 0; col < dCols; col++) {
+                const sx = dOffsetX + (col - row) * (TILE_WIDTH / 2) - (dCols * TILE_WIDTH / 4);
+                const sy = dGroundBaseY + (col + row) * (TILE_HEIGHT / 2);
+                const color = ((col + row) % 2 === 0) ? 0x1a1408 : 0x141008;
+                drawIsoTile(deathGroundG, sx, sy, color);
+            }
+        }
 
         // Title
         this.add.text(GAME_WIDTH / 2, 50, 'YOUR PARTY HAS PERISHED', {
