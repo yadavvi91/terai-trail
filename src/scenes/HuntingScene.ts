@@ -4,7 +4,7 @@ import {
     HUNTING_DURATION_MS, MAX_CARRY_FROM_HUNT,
 } from '../utils/constants';
 import { GameState } from '../game/GameState';
-import { drawBuffalo, drawDeer, drawRabbit, drawSquirrel } from '../ui/DrawUtils';
+import { drawBuffalo, drawDeer, drawRabbit, drawSquirrel, drawTree, drawMountain, drawHill, drawCloud } from '../ui/DrawUtils';
 
 interface AnimalDef {
     type: string;
@@ -107,45 +107,63 @@ export class HuntingScene extends Scene {
     }
 
     private buildBackground(): void {
-        // Sky gradient
-        this.cameras.main.setBackgroundColor(0x3a6a20);
-        for (let i = 0; i < 6; i++) {
-            const t = i / 5;
-            const r = Math.round(0x20 + t * (0x3a - 0x20));
-            const g = Math.round(0x50 + t * (0x6a - 0x50));
-            const b = Math.round(0x14 + t * (0x20 - 0x14));
-            this.add.rectangle(GAME_WIDTH / 2, 40 + i * 50, GAME_WIDTH, 52, (r << 16) | (g << 8) | b);
+        // Prairie/forest sky
+        this.cameras.main.setBackgroundColor(0x1a5a90);
+        for (let i = 0; i < 10; i++) {
+            const t = i / 9;
+            const r = Math.round(0x1a + t * (0x68 - 0x1a));
+            const gv = Math.round(0x5a + t * (0xaa - 0x5a));
+            const b = Math.round(0x90 + t * (0xcc - 0x90));
+            this.add.rectangle(GAME_WIDTH / 2, 30 + i * 50, GAME_WIDTH, 52, (r << 16) | (gv << 8) | b);
         }
+        // Horizon warmth
+        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 180, GAME_WIDTH, 30, 0xd8c080, 0.15);
+
+        // Distant mountains
+        const mtnG = this.add.graphics();
+        drawMountain(mtnG, 200, GAME_HEIGHT - 200, 220, 170, 0x4a6888, true);
+        drawMountain(mtnG, 500, GAME_HEIGHT - 200, 280, 200, 0x3d5878, true);
+        drawMountain(mtnG, 800, GAME_HEIGHT - 200, 240, 180, 0x4a6888, true);
+
+        // Clouds
+        const cloudG = this.add.graphics();
+        drawCloud(cloudG, 180, 55, 0.7, 0.7);
+        drawCloud(cloudG, 600, 38, 0.55, 0.6);
+
+        // Mid hills
+        const hillG = this.add.graphics();
+        drawHill(hillG, 100,  GAME_HEIGHT - 140, 260, 0x2d6428);
+        drawHill(hillG, 400,  GAME_HEIGHT - 140, 300, 0x337030);
+        drawHill(hillG, 700,  GAME_HEIGHT - 140, 280, 0x2d6428);
+        drawHill(hillG, 980,  GAME_HEIGHT - 140, 260, 0x337030);
 
         // Ground
-        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 30, GAME_WIDTH, 60, 0x2d5818);
+        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 35, GAME_WIDTH, 70, 0x2d5c18);
+        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 62, GAME_WIDTH, 16, 0x3a7020, 0.6);
 
-        // Trees / bushes
+        // Trees using DrawUtils (proper organic trees)
         const treeG = this.add.graphics();
-        const treePositions = [60, 160, 300, 440, 590, 720, 860, 990];
-        treePositions.forEach(tx => {
-            const ty = Phaser.Math.Between(80, GAME_HEIGHT - 80);
-            // Trunk
-            treeG.fillStyle(0x4a2e0e);
-            treeG.fillRect(tx - 4, ty, 8, Phaser.Math.Between(18, 30));
-            // Foliage layers
-            treeG.fillStyle(0x255e14, 0.85);
-            treeG.fillTriangle(tx, ty - 40, tx - 22, ty + 5, tx + 22, ty + 5);
-            treeG.fillStyle(0x2d7018, 0.9);
-            treeG.fillTriangle(tx, ty - 55, tx - 17, ty - 15, tx + 17, ty - 15);
-            treeG.fillStyle(0x347a1e);
-            treeG.fillTriangle(tx, ty - 68, tx - 12, ty - 35, tx + 12, ty - 35);
+        const treeData = [
+            [55, GAME_HEIGHT - 130, 80, false], [90, GAME_HEIGHT - 140, 95, false],
+            [200, GAME_HEIGHT - 135, 75, true], [310, GAME_HEIGHT - 128, 70, false],
+            [420, GAME_HEIGHT - 138, 88, false], [540, GAME_HEIGHT - 132, 78, true],
+            [680, GAME_HEIGHT - 140, 92, false], [790, GAME_HEIGHT - 128, 72, false],
+            [900, GAME_HEIGHT - 136, 85, false], [980, GAME_HEIGHT - 130, 78, true],
+        ];
+        treeData.forEach(([tx, ty, th, pine]) => {
+            drawTree(treeG, tx as number, ty as number, th as number,
+                pine ? 0x234d1a : 0x2a5820, pine as unknown as boolean);
         });
 
-        // Bushes
+        // Bushes / undergrowth at ground level
         const bushG = this.add.graphics();
-        for (let i = 0; i < 14; i++) {
-            const bx = Phaser.Math.Between(20, GAME_WIDTH - 20);
-            const by = Phaser.Math.Between(GAME_HEIGHT - 80, GAME_HEIGHT - 50);
-            bushG.fillStyle(0x2d6a18, 0.75);
-            bushG.fillEllipse(bx, by, Phaser.Math.Between(24, 48), 20);
-            bushG.fillStyle(0x3d7a22, 0.6);
-            bushG.fillEllipse(bx - 8, by - 4, 22, 16);
+        for (let i = 0; i < 18; i++) {
+            const bx = 30 + i * 56;
+            const by = GAME_HEIGHT - 55 + (i % 3) * 5;
+            bushG.fillStyle(i % 2 === 0 ? 0x2d6a18 : 0x347a20, 0.8);
+            bushG.fillEllipse(bx, by, 38 + (i % 4) * 8, 22);
+            bushG.fillStyle(0x3d8a28, 0.5);
+            bushG.fillEllipse(bx - 10, by - 5, 26, 16);
         }
     }
 
