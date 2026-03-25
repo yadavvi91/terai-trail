@@ -591,6 +591,14 @@ export class TravelScene extends Scene {
             this.scene.start(SCENES.GAME_OVER);
             return;
         }
+        // Ensure pace is at least steady after returning from sub-scenes
+        if (gs.pace === Pace.STOPPED) {
+            gs.pace = Pace.STEADY;
+        }
+        // Reset speed and restart timer cleanly
+        gs.resetSpeed();
+        this.tickTimer.delay = TICK_MS;
+        this.speedText?.setText('⏩ 1x');
         this.tickTimer.paused = false;
         this.updateHUD();
     }
