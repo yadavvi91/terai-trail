@@ -1,0 +1,45 @@
+src/audio/SoundManager.ts
+  c4b157ded3d96a80 1-181
+src/scenes/BootScene.ts
+  c4b157ded3d96a80 3-4,87
+src/scenes/HuntingScene.ts
+  c4b157ded3d96a80 8-9,109-110,292
+src/ui/MuteButton.ts
+  c4b157ded3d96a80 1-34
+src/scenes/PartyCreationScene.ts
+  c4b157ded3d96a80 8-9,45-46,196,298-299
+src/scenes/EventScene.ts
+  c4b157ded3d96a80 6-7,47-57
+src/scenes/LandmarkScene.ts
+  c4b157ded3d96a80 10-11,116-117
+src/scenes/TitleScene.ts
+  c4b157ded3d96a80 4-5,151,153,156,158-162
+src/scenes/TravelScene.ts
+  c4b157ded3d96a80 10-11,55,80-81,450-457
+src/scenes/StoreScene.ts
+  c4b157ded3d96a80 7-8,278-279,283,322
+src/scenes/RiverCrossingScene.ts
+  c4b157ded3d96a80 7-8,42-43,287
+src/scenes/GameOverScene.ts
+  c4b157ded3d96a80 9-10,21-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "97f04125ea65d24acd55378f0e609d6d1fe9675f",
+  "prompts": {
+    "c4b157ded3d96a80": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b7f94ea-b189-45b5-b6ab-432f20351c74",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 292,
+      "total_deletions": 7,
+      "accepted_lines": 292,
+      "overriden_lines": 0
+    }
+  }
+}
