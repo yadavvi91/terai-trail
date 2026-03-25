@@ -1,0 +1,25 @@
+src/scenes/GameOverScene.ts
+  c4b157ded3d96a80 183-190,193-221,223-224
+src/ui/DrawUtils.ts
+  c4b157ded3d96a80 475-484,486-498,595,597-601,605-606,608,610-619,624-625,627-628,630-637,641,643-646,650-651,654,671-672,675-677,680-682,684-685,687-689,692,694-695,697,699-702,706-715,719-723,725-727,731-736,750,752,754-755,759-760,762,764,768-773,775,777-782,786-789
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "eaf57cb2e924b65b4bcb0e08c9a4c635d8b1f483",
+  "prompts": {
+    "c4b157ded3d96a80": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b7f94ea-b189-45b5-b6ab-432f20351c74",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 175,
+      "total_deletions": 71,
+      "accepted_lines": 175,
+      "overriden_lines": 0
+    }
+  }
+}
