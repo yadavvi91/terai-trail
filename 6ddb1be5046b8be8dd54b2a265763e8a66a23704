@@ -1,0 +1,31 @@
+src/ui/DrawUtils.ts
+  c4b157ded3d96a80 508-558
+src/scenes/TravelScene.ts
+  c4b157ded3d96a80 9,144-158
+src/scenes/PartyCreationScene.ts
+  c4b157ded3d96a80 7,48-55,57-58,61,64-66,69-73,76-88,90
+src/scenes/LandmarkScene.ts
+  c4b157ded3d96a80 8-9,40-67
+src/scenes/TitleScene.ts
+  c4b157ded3d96a80 3,25-35,37-39,43,45-58,62-66,68-76,79-81,83,85-94,96-102,107-110,112,114-115,117-119
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "6ddb1be5046b8be8dd54b2a265763e8a66a23704",
+  "prompts": {
+    "c4b157ded3d96a80": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b7f94ea-b189-45b5-b6ab-432f20351c74",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 210,
+      "total_deletions": 77,
+      "accepted_lines": 208,
+      "overriden_lines": 0
+    }
+  }
+}
