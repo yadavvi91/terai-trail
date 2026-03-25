@@ -5,6 +5,8 @@ import {
 } from '../utils/constants';
 import { GameState } from '../game/GameState';
 import { drawBuffalo, drawDeer, drawRabbit, drawSquirrel, drawTree, drawMountain, drawHill, drawCloud } from '../ui/DrawUtils';
+import { drawIsoTree } from '../ui/IsoDrawUtils';
+import { TILE_WIDTH, TILE_HEIGHT, drawIsoTile } from '../utils/isometric';
 import { addMuteButton } from '../ui/MuteButton';
 import { SoundManager } from '../audio/SoundManager';
 
@@ -141,33 +143,52 @@ export class HuntingScene extends Scene {
         drawHill(hillG, 700,  GAME_HEIGHT - 140, 280, 0x2d6428);
         drawHill(hillG, 980,  GAME_HEIGHT - 140, 260, 0x337030);
 
-        // Ground
-        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 35, GAME_WIDTH, 70, 0x2d5c18);
-        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 62, GAME_WIDTH, 16, 0x3a7020, 0.6);
+        // Isometric ground tiles
+        const isoG = this.add.graphics();
+        const cols = 18, rows = 6;
+        const groundBaseY = GAME_HEIGHT - 100;
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+                const sx = GAME_WIDTH / 2 + (col - row) * (TILE_WIDTH / 2) - (cols * TILE_WIDTH / 4);
+                const sy = groundBaseY + (col + row) * (TILE_HEIGHT / 2) - rows * TILE_HEIGHT / 2;
+                const gc = [0x2d5c18, 0x2a5414, 0x306020, 0x2d5818][(col * 3 + row * 7) % 4];
+                drawIsoTile(isoG, sx, sy, gc);
+            }
+        }
 
-        // Trees using DrawUtils (proper organic trees)
+        // Isometric trees scattered around the hunting ground
         const treeG = this.add.graphics();
-        const treeData = [
-            [55, GAME_HEIGHT - 130, 80, false], [90, GAME_HEIGHT - 140, 95, false],
-            [200, GAME_HEIGHT - 135, 75, true], [310, GAME_HEIGHT - 128, 70, false],
-            [420, GAME_HEIGHT - 138, 88, false], [540, GAME_HEIGHT - 132, 78, true],
-            [680, GAME_HEIGHT - 140, 92, false], [790, GAME_HEIGHT - 128, 72, false],
-            [900, GAME_HEIGHT - 136, 85, false], [980, GAME_HEIGHT - 130, 78, true],
+        const isoTreeData = [
+            [80, GAME_HEIGHT - 160, 75, false], [160, GAME_HEIGHT - 140, 90, false],
+            [300, GAME_HEIGHT - 150, 70, true], [450, GAME_HEIGHT - 135, 80, false],
+            [600, GAME_HEIGHT - 155, 85, true], [740, GAME_HEIGHT - 140, 75, false],
+            [880, GAME_HEIGHT - 150, 90, false], [960, GAME_HEIGHT - 135, 70, true],
         ];
-        treeData.forEach(([tx, ty, th, pine]) => {
-            drawTree(treeG, tx as number, ty as number, th as number,
+        isoTreeData.forEach(([tx, ty, th, pine]) => {
+            drawIsoTree(treeG, tx as number, ty as number, th as number,
                 pine ? 0x234d1a : 0x2a5820, pine as unknown as boolean);
         });
 
-        // Bushes / undergrowth at ground level
+        // Isometric bushes
         const bushG = this.add.graphics();
-        for (let i = 0; i < 18; i++) {
-            const bx = 30 + i * 56;
-            const by = GAME_HEIGHT - 55 + (i % 3) * 5;
+        for (let i = 0; i < 14; i++) {
+            const bx = 50 + i * 70;
+            const by = GAME_HEIGHT - 70 + (i % 3) * 10;
             bushG.fillStyle(i % 2 === 0 ? 0x2d6a18 : 0x347a20, 0.8);
-            bushG.fillEllipse(bx, by, 38 + (i % 4) * 8, 22);
+            // Iso-style bush: diamond shape
+            bushG.fillPoints([
+                { x: bx, y: by - 8 },
+                { x: bx + 18, y: by },
+                { x: bx, y: by + 6 },
+                { x: bx - 18, y: by },
+            ], true);
             bushG.fillStyle(0x3d8a28, 0.5);
-            bushG.fillEllipse(bx - 10, by - 5, 26, 16);
+            bushG.fillPoints([
+                { x: bx - 2, y: by - 6 },
+                { x: bx + 10, y: by - 1 },
+                { x: bx - 2, y: by + 4 },
+                { x: bx - 12, y: by - 1 },
+            ], true);
         }
     }
 

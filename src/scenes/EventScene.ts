@@ -2,7 +2,9 @@ import { Scene } from 'phaser';
 import { SCENES, GAME_WIDTH, GAME_HEIGHT, COLORS, HEX_COLORS, TEXT_STYLES } from '../utils/constants';
 import { GameEvent } from '../utils/types';
 import { generateRandomEvent } from '../game/EventManager';
-import { drawMountain, drawHill, drawTree, drawCloud, drawSun, drawWagon, drawOx } from '../ui/DrawUtils';
+import { drawMountain, drawHill, drawTree, drawCloud, drawSun } from '../ui/DrawUtils';
+import { drawIsoWagon, drawIsoOx, drawIsoTree } from '../ui/IsoDrawUtils';
+import { TILE_WIDTH, TILE_HEIGHT, drawIsoTile } from '../utils/isometric';
 import { addMuteButton } from '../ui/MuteButton';
 import { SoundManager } from '../audio/SoundManager';
 
@@ -155,17 +157,25 @@ export class EventScene extends Scene {
         drawTree(treeG, 920, groundY - 4, 65, treeColor, true);
         drawTree(treeG, 960, groundY + 2, 55, treeColor, false);
 
-        // Ground
+        // Isometric ground tiles
         const groundColor = mood === 'night' ? 0x0e1408 : mood === 'storm' ? 0x1e3018 : mood === 'danger' ? 0x2a4018 : 0x3a7d30;
-        this.add.rectangle(GAME_WIDTH / 2, groundY + 40, GAME_WIDTH, 100, groundColor);
         const trailColor = mood === 'night' ? 0x2a1e10 : 0x9e7b3a;
-        this.add.rectangle(GAME_WIDTH / 2, groundY + 12, GAME_WIDTH, 22, trailColor);
+        const isoG = this.add.graphics();
+        const cols = 16, rows = 5;
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+                const sx = GAME_WIDTH / 2 + (col - row) * (TILE_WIDTH / 2) - (cols * TILE_WIDTH / 4);
+                const sy = groundY + 10 + (col + row) * (TILE_HEIGHT / 2) - rows * TILE_HEIGHT / 2;
+                const isTrail = Math.abs(col - row - 1) <= 1;
+                drawIsoTile(isoG, sx, sy, isTrail ? trailColor : groundColor);
+            }
+        }
 
-        // Wagon + oxen on the trail (you've stopped because of the event)
+        // Wagon + oxen on the trail (isometric, stopped)
         const wG = this.add.graphics();
-        drawOx(wG, 140, groundY - 2, 0.75);
-        drawOx(wG, 170, groundY - 2, 0.75);
-        drawWagon(wG, 230, groundY - 2, 0.8);
+        drawIsoOx(wG, 200, groundY + 18, 0.75);
+        drawIsoOx(wG, 186, groundY + 26, 0.75);
+        drawIsoWagon(wG, 150, groundY + 10, 0.8);
 
         // Semi-transparent overlay to push background back and focus on panel
         this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.45);
