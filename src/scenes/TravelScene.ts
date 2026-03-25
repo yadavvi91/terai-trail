@@ -6,7 +6,7 @@ import {
 import { Pace, Rations, Weather, MemberStatus } from '../utils/types';
 import { GameState } from '../game/GameState';
 import { getNextLandmark } from '../game/TrailData';
-import { drawMountain, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
+import { drawTree, drawMountain, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
 import { drawIsoWagon, drawIsoOx, drawIsoPerson, drawIsoTree } from '../ui/IsoDrawUtils';
 import { TILE_WIDTH, TILE_HEIGHT, drawIsoTile } from '../utils/isometric';
 import { addMuteButton } from '../ui/MuteButton';

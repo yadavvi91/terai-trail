@@ -1,6 +1,6 @@
 import { Scene } from 'phaser';
 import { SCENES, GAME_WIDTH, GAME_HEIGHT, COLORS, TEXT_STYLES, HEX_COLORS } from '../utils/constants';
-import { drawMountain, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
+import { drawTree, drawMountain, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
 import { drawIsoWagon, drawIsoOx, drawIsoPerson, drawIsoTree } from '../ui/IsoDrawUtils';
 import { TILE_WIDTH, TILE_HEIGHT, drawIsoTile } from '../utils/isometric';
 import { addMuteButton } from '../ui/MuteButton';
