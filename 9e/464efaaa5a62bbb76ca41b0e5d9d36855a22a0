@@ -1,0 +1,27 @@
+src/ui/IsoDrawUtils.ts
+  c4b157ded3d96a80 1-331
+src/utils/isometric.ts
+  c4b157ded3d96a80 1-137
+src/scenes/TravelScene.ts
+  c4b157ded3d96a80 9-11,176-180,184-218,221-235,256-258,260-262,265,267,270-273
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "9e464efaaa5a62bbb76ca41b0e5d9d36855a22a0",
+  "prompts": {
+    "c4b157ded3d96a80": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b7f94ea-b189-45b5-b6ab-432f20351c74",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 539,
+      "total_deletions": 44,
+      "accepted_lines": 539,
+      "overriden_lines": 0
+    }
+  }
+}
