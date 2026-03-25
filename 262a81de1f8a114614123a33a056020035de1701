@@ -1,0 +1,23 @@
+src/scenes/HuntingScene.ts
+  c4b157ded3d96a80 7,110-117,119-120,122-138,141-142,144,146-155,158,160-166
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "262a81de1f8a114614123a33a056020035de1701",
+  "prompts": {
+    "c4b157ded3d96a80": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b7f94ea-b189-45b5-b6ab-432f20351c74",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 50,
+      "total_deletions": 32,
+      "accepted_lines": 50,
+      "overriden_lines": 0
+    }
+  }
+}
