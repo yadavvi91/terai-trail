@@ -331,8 +331,8 @@ export class RiverCrossingScene extends Scene {
         this.resultText.setText(msg);
         this.resultText.setColor(good ? HEX_COLORS.GREEN : HEX_COLORS.BLOOD_RED);
         this.time.delayedCall(2800, () => {
-            this.scene.stop();
             this.scene.resume(SCENES.TRAVEL);
+            this.scene.stop();
         });
     }
 

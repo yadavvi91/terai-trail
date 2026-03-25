@@ -302,8 +302,8 @@ export class LandmarkScene extends Scene {
     // ─── Continue ──────────────────────────────────────────────────────────────
 
     private continueTrail(): void {
-        this.scene.stop();
         this.scene.resume(SCENES.TRAVEL);
+        this.scene.stop();
     }
 
     // ─── Helpers ───────────────────────────────────────────────────────────────

@@ -412,8 +412,9 @@ export class HuntingScene extends Scene {
         btn.on('pointerout', () => btn.setColor(HEX_COLORS.GOLD));
         btn.on('pointerdown', () => {
             this.input.setDefaultCursor('default');
-            this.scene.stop();
+            // Resume travel BEFORE stopping this scene — stopping invalidates scene manager refs
             this.scene.resume(SCENES.TRAVEL);
+            this.scene.stop();
         });
     }
 

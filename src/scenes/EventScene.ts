@@ -301,8 +301,8 @@ export class EventScene extends Scene {
     private resolveChoice(index: number): void {
         const choices = this.event.choices ?? [{ text: 'Continue', outcome: () => {} }];
         choices[index]?.outcome();
-        this.scene.stop();
         this.scene.resume(SCENES.TRAVEL);
+        this.scene.stop();
     }
 
     shutdown(): void {
