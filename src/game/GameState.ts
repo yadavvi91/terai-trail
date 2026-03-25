@@ -27,6 +27,20 @@ export class GameState {
     public rations: Rations = Rations.FILLING;
     public nextLandmarkIndex: number = 0;
 
+    // Speed multiplier (1, 2, 4, 8)
+    public speedMultiplier: number = 1;
+    private static readonly SPEED_OPTIONS = [1, 2, 4, 8];
+
+    public cycleSpeed(): number {
+        const idx = GameState.SPEED_OPTIONS.indexOf(this.speedMultiplier);
+        this.speedMultiplier = GameState.SPEED_OPTIONS[(idx + 1) % GameState.SPEED_OPTIONS.length];
+        return this.speedMultiplier;
+    }
+
+    public resetSpeed(): void {
+        this.speedMultiplier = 1;
+    }
+
     private constructor() {}
 
     public static getInstance(): GameState {

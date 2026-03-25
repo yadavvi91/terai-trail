@@ -53,6 +53,7 @@ export class TravelScene extends Scene {
     private tickTimer!: Phaser.Time.TimerEvent;
     private paused: boolean = false;
     private wagonRollTick: number = 0;
+    private speedText!: Phaser.GameObjects.Text;
 
     constructor() {
         super(SCENES.TRAVEL);
@@ -351,6 +352,7 @@ export class TravelScene extends Scene {
         huntBtn.on('pointerover', () => huntBtn.setColor(HEX_COLORS.GOLD));
         huntBtn.on('pointerout', () => huntBtn.setColor(HEX_COLORS.GREEN));
         huntBtn.on('pointerdown', () => {
+            this.resetSpeedForSubScene();
             this.tickTimer.paused = true;
             this.scene.launch(SCENES.HUNTING);
             this.scene.pause();
@@ -366,6 +368,21 @@ export class TravelScene extends Scene {
             this.showStatus('Your party is resting...');
         });
 
+        // Speed control button
+        this.speedText = this.add.text(GAME_WIDTH - 160, GAME_HEIGHT - 38, '⏩ 1x', {
+            ...btnStyle, color: HEX_COLORS.GOLD, fontSize: '15px',
+        }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(depth);
+        this.speedText.on('pointerdown', () => {
+            const gs = GameState.getInstance();
+            const newSpeed = gs.cycleSpeed();
+            this.speedText.setText(`⏩ ${newSpeed}x`);
+            // Adjust tick timer delay
+            this.tickTimer.delay = TICK_MS / newSpeed;
+            SoundManager.getInstance().playClick();
+        });
+        this.speedText.on('pointerover', () => this.speedText.setColor(HEX_COLORS.PARCHMENT));
+        this.speedText.on('pointerout', () => this.speedText.setColor(HEX_COLORS.GOLD));
+
         this.input.keyboard?.on('keydown-ONE', () => { GameState.getInstance().pace = Pace.STEADY; this.updateHUD(); });
         this.input.keyboard?.on('keydown-TWO', () => { GameState.getInstance().pace = Pace.STRENUOUS; this.updateHUD(); });
         this.input.keyboard?.on('keydown-THREE', () => { GameState.getInstance().pace = Pace.GRUELING; this.updateHUD(); });
@@ -379,7 +396,7 @@ export class TravelScene extends Scene {
         const moving = gs.pace !== Pace.STOPPED;
 
         if (moving) {
-            const scrollSpeed = 60; // visual scroll px per second
+            const scrollSpeed = 60 * gs.speedMultiplier; // visual scroll px per second (scales with speed)
             this.scrollOffset += scrollSpeed * dt;
 
             // Scroll mountains
@@ -499,6 +516,7 @@ export class TravelScene extends Scene {
 
         // Random event
         if (Math.random() < 0.12 && gs.pace !== Pace.STOPPED) {
+            this.resetSpeedForSubScene();
             this.tickTimer.paused = true;
             this.scene.launch(SCENES.EVENT);
             this.scene.pause();
@@ -514,7 +532,14 @@ export class TravelScene extends Scene {
         this.updateHUD();
     }
 
+    private resetSpeedForSubScene(): void {
+        GameState.getInstance().resetSpeed();
+        this.tickTimer.delay = TICK_MS;
+        this.speedText?.setText('⏩ 1x');
+    }
+
     private onLandmarkReached(landmark: { isRiver: boolean; isFort: boolean }): void {
+        this.resetSpeedForSubScene();
         this.tickTimer.paused = true;
         this.scene.launch(landmark.isRiver ? SCENES.RIVER_CROSSING : SCENES.LANDMARK);
         this.scene.pause();
