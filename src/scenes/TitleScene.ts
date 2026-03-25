@@ -1,6 +1,8 @@
 import { Scene } from 'phaser';
 import { SCENES, GAME_WIDTH, GAME_HEIGHT, COLORS, TEXT_STYLES, HEX_COLORS } from '../utils/constants';
-import { drawWagon, drawOx, drawPerson, drawWoman, drawChild, drawPig, drawTree, drawMountain, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
+import { drawMountain, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
+import { drawIsoWagon, drawIsoOx, drawIsoPerson, drawIsoTree } from '../ui/IsoDrawUtils';
+import { TILE_WIDTH, TILE_HEIGHT, drawIsoTile } from '../utils/isometric';
 import { addMuteButton } from '../ui/MuteButton';
 import { SoundManager } from '../audio/SoundManager';
 
@@ -77,32 +79,40 @@ export class TitleScene extends Scene {
         drawTree(treeG, 960, groundY - 6, 72, 0x234d1a, true); // pine
         drawTree(treeG, 990, groundY - 2, 55, 0x234d1a, true);
 
-        // ── Ground ──
-        this.add.rectangle(GAME_WIDTH / 2, groundY + 40, GAME_WIDTH, 100, 0x3a7d30);
-        // Lighter ground strip near horizon
-        this.add.rectangle(GAME_WIDTH / 2, groundY + 6, GAME_WIDTH, 16, 0x4a9038, 0.6);
-        // Trail dirt path
-        this.add.rectangle(GAME_WIDTH / 2, groundY + 14, GAME_WIDTH, 24, 0x9e7b3a);
-        // Trail ruts
-        this.add.rectangle(GAME_WIDTH / 2, groundY + 8,  GAME_WIDTH, 3, 0x6a4e1e);
-        this.add.rectangle(GAME_WIDTH / 2, groundY + 20, GAME_WIDTH, 3, 0x6a4e1e);
-        // Wildflowers alongside trail
-        const flowerG = this.add.graphics();
-        [[120, 0xffdd44], [210, 0xff8844], [350, 0xffdd44], [490, 0xff6644],
-         [610, 0xffdd44], [730, 0xff8844], [850, 0xffdd44], [950, 0xff6644]].forEach(([fx, fc]) => {
-            flowerG.fillStyle(fc as number, 0.8);
-            flowerG.fillCircle(fx as number, groundY + 28, 3);
-            flowerG.fillCircle((fx as number) + 12, groundY + 32, 2.5);
-        });
-        // Prairie grass tufts
-        const grassG = this.add.graphics();
-        for (let i = 0; i < 28; i++) {
-            const gx = (i / 28) * GAME_WIDTH + 10;
-            const gy = groundY + 24 + (i % 3) * 8;
-            grassG.fillStyle(i % 2 === 0 ? 0x2d6a22 : 0x3a7828, 0.75);
-            grassG.fillRect(gx, gy, 2.5, 10 + (i % 4) * 3);
-            grassG.fillRect(gx + 5, gy + 2, 2, 8 + (i % 3) * 2);
+        // ── Isometric ground tiles ──
+        const isoG = this.add.graphics();
+        const cols = 20;
+        const rows = 6;
+        const tileW = TILE_WIDTH;
+        const tileH = TILE_HEIGHT;
+        const isoBaseX = GAME_WIDTH / 2;
+        const isoBaseY = groundY + 10;
+
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+                const sx = isoBaseX + (col - row) * (tileW / 2) - (cols * tileW / 4);
+                const sy = isoBaseY + (col + row) * (tileH / 2) - rows * tileH / 2;
+                const isTrail = Math.abs(col - row - 2) <= 1;
+                if (isTrail) {
+                    drawIsoTile(isoG, sx, sy, 0x9e7b3a);
+                    if (Math.abs(col - row - 2) === 0) {
+                        drawIsoTile(isoG, sx, sy, 0x6a4e20, 0.3, tileW * 0.5, tileH * 0.5);
+                    }
+                } else {
+                    const gc = [0x3a7d30, 0x2d6a28, 0x347530][((col * 3 + row * 7) % 3)];
+                    drawIsoTile(isoG, sx, sy, gc);
+                    if ((col * 5 + row * 11) % 9 === 0) {
+                        isoG.fillStyle([0xffdd44, 0xff8844, 0xff6644][(col + row) % 3], 0.8);
+                        isoG.fillCircle(sx, sy - 2, 2.5);
+                    }
+                }
+            }
         }
+        // Trees on the isometric ground
+        drawIsoTree(isoG, isoBaseX - 260, isoBaseY - 10, 55, 0x234d1a, false);
+        drawIsoTree(isoG, isoBaseX - 200, isoBaseY + 15, 65, 0x2a5820, true);
+        drawIsoTree(isoG, isoBaseX + 230, isoBaseY - 5, 58, 0x234d1a, false);
+        drawIsoTree(isoG, isoBaseX + 280, isoBaseY + 20, 70, 0x2a5820, false);
 
         // ── Clouds ──
         const cloudG = this.add.graphics();
@@ -182,24 +192,27 @@ export class TitleScene extends Scene {
 
     update(_t: number, dt: number): void {
         const groundY = GAME_HEIGHT - 90;
-        const speed = 120;
+        // Wagon moves diagonally (isometric direction: right and slightly down)
+        const speed = 80;
         this.wagonX += (speed * dt) / 1000;
-        if (this.wagonX > GAME_WIDTH + 140) this.wagonX = -140;
+        if (this.wagonX > GAME_WIDTH + 200) this.wagonX = -200;
 
-        // Dust
+        const isoYOffset = this.wagonX * 0.3; // diagonal movement
+
+        // Dust particles along the iso trail
         if (Math.random() < 0.4 && this.wagonX > 0 && this.wagonX < GAME_WIDTH) {
             this.dustParticles.push({
-                x: this.wagonX - 90,
-                y: groundY + 4 + Math.random() * 8,
-                alpha: 0.5,
-                r: 4 + Math.random() * 8,
+                x: this.wagonX - 60,
+                y: groundY + isoYOffset * 0.15 + Math.random() * 8,
+                alpha: 0.45,
+                r: 3 + Math.random() * 6,
             });
         }
         this.dustParticles = this.dustParticles.filter(p => p.alpha > 0.02);
         this.dustParticles.forEach(p => {
-            p.x -= (speed * dt) / 1000 * 0.3;
-            p.alpha -= dt / 1800;
-            p.r += dt / 400;
+            p.x -= (speed * dt) / 1000 * 0.2;
+            p.alpha -= dt / 2000;
+            p.r += dt / 500;
         });
 
         this.dustG.clear();
@@ -208,34 +221,22 @@ export class TitleScene extends Scene {
             this.dustG.fillCircle(p.x, p.y, p.r);
         });
 
-        // Walking animation frame
-        this.walkTimer += dt;
-        if (this.walkTimer > 280) {
-            this.walkFrame = this.walkFrame === 0 ? 1 : 0;
-            this.walkTimer = 0;
-        }
-
         this.wagonG.clear();
         const wx = this.wagonX;
-        const wy = groundY - 2;
+        const wy = groundY + 14 + (wx / GAME_WIDTH) * 30; // diagonal path
 
-        // Oxen pulling the wagon
-        drawOx(this.wagonG, wx - 100, wy, 1.0);
-        drawOx(this.wagonG, wx - 62, wy, 1.0);
+        // Isometric oxen
+        drawIsoOx(this.wagonG, wx + 46, wy + 16, 0.9);
+        drawIsoOx(this.wagonG, wx + 34, wy + 22, 0.9);
 
-        // Wagon
-        drawWagon(this.wagonG, wx, wy, 1.0);
+        // Isometric wagon
+        drawIsoWagon(this.wagonG, wx, wy, 0.9);
 
-        // People walking alongside
-        const wf = this.walkFrame;
-        const wf1 = wf === 0 ? 1 : 0;
-        drawPerson(this.wagonG, wx + 55,  wy + 2, 0.9, false, wf);   // man
-        drawWoman(this.wagonG,  wx + 82,  wy + 2, 0.88, false, wf1); // woman
-        drawPerson(this.wagonG, wx + 110, wy + 2, 0.85, false, wf);  // man
-        drawChild(this.wagonG,  wx + 132, wy + 4, 0.75, wf1);        // child
-        drawChild(this.wagonG,  wx + 150, wy + 4, 0.65, wf);         // smaller child
-        // Pig trotting alongside
-        drawPig(this.wagonG, wx - 130, wy + 4, 0.75);
+        // Isometric people walking behind
+        const personColors = [0x7a5a38, 0x5a3a70, 0x8a6848, 0x5a3a70];
+        for (let i = 0; i < 4; i++) {
+            drawIsoPerson(this.wagonG, wx - 24 - i * 16, wy + 6 + i * 8, 0.75, personColors[i]);
+        }
     }
 
     private createMenuButton(x: number, y: number, label: string): Phaser.GameObjects.Text {
