@@ -52,17 +52,44 @@ export class StoreScene extends Scene {
 
         const gs = GameState.getInstance();
 
-        // Woodgrain store background
-        this.cameras.main.setBackgroundColor(0x2a1a0a);
-        for (let i = 0; i < 20; i++) {
-            this.add.rectangle(i * 56, GAME_HEIGHT / 2, 50, GAME_HEIGHT, 0x2e1c0c + (i % 3) * 0x040200, 0.8);
+        // Woodgrain store background — more realistic planks
+        this.cameras.main.setBackgroundColor(0x1a0e04);
+        const woodG = this.add.graphics();
+        for (let i = 0; i < 22; i++) {
+            const px = i * 50 - 10;
+            const baseColor = [0x3a2214, 0x2e1c0c, 0x342010, 0x2a1808][i % 4];
+            woodG.fillStyle(baseColor);
+            woodG.fillRect(px, 0, 48, GAME_HEIGHT);
+            // Plank edge (light line on left, dark on right)
+            woodG.fillStyle(0x4a3020, 0.3);
+            woodG.fillRect(px, 0, 2, GAME_HEIGHT);
+            woodG.fillStyle(0x0a0604, 0.4);
+            woodG.fillRect(px + 46, 0, 2, GAME_HEIGHT);
+            // Grain lines — horizontal wood texture
+            woodG.fillStyle(0x1a0e06, 0.25);
+            for (let j = 0; j < 12; j++) {
+                const gy = j * 68 + (i % 3) * 20;
+                woodG.fillRect(px + 2, gy, 44, 1.5);
+            }
+            // Knot (occasional)
+            if (i % 5 === 2) {
+                woodG.fillStyle(0x1a0e06, 0.5);
+                woodG.fillEllipse(px + 24, 200 + i * 30, 16, 10);
+                woodG.fillStyle(0x2a1a0a, 0.3);
+                woodG.fillEllipse(px + 24, 200 + i * 30, 10, 6);
+            }
         }
+        // Shelf shadows at top and bottom
+        woodG.fillStyle(0x000000, 0.25);
+        woodG.fillRect(0, 0, GAME_WIDTH, 12);
+        woodG.fillRect(0, GAME_HEIGHT - 8, GAME_WIDTH, 8);
 
-        // Shadow + parchment panel
-        this.add.rectangle(GAME_WIDTH / 2 + 4, GAME_HEIGHT / 2 + 4, GAME_WIDTH - 56, GAME_HEIGHT - 36, 0x000000, 0.4);
-        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH - 60, GAME_HEIGHT - 40, 0xf0ddb8, 0.97);
-        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH - 60, GAME_HEIGHT - 40).setStrokeStyle(3, 0x8b6914);
-        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH - 74, GAME_HEIGHT - 54).setStrokeStyle(1, 0xb89050, 0.4);
+        // Shadow + parchment panel — double shadow for depth
+        this.add.rectangle(GAME_WIDTH / 2 + 6, GAME_HEIGHT / 2 + 6, GAME_WIDTH - 52, GAME_HEIGHT - 32, 0x000000, 0.5);
+        this.add.rectangle(GAME_WIDTH / 2 + 2, GAME_HEIGHT / 2 + 2, GAME_WIDTH - 56, GAME_HEIGHT - 36, 0x000000, 0.25);
+        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH - 56, GAME_HEIGHT - 36, 0xf0ddb8, 0.97);
+        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH - 56, GAME_HEIGHT - 36).setStrokeStyle(3, 0x8b6914);
+        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH - 70, GAME_HEIGHT - 50).setStrokeStyle(1, 0xb89050, 0.4);
 
         // Store sign header bar
         this.add.rectangle(GAME_WIDTH / 2, 44, GAME_WIDTH - 60, 68, 0x4a2e0e);

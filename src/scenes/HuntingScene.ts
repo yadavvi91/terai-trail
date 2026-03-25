@@ -196,21 +196,46 @@ export class HuntingScene extends Scene {
 
     private drawCrosshair(x: number, y: number): void {
         this.crosshair.clear();
-        const r = 18;
-        this.crosshair.lineStyle(2, 0xffffff, 0.9);
+        const r = 22;
+        const gap = 5; // gap around center dot
+
+        // Outer ring — scope rim
+        this.crosshair.lineStyle(3, 0x000000, 0.5);
+        this.crosshair.strokeCircle(x, y, r + 2);
+        this.crosshair.lineStyle(2, 0xffffff, 0.85);
         this.crosshair.strokeCircle(x, y, r);
-        this.crosshair.lineStyle(1.5, 0xffffff, 0.7);
+
+        // Crosshairs with center gap
+        this.crosshair.lineStyle(1.5, 0xffffff, 0.8);
+        // Horizontal
         this.crosshair.beginPath();
-        (this.crosshair as any).moveTo(x - r - 6, y);
-        (this.crosshair as any).lineTo(x + r + 6, y);
+        this.crosshair.moveTo(x - r - 8, y);
+        this.crosshair.lineTo(x - gap, y);
         this.crosshair.strokePath();
         this.crosshair.beginPath();
-        (this.crosshair as any).moveTo(x, y - r - 6);
-        (this.crosshair as any).lineTo(x, y + r + 6);
+        this.crosshair.moveTo(x + gap, y);
+        this.crosshair.lineTo(x + r + 8, y);
         this.crosshair.strokePath();
-        // Red dot
-        this.crosshair.fillStyle(0xff3333, 0.9);
-        this.crosshair.fillCircle(x, y, 2);
+        // Vertical
+        this.crosshair.beginPath();
+        this.crosshair.moveTo(x, y - r - 8);
+        this.crosshair.lineTo(x, y - gap);
+        this.crosshair.strokePath();
+        this.crosshair.beginPath();
+        this.crosshair.moveTo(x, y + gap);
+        this.crosshair.lineTo(x, y + r + 8);
+        this.crosshair.strokePath();
+
+        // Mil-dot marks on crosshairs
+        this.crosshair.fillStyle(0xffffff, 0.7);
+        [-14, -10, 10, 14].forEach(d => {
+            this.crosshair.fillCircle(x + d, y, 1.2);
+            this.crosshair.fillCircle(x, y + d, 1.2);
+        });
+
+        // Center red dot
+        this.crosshair.fillStyle(0xff2222, 0.95);
+        this.crosshair.fillCircle(x, y, 2.5);
     }
 
     private spawnAnimal(): void {

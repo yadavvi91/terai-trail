@@ -504,24 +504,41 @@ export function drawSun(
     cy: number,
     r: number = 36,
 ): void {
-    // Rays
-    g.fillStyle(0xffe866, 0.4);
-    for (let i = 0; i < 12; i++) {
-        const angle = (i / 12) * Math.PI * 2;
-        const inner = r * 1.2;
-        const outer = r * 1.9;
+    // Outer glow halo (warm diffuse light)
+    g.fillStyle(0xffd700, 0.06);
+    g.fillCircle(cx, cy, r * 3.5);
+    g.fillStyle(0xffd700, 0.08);
+    g.fillCircle(cx, cy, r * 2.8);
+    g.fillStyle(0xffe866, 0.12);
+    g.fillCircle(cx, cy, r * 2.2);
+
+    // Rays — alternating long and short
+    for (let i = 0; i < 16; i++) {
+        const angle = (i / 16) * Math.PI * 2;
+        const inner = r * 1.15;
+        const outer = (i % 2 === 0) ? r * 2.1 : r * 1.65;
+        const width = (i % 2 === 0) ? 0.1 : 0.08;
+        g.fillStyle(0xffe866, (i % 2 === 0) ? 0.35 : 0.25);
         g.fillTriangle(
-            cx + Math.cos(angle - 0.12) * inner, cy + Math.sin(angle - 0.12) * inner,
-            cx + Math.cos(angle + 0.12) * inner, cy + Math.sin(angle + 0.12) * inner,
+            cx + Math.cos(angle - width) * inner, cy + Math.sin(angle - width) * inner,
+            cx + Math.cos(angle + width) * inner, cy + Math.sin(angle + width) * inner,
             cx + Math.cos(angle) * outer, cy + Math.sin(angle) * outer,
         );
     }
-    // Core
-    g.fillStyle(0xffd700);
+
+    // Core — gradient effect with concentric circles
+    g.fillStyle(0xf0a000);
     g.fillCircle(cx, cy, r);
-    // Highlight
-    g.fillStyle(0xffee99, 0.5);
-    g.fillCircle(cx - r * 0.25, cy - r * 0.25, r * 0.45);
+    g.fillStyle(0xffc020);
+    g.fillCircle(cx, cy, r * 0.85);
+    g.fillStyle(0xffd700);
+    g.fillCircle(cx, cy, r * 0.7);
+
+    // Highlight — upper left (lit side)
+    g.fillStyle(0xffee99, 0.6);
+    g.fillCircle(cx - r * 0.22, cy - r * 0.22, r * 0.42);
+    g.fillStyle(0xfffff0, 0.3);
+    g.fillCircle(cx - r * 0.3, cy - r * 0.3, r * 0.25);
 }
 
 // ─── Tree ────────────────────────────────────────────────────────────────────
