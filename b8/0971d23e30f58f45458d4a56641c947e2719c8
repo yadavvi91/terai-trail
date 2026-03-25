@@ -1,0 +1,27 @@
+src/scenes/LandmarkScene.ts
+  c4b157ded3d96a80 10-11,70-86,88,90-91
+src/scenes/GameOverScene.ts
+  c4b157ded3d96a80 8-10,88-104,106,108-114,249-262
+src/scenes/RiverCrossingScene.ts
+  c4b157ded3d96a80 6-8,131,136-151,159,161-168
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "b80971d23e30f58f45458d4a56641c947e2719c8",
+  "prompts": {
+    "c4b157ded3d96a80": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b7f94ea-b189-45b5-b6ab-432f20351c74",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 93,
+      "total_deletions": 98,
+      "accepted_lines": 93,
+      "overriden_lines": 0
+    }
+  }
+}
