@@ -1,0 +1,23 @@
+src/scenes/BootScene.ts
+  c4b157ded3d96a80 2,10-40,43-44,46-47,50-55,58-60,64-68,73,79,90
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "df0c404df79d96cec629424e41cd681e29a833df",
+  "prompts": {
+    "c4b157ded3d96a80": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b7f94ea-b189-45b5-b6ab-432f20351c74",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 55,
+      "total_deletions": 9,
+      "accepted_lines": 55,
+      "overriden_lines": 0
+    }
+  }
+}
