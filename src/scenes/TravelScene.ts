@@ -6,7 +6,9 @@ import {
 import { Pace, Rations, Weather, MemberStatus } from '../utils/types';
 import { GameState } from '../game/GameState';
 import { getNextLandmark } from '../game/TrailData';
-import { drawWagon, drawOx, drawPerson, drawWoman, drawChild, drawPig, drawTree, drawMountain, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
+import { drawMountain, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
+import { drawIsoWagon, drawIsoOx, drawIsoPerson, drawIsoTree } from '../ui/IsoDrawUtils';
+import { TILE_WIDTH, TILE_HEIGHT, drawIsoTile } from '../utils/isometric';
 import { addMuteButton } from '../ui/MuteButton';
 import { SoundManager } from '../audio/SoundManager';
 
@@ -171,37 +173,66 @@ export class TravelScene extends Scene {
     // ─── Ground & trail ────────────────────────────────────────────────────────
 
     private buildGroundAndTrail(): void {
-        // Green ground with subtle gradient
-        this.add.rectangle(GAME_WIDTH / 2, GROUND_Y + 5, GAME_WIDTH, 14, 0x4a9038, 0.5);
-        this.add.rectangle(GAME_WIDTH / 2, GROUND_Y + 50, GAME_WIDTH, 100, 0x3a7d30);
+        // Isometric tile ground — scrolling diamond grid
+        const cols = 24;
+        const rows = 8;
+        const tileW = TILE_WIDTH;
+        const tileH = TILE_HEIGHT;
 
-        // Dirt trail
-        this.add.rectangle(GAME_WIDTH / 2, GROUND_Y + 16, GAME_WIDTH, 30, 0x9e7b3a);
-        // Trail edge blending
-        this.add.rectangle(GAME_WIDTH / 2, GROUND_Y + 4, GAME_WIDTH, 4, 0x7a6830, 0.5);
-        this.add.rectangle(GAME_WIDTH / 2, GROUND_Y + 30, GAME_WIDTH, 4, 0x7a6830, 0.5);
-
-        // Trail ruts (wheel tracks)
-        this.add.rectangle(GAME_WIDTH / 2, GROUND_Y + 10, GAME_WIDTH, 3, 0x6a4e20);
-        this.add.rectangle(GAME_WIDTH / 2, GROUND_Y + 24, GAME_WIDTH, 3, 0x6a4e20);
-
-        // Scrolling grass tufts + wildflowers (2 sets for seamless scroll)
         for (let pass = 0; pass < 2; pass++) {
             const g = this.add.graphics();
-            const baseX = pass * (GAME_WIDTH + 40);
-            for (let i = 0; i < 28; i++) {
-                const gx = baseX + (i / 28) * (GAME_WIDTH + 40);
-                const gy = GROUND_Y + 32 + (i % 3) * 8;
-                g.fillStyle(i % 2 === 0 ? 0x2d6a22 : 0x3a7828, 0.75);
-                g.fillRect(gx, gy, 2.5, 8 + (i % 4) * 3);
-                g.fillRect(gx + 5, gy + 2, 2, 6 + (i % 3) * 2);
-                // Occasional wildflower
-                if (i % 5 === 0) {
-                    g.fillStyle([0xffdd44, 0xff8844, 0xff6644][i % 3], 0.8);
-                    g.fillCircle(gx + 3, gy - 2, 2.5);
+            const baseX = pass * (cols * tileW / 2);
+
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const sx = baseX + (col - row) * (tileW / 2) + GAME_WIDTH / 2;
+                    const sy = GROUND_Y + (col + row) * (tileH / 2) - rows * tileH / 2 + 20;
+
+                    // Determine tile type: trail diagonal, grass, or wildflower
+                    const isTrail = Math.abs(col - row) <= 1;
+                    const isTrailEdge = Math.abs(col - row) === 2;
+
+                    if (isTrail) {
+                        // Trail tile
+                        drawIsoTile(g, sx, sy, 0x9e7b3a);
+                        // Wheel ruts
+                        if (col === row) {
+                            drawIsoTile(g, sx, sy, 0x6a4e20, 0.4, tileW * 0.5, tileH * 0.5);
+                        }
+                    } else if (isTrailEdge) {
+                        // Trail edge — blended
+                        drawIsoTile(g, sx, sy, 0x4a8030);
+                        drawIsoTile(g, sx, sy, 0x7a6830, 0.3, tileW * 0.7, tileH * 0.7);
+                    } else {
+                        // Grass tile with slight color variation
+                        const grassColors = [0x3a7d30, 0x2d6a28, 0x347530, 0x3a8028];
+                        const ci = (col * 7 + row * 13) % grassColors.length;
+                        drawIsoTile(g, sx, sy, grassColors[ci]);
+
+                        // Occasional wildflower
+                        if ((col * 3 + row * 7) % 11 === 0) {
+                            const fColors = [0xffdd44, 0xff8844, 0xff6644];
+                            g.fillStyle(fColors[(col + row) % 3], 0.8);
+                            g.fillCircle(sx, sy - 2, 2.5);
+                        }
+                    }
                 }
             }
-            this.groundLayers.push({ g, baseX, width: GAME_WIDTH + 40, speed: 1.0 });
+
+            // Trees alongside the trail (isometric)
+            const treePositions = [
+                [-4, 2], [-5, 1], [-3, 5], [-6, 3], [5, 2], [4, 4], [6, 1], [5, 5],
+            ];
+            treePositions.forEach(([dc, dr]) => {
+                const col = Math.floor(cols / 2) + dc;
+                const row = Math.floor(rows / 2) + dr;
+                const tsx = baseX + (col - row) * (tileW / 2) + GAME_WIDTH / 2;
+                const tsy = GROUND_Y + (col + row) * (tileH / 2) - rows * tileH / 2 + 20;
+                const isPine = ((dc + dr) % 3 === 0);
+                drawIsoTree(g, tsx, tsy - 4, 50 + Math.abs(dc * 8), 0x234d1a, isPine);
+            });
+
+            this.groundLayers.push({ g, baseX, width: cols * tileW / 2, speed: 1.0 });
         }
     }
 
@@ -222,28 +253,24 @@ export class TravelScene extends Scene {
         }
 
         this.wagonG.clear();
-        const wx = 260;
-        const wy = GROUND_Y - 4;
+        // Isometric wagon position — center-left of screen on the trail
+        const wx = GAME_WIDTH / 2 - 60;
+        const wy = GROUND_Y + 10;
 
-        // Oxen
-        drawOx(this.wagonG, wx - 100, wy, 1.0);
-        drawOx(this.wagonG, wx - 64, wy, 1.0);
+        // Oxen (in front, heading right-down in iso)
+        drawIsoOx(this.wagonG, wx + 50, wy + 20, 1.0);
+        drawIsoOx(this.wagonG, wx + 36, wy + 28, 1.0);
 
         // Wagon
-        drawWagon(this.wagonG, wx, wy, 1.0);
+        drawIsoWagon(this.wagonG, wx, wy, 1.0);
 
-        // Party members walking alongside (mix of men, women, children)
+        // Party members walking alongside (isometric)
         const gs = GameState.getInstance();
         const alive = gs.party.filter(m => m.status !== MemberStatus.DEAD).length;
-        const wf = this.walkFrame;
-        const wf1 = wf === 0 ? 1 : 0;
-        if (alive > 0) drawPerson(this.wagonG, wx + 52, wy + 2, 0.88, false, wf);
-        if (alive > 1) drawWoman(this.wagonG,  wx + 78, wy + 2, 0.85, false, wf1);
-        if (alive > 2) drawChild(this.wagonG,  wx + 100, wy + 4, 0.72, wf);
-        if (alive > 3) drawChild(this.wagonG,  wx + 116, wy + 4, 0.65, wf1);
-        if (alive > 4) drawPerson(this.wagonG, wx + 134, wy + 2, 0.80, false, wf);
-        // Pig trotting alongside
-        drawPig(this.wagonG, wx - 130, wy + 4, 0.8);
+        const personColors = [0x7a5a38, 0x5a3a70, 0x8a6848, 0x5a3a70, 0x7a5a38];
+        for (let i = 0; i < Math.min(alive, 5); i++) {
+            drawIsoPerson(this.wagonG, wx - 30 - i * 18, wy + 8 + i * 10, 0.8, personColors[i]);
+        }
     }
 
     // ─── HUD ───────────────────────────────────────────────────────────────────
