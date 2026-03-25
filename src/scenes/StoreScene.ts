@@ -91,21 +91,37 @@ export class StoreScene extends Scene {
         this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH - 56, GAME_HEIGHT - 36).setStrokeStyle(3, 0x8b6914);
         this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH - 70, GAME_HEIGHT - 50).setStrokeStyle(1, 0xb89050, 0.4);
 
-        // Store sign header bar
-        this.add.rectangle(GAME_WIDTH / 2, 44, GAME_WIDTH - 60, 68, 0x4a2e0e);
-        this.add.rectangle(GAME_WIDTH / 2, 44, GAME_WIDTH - 60, 68).setStrokeStyle(2, 0x8b6914);
+        // Store sign header bar — wooden plank with nails
+        this.add.rectangle(GAME_WIDTH / 2 + 3, 47, GAME_WIDTH - 56, 72, 0x000000, 0.35); // drop shadow
+        this.add.rectangle(GAME_WIDTH / 2, 44, GAME_WIDTH - 56, 68, 0x4a2e0e);
+        this.add.rectangle(GAME_WIDTH / 2, 44, GAME_WIDTH - 56, 68).setStrokeStyle(2, 0x8b6914);
+        // Horizontal grain on sign
+        const signG = this.add.graphics();
+        signG.fillStyle(0x3a2008, 0.2);
+        signG.fillRect(36, 20, GAME_WIDTH - 72, 2);
+        signG.fillRect(36, 40, GAME_WIDTH - 72, 1.5);
+        signG.fillRect(36, 56, GAME_WIDTH - 72, 1.5);
+        // Decorative nail heads at corners
+        signG.fillStyle(0x8a8a8a);
+        [[46, 18], [46, 70], [GAME_WIDTH - 46, 18], [GAME_WIDTH - 46, 70]].forEach(([nx, ny]) => {
+            signG.fillCircle(nx, ny, 3.5);
+            signG.fillStyle(0xaaaaaa, 0.5);
+            signG.fillCircle(nx - 0.5, ny - 0.5, 1.5);
+            signG.fillStyle(0x8a8a8a);
+        });
 
         this.add.text(GAME_WIDTH / 2, 30, "🏪  Haman's General Store  —  Independence, Missouri", {
             ...TEXT_STYLES.SUBTITLE,
             fontSize: '19px',
             color: HEX_COLORS.PARCHMENT,
-            shadow: { offsetX: 1, offsetY: 1, color: '#000', blur: 4, fill: true },
+            shadow: { offsetX: 2, offsetY: 2, color: '#000', blur: 6, fill: true },
         }).setOrigin(0.5);
 
         this.add.text(GAME_WIDTH / 2, 58, '1848  •  "Outfitting the brave since 1836"  •  All prices in US Dollars', {
             ...TEXT_STYLES.HUD,
             color: HEX_COLORS.TRAIL_BROWN,
             fontSize: '13px',
+            fontStyle: 'italic',
         }).setOrigin(0.5);
 
         // Column headers
@@ -159,38 +175,51 @@ export class StoreScene extends Scene {
                 fontSize: '14px',
             }).setOrigin(0.5);
 
-            // Minus button — circle style
-            const minusBtn = this.add.rectangle(col.minus, y + rowH / 2, 34, 34, 0x6a3a18)
-                .setInteractive({ useHandCursor: true }).setStrokeStyle(1, 0x8b5a30);
+            // Minus button — circular with shadow
+            this.add.circle(col.minus + 1, y + rowH / 2 + 1, 18, 0x000000, 0.25); // shadow
+            const minusBtn = this.add.circle(col.minus, y + rowH / 2, 18, 0x8b3a1a)
+                .setInteractive({ useHandCursor: true });
+            this.add.circle(col.minus, y + rowH / 2, 18).setStrokeStyle(2, 0xaa5a30);
+            // Highlight on top
+            this.add.circle(col.minus, y + rowH / 2 - 4, 10).setFillStyle(0xffffff, 0.08);
             this.add.text(col.minus, y + rowH / 2 - 1, '−', {
                 ...TEXT_STYLES.SUBTITLE,
                 color: HEX_COLORS.PARCHMENT,
                 fontSize: '22px',
+                shadow: { offsetX: 1, offsetY: 1, color: '#000', blur: 2, fill: true },
             }).setOrigin(0.5);
             minusBtn.on('pointerdown', () => this.adjustQty(i, -item.step));
-            minusBtn.on('pointerover', () => minusBtn.setFillStyle(0x9a5a28));
-            minusBtn.on('pointerout',  () => minusBtn.setFillStyle(0x6a3a18));
+            minusBtn.on('pointerover', () => minusBtn.setFillStyle(0xba5a2a));
+            minusBtn.on('pointerout',  () => minusBtn.setFillStyle(0x8b3a1a));
 
-            // Qty display with background box
-            this.add.rectangle(col.qty, y + rowH / 2, 52, 32, 0xf5e6c8).setStrokeStyle(1, 0xb89050);
+            // Qty display — inset parchment field
+            this.add.rectangle(col.qty, y + rowH / 2, 56, 34, 0x2a1a0a, 0.3); // inset shadow
+            this.add.rectangle(col.qty, y + rowH / 2, 54, 32, 0xf5e6c8);
+            this.add.rectangle(col.qty, y + rowH / 2, 54, 32).setStrokeStyle(2, 0xb89050);
+            // Inner highlight
+            this.add.rectangle(col.qty, y + rowH / 2 - 8, 48, 10, 0xffffff, 0.12);
             const qtyText = this.add.text(col.qty, y + rowH / 2, String(this.quantities[i]), {
                 ...TEXT_STYLES.BODY,
                 color: HEX_COLORS.DARK_BROWN,
-                fontSize: '18px',
+                fontSize: '20px',
             }).setOrigin(0.5);
             this.qtyTexts.push(qtyText);
 
-            // Plus button — circle style
-            const plusBtn = this.add.rectangle(col.plus, y + rowH / 2, 34, 34, 0x3a6a1a)
-                .setInteractive({ useHandCursor: true }).setStrokeStyle(1, 0x5a9a30);
+            // Plus button — circular green with shadow
+            this.add.circle(col.plus + 1, y + rowH / 2 + 1, 18, 0x000000, 0.25); // shadow
+            const plusBtn = this.add.circle(col.plus, y + rowH / 2, 18, 0x2a6a14)
+                .setInteractive({ useHandCursor: true });
+            this.add.circle(col.plus, y + rowH / 2, 18).setStrokeStyle(2, 0x4a9a28);
+            this.add.circle(col.plus, y + rowH / 2 - 4, 10).setFillStyle(0xffffff, 0.08);
             this.add.text(col.plus, y + rowH / 2 - 1, '+', {
                 ...TEXT_STYLES.SUBTITLE,
                 color: HEX_COLORS.PARCHMENT,
                 fontSize: '22px',
+                shadow: { offsetX: 1, offsetY: 1, color: '#000', blur: 2, fill: true },
             }).setOrigin(0.5);
             plusBtn.on('pointerdown', () => this.adjustQty(i, item.step));
-            plusBtn.on('pointerover', () => plusBtn.setFillStyle(0x5a9a28));
-            plusBtn.on('pointerout',  () => plusBtn.setFillStyle(0x3a6a1a));
+            plusBtn.on('pointerover', () => plusBtn.setFillStyle(0x4a9a28));
+            plusBtn.on('pointerout',  () => plusBtn.setFillStyle(0x2a6a14));
 
             // Cost display
             const costText = this.add.text(col.cost, y + rowH / 2, this.formatCost(i), {
@@ -221,17 +250,22 @@ export class StoreScene extends Scene {
             fontSize: '13px',
         }).setOrigin(0.5);
 
-        // Begin Journey button
+        // Begin Journey button — prominent with wagon icon
         const btnY = GAME_HEIGHT - 36;
-        this.add.rectangle(GAME_WIDTH / 2 + 3, btnY + 3, 340, 52, 0x000000, 0.35);
-        this.startBtn = this.add.rectangle(GAME_WIDTH / 2, btnY, 340, 52, 0x3d7830)
+        // Outer glow
+        this.add.rectangle(GAME_WIDTH / 2, btnY, 360, 58, 0xffd700, 0.12);
+        // Shadow
+        this.add.rectangle(GAME_WIDTH / 2 + 4, btnY + 4, 350, 54, 0x000000, 0.45);
+        this.startBtn = this.add.rectangle(GAME_WIDTH / 2, btnY, 350, 54, 0x3d7830)
             .setInteractive({ useHandCursor: true });
         this.startBtn.setStrokeStyle(2, COLORS.GOLD);
-        this.startBtnText = this.add.text(GAME_WIDTH / 2, btnY, 'Begin Journey  →', {
+        // Top highlight on button
+        this.add.rectangle(GAME_WIDTH / 2, btnY - 14, 344, 12, 0xffffff, 0.08);
+        this.startBtnText = this.add.text(GAME_WIDTH / 2, btnY, '🐂  Begin Journey  →', {
             ...TEXT_STYLES.BODY,
             color: HEX_COLORS.PARCHMENT,
             fontSize: '22px',
-            shadow: { offsetX: 1, offsetY: 1, color: '#000', blur: 4, fill: true },
+            shadow: { offsetX: 2, offsetY: 2, color: '#000', blur: 6, fill: true },
         }).setOrigin(0.5);
 
         this.startBtn.on('pointerover', () => { this.startBtn.setFillStyle(0x56a844); this.startBtnText.setColor(HEX_COLORS.GOLD); });
