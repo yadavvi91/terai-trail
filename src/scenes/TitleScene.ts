@@ -294,9 +294,6 @@ export class TitleScene extends Scene {
         overlay.on('pointerdown', () => {
             overlay.destroy();
             panel.destroy();
-            this.children.list
-                .filter(c => c.depth === 0 && c !== overlay && c !== panel)
-                .forEach(c => { /* selective cleanup not needed here */ });
             this.scene.restart();
         });
     }

@@ -472,11 +472,30 @@ export function drawCloud(
     alpha: number = 0.88,
 ): void {
     const s = scale;
+
+    // Shadow underneath
+    g.fillStyle(0x8090a8, alpha * 0.3);
+    g.fillEllipse(cx + 4 * s, cy + 12 * s, 84 * s, 26 * s);
+
+    // Base cloud mass
+    g.fillStyle(0xe8eef4, alpha * 0.85);
+    g.fillEllipse(cx, cy + 4 * s, 90 * s, 32 * s);
+
+    // Main billows
     g.fillStyle(0xffffff, alpha);
-    g.fillEllipse(cx, cy, 80 * s, 34 * s);
-    g.fillEllipse(cx - 28 * s, cy + 6 * s, 52 * s, 28 * s);
-    g.fillEllipse(cx + 26 * s, cy + 4 * s, 60 * s, 30 * s);
-    g.fillEllipse(cx - 8 * s, cy - 16 * s, 56 * s, 32 * s);
+    g.fillEllipse(cx - 24 * s, cy + 2 * s, 48 * s, 28 * s);
+    g.fillEllipse(cx + 20 * s, cy + 3 * s, 56 * s, 30 * s);
+    g.fillEllipse(cx - 6 * s, cy - 4 * s, 60 * s, 32 * s);
+
+    // Top puffs (brightest)
+    g.fillStyle(0xffffff, alpha * 0.95);
+    g.fillEllipse(cx - 18 * s, cy - 12 * s, 42 * s, 26 * s);
+    g.fillEllipse(cx + 14 * s, cy - 8 * s, 48 * s, 28 * s);
+    g.fillEllipse(cx - 4 * s, cy - 18 * s, 38 * s, 22 * s);
+
+    // Highlight (sunlit top edge)
+    g.fillStyle(0xffffff, alpha * 0.5);
+    g.fillEllipse(cx - 10 * s, cy - 20 * s, 30 * s, 14 * s);
 }
 
 export function drawSun(
@@ -573,48 +592,66 @@ export function drawPerson(
     const s = scale;
     const d = flipped ? -1 : 1;
 
-    // Legs
+    // Legs — rounded with ellipses for thighs + rectangles for lower
     g.fillStyle(0x4a3020);
-    if (legPhase === 0) {
-        g.fillRect(cx - 4 * s, baseY - 18 * s, 5 * s, 18 * s); // back leg
-        g.fillRect(cx + 2 * s, baseY - 22 * s, 5 * s, 22 * s); // front leg
-    } else {
-        g.fillRect(cx - 4 * s, baseY - 22 * s, 5 * s, 22 * s);
-        g.fillRect(cx + 2 * s, baseY - 18 * s, 5 * s, 18 * s);
-    }
+    const legSwing = legPhase === 0 ? 1 : -1;
+    // Back leg
+    g.fillEllipse(cx - 2 * s + legSwing * -2 * s, baseY - 14 * s, 7 * s, 22 * s);
+    // Front leg
+    g.fillEllipse(cx + 2 * s + legSwing * 2 * s, baseY - 16 * s, 7 * s, 26 * s);
 
     // Boots
     g.fillStyle(0x2a1a08);
-    g.fillRect(cx - 4 * s, baseY - 4 * s, 7 * s, 5 * s);
-    g.fillRect(cx + 2 * s, baseY - 4 * s, 7 * s, 5 * s);
+    g.fillEllipse(cx - 2 * s + legSwing * -2 * s, baseY - 2 * s, 8 * s, 6 * s);
+    g.fillEllipse(cx + 2 * s + legSwing * 2 * s, baseY - 2 * s, 8 * s, 6 * s);
 
-    // Body / torso
+    // Body / torso — rounded
     g.fillStyle(0x7a5a38);
-    g.fillRect(cx - 7 * s, baseY - 40 * s, 14 * s, 22 * s);
+    g.fillEllipse(cx, baseY - 32 * s, 16 * s, 24 * s);
+    // Shirt detail — slightly lighter chest area
+    g.fillStyle(0x8a6a48, 0.5);
+    g.fillEllipse(cx, baseY - 34 * s, 10 * s, 14 * s);
+
+    // Belt
+    g.fillStyle(0x3a2010);
+    g.fillRect(cx - 8 * s, baseY - 22 * s, 16 * s, 3 * s);
+    g.fillStyle(0x8b6914);
+    g.fillRect(cx - 2 * s, baseY - 23 * s, 4 * s, 5 * s); // buckle
 
     // Arms (swinging opposite to legs)
     g.fillStyle(0x7a5a38);
     if (legPhase === 0) {
-        // Right arm forward, left arm back
-        g.fillRect(cx + 7 * s * d, baseY - 40 * s, 4 * s, 14 * s);
-        g.fillRect(cx - 9 * s * d, baseY - 36 * s, 4 * s, 12 * s);
+        g.fillEllipse(cx + 9 * s * d, baseY - 34 * s, 5 * s, 16 * s);
+        g.fillEllipse(cx - 9 * s * d, baseY - 30 * s, 5 * s, 14 * s);
     } else {
-        g.fillRect(cx + 7 * s * d, baseY - 36 * s, 4 * s, 12 * s);
-        g.fillRect(cx - 9 * s * d, baseY - 40 * s, 4 * s, 14 * s);
+        g.fillEllipse(cx + 9 * s * d, baseY - 30 * s, 5 * s, 14 * s);
+        g.fillEllipse(cx - 9 * s * d, baseY - 34 * s, 5 * s, 16 * s);
     }
+    // Hands
+    g.fillStyle(0xd4956a);
+    g.fillCircle(cx + 9 * s * d, baseY - 25 * s, 3 * s);
+    g.fillCircle(cx - 9 * s * d, baseY - 23 * s, 3 * s);
+
+    // Neck
+    g.fillStyle(0xd4956a);
+    g.fillRect(cx - 3 * s, baseY - 46 * s, 6 * s, 6 * s);
 
     // Head
     g.fillStyle(0xd4956a);
-    g.fillCircle(cx, baseY - 48 * s, 9 * s);
+    g.fillCircle(cx, baseY - 50 * s, 9 * s);
+
+    // Eyes
+    g.fillStyle(0x2a1a08);
+    g.fillCircle(cx + 3 * s * d, baseY - 52 * s, 1.5 * s);
+    g.fillCircle(cx - 3 * s * d, baseY - 52 * s, 1.5 * s);
 
     // Hat (wide brim pioneer hat)
     g.fillStyle(0x3a2510);
-    g.fillRect(cx - 8 * s, baseY - 60 * s, 16 * s, 12 * s); // crown
-    g.fillRect(cx - 12 * s, baseY - 49 * s, 24 * s, 3 * s);  // brim
-
+    g.fillEllipse(cx, baseY - 56 * s, 18 * s, 12 * s); // crown
+    g.fillRect(cx - 12 * s, baseY - 52 * s, 24 * s, 4 * s);  // brim
     // Hat band
     g.fillStyle(0x8b6914);
-    g.fillRect(cx - 8 * s, baseY - 50 * s, 16 * s, 3 * s);
+    g.fillRect(cx - 9 * s, baseY - 52 * s, 18 * s, 2 * s);
 }
 
 /**
@@ -631,42 +668,72 @@ export function drawWoman(
     const s = scale;
     const d = flipped ? -1 : 1;
 
-    // Skirt / dress (triangular)
+    // Dress / skirt — flowing A-line with sway
+    const sway = legPhase === 0 ? 2 : -2;
     g.fillStyle(0x7a5090);
     g.fillTriangle(
-        cx - 10 * s, baseY - 18 * s,
-        cx + 10 * s, baseY - 18 * s,
-        cx + (legPhase === 0 ? 13 : 11) * s, baseY,
+        cx - 12 * s, baseY - 16 * s,
+        cx + 12 * s, baseY - 16 * s,
+        cx + (14 + sway) * s, baseY + 2 * s,
     );
     g.fillTriangle(
-        cx - 10 * s, baseY - 18 * s,
-        cx - (legPhase === 0 ? 13 : 11) * s, baseY,
-        cx + 10 * s, baseY - 18 * s,
+        cx - 12 * s, baseY - 16 * s,
+        cx - (14 - sway) * s, baseY + 2 * s,
+        cx + 12 * s, baseY - 16 * s,
+    );
+    // Dress detail — apron panel
+    g.fillStyle(0x9a70b0, 0.4);
+    g.fillTriangle(
+        cx - 6 * s, baseY - 16 * s,
+        cx + 6 * s, baseY - 16 * s,
+        cx + sway * s, baseY + 1 * s,
     );
 
-    // Feet
+    // Feet peeking out
     g.fillStyle(0x2a1a08);
-    g.fillRect(cx - 8 * s, baseY - 3 * s, 6 * s, 4 * s);
-    g.fillRect(cx + 2 * s, baseY - 3 * s, 6 * s, 4 * s);
+    g.fillEllipse(cx - 5 * s, baseY + 1 * s, 6 * s, 4 * s);
+    g.fillEllipse(cx + 5 * s, baseY + 1 * s, 6 * s, 4 * s);
 
-    // Bodice
+    // Bodice — slightly rounded
     g.fillStyle(0x5a3a70);
-    g.fillRect(cx - 7 * s, baseY - 38 * s, 14 * s, 20 * s);
+    g.fillEllipse(cx, baseY - 30 * s, 16 * s, 22 * s);
+    // Collar detail
+    g.fillStyle(0xf0e0c0, 0.6);
+    g.fillEllipse(cx, baseY - 40 * s, 10 * s, 5 * s);
 
     // Arms
     g.fillStyle(0x5a3a70);
-    g.fillRect(cx + 7 * s * d, baseY - 38 * s, 4 * s, 12 * s);
-    g.fillRect(cx - 9 * s * d, baseY - 36 * s, 4 * s, 10 * s);
+    g.fillEllipse(cx + 8 * s * d, baseY - 32 * s, 5 * s, 14 * s);
+    g.fillEllipse(cx - 8 * s * d, baseY - 30 * s, 5 * s, 12 * s);
+    // Hands
+    g.fillStyle(0xd4956a);
+    g.fillCircle(cx + 8 * s * d, baseY - 24 * s, 2.5 * s);
+    g.fillCircle(cx - 8 * s * d, baseY - 23 * s, 2.5 * s);
+
+    // Neck
+    g.fillStyle(0xd4956a);
+    g.fillRect(cx - 2.5 * s, baseY - 44 * s, 5 * s, 5 * s);
 
     // Head
     g.fillStyle(0xd4956a);
-    g.fillCircle(cx, baseY - 46 * s, 8 * s);
+    g.fillCircle(cx, baseY - 48 * s, 8 * s);
+    // Eyes
+    g.fillStyle(0x2a1a08);
+    g.fillCircle(cx + 2.5 * s * d, baseY - 49 * s, 1.2 * s);
+    g.fillCircle(cx - 2.5 * s * d, baseY - 49 * s, 1.2 * s);
+
+    // Hair
+    g.fillStyle(0x5a2a10);
+    g.fillEllipse(cx, baseY - 52 * s, 18 * s, 10 * s);
 
     // Bonnet
     g.fillStyle(0xf0e0c0);
-    g.fillEllipse(cx, baseY - 50 * s, 20 * s, 14 * s);
-    g.fillStyle(0xe8d4b0);
-    g.fillEllipse(cx + 6 * s * d, baseY - 46 * s, 10 * s, 8 * s); // brim
+    g.fillEllipse(cx, baseY - 54 * s, 20 * s, 12 * s);
+    g.fillStyle(0xe0d0b0);
+    g.fillEllipse(cx + 5 * s * d, baseY - 48 * s, 8 * s, 6 * s); // side brim
+    // Bonnet ribbon
+    g.fillStyle(0x7a5090);
+    g.fillRect(cx + 8 * s * d, baseY - 48 * s, 2 * s, 8 * s);
 }
 
 /**
@@ -680,38 +747,46 @@ export function drawChild(
     legPhase: number = 0,
 ): void {
     const s = scale;
+    const swing = legPhase === 0 ? 1 : -1;
 
-    // Legs
+    // Legs — rounded
     g.fillStyle(0x4a3020);
-    if (legPhase === 0) {
-        g.fillRect(cx - 3 * s, baseY - 14 * s, 4 * s, 14 * s);
-        g.fillRect(cx + 1 * s, baseY - 17 * s, 4 * s, 17 * s);
-    } else {
-        g.fillRect(cx - 3 * s, baseY - 17 * s, 4 * s, 17 * s);
-        g.fillRect(cx + 1 * s, baseY - 14 * s, 4 * s, 14 * s);
-    }
+    g.fillEllipse(cx - 2 * s + swing * -1.5 * s, baseY - 10 * s, 6 * s, 18 * s);
+    g.fillEllipse(cx + 2 * s + swing * 1.5 * s, baseY - 12 * s, 6 * s, 20 * s);
 
     // Shoes
     g.fillStyle(0x2a1a08);
-    g.fillRect(cx - 3 * s, baseY - 3 * s, 5 * s, 4 * s);
-    g.fillRect(cx + 1 * s, baseY - 3 * s, 5 * s, 4 * s);
+    g.fillEllipse(cx - 2 * s + swing * -1.5 * s, baseY - 1 * s, 7 * s, 4 * s);
+    g.fillEllipse(cx + 2 * s + swing * 1.5 * s, baseY - 1 * s, 7 * s, 4 * s);
 
-    // Body
+    // Body — rounded
     g.fillStyle(0x8a6848);
-    g.fillRect(cx - 5 * s, baseY - 30 * s, 10 * s, 16 * s);
+    g.fillEllipse(cx, baseY - 26 * s, 12 * s, 18 * s);
 
     // Arms
     g.fillStyle(0x8a6848);
-    g.fillRect(cx + 5 * s, baseY - 30 * s, 3 * s, 10 * s);
-    g.fillRect(cx - 8 * s, baseY - 28 * s, 3 * s, 8 * s);
-
-    // Head
+    g.fillEllipse(cx + 7 * s, baseY - 24 * s, 4 * s, 12 * s);
+    g.fillEllipse(cx - 7 * s, baseY - 22 * s, 4 * s, 10 * s);
+    // Hands
     g.fillStyle(0xd4956a);
-    g.fillCircle(cx, baseY - 37 * s, 7 * s);
+    g.fillCircle(cx + 7 * s, baseY - 17 * s, 2 * s);
+    g.fillCircle(cx - 7 * s, baseY - 16 * s, 2 * s);
+
+    // Head — slightly bigger proportionally (children have larger heads)
+    g.fillStyle(0xd4956a);
+    g.fillCircle(cx, baseY - 38 * s, 8 * s);
+
+    // Eyes
+    g.fillStyle(0x2a1a08);
+    g.fillCircle(cx + 2.5 * s, baseY - 39 * s, 1.2 * s);
+    g.fillCircle(cx - 2.5 * s, baseY - 39 * s, 1.2 * s);
 
     // Hair
     g.fillStyle(0x5a3010);
-    g.fillEllipse(cx, baseY - 42 * s, 14 * s, 8 * s);
+    g.fillEllipse(cx, baseY - 43 * s, 16 * s, 9 * s);
+    // Hair fringe
+    g.fillStyle(0x4a2008);
+    g.fillEllipse(cx + 2 * s, baseY - 44 * s, 12 * s, 5 * s);
 }
 
 /**

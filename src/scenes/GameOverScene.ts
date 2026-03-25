@@ -180,16 +180,48 @@ export class GameOverScene extends Scene {
     // ─── Death ─────────────────────────────────────────────────────────────────
 
     private buildDeathScreen(gs: GameState): void {
-        // Dark stormy sky
-        this.cameras.main.setBackgroundColor(0x0e0e1a);
-        for (let i = 0; i < 8; i++) {
-            const t = i / 7;
-            const c = Math.round(0x0e + t * (0x2a - 0x0e));
-            this.add.rectangle(GAME_WIDTH / 2, 40 + i * 70, GAME_WIDTH, 72, (c << 16) | (c << 8) | c);
+        // Dark stormy sky — purple-black gradient
+        this.cameras.main.setBackgroundColor(0x080810);
+        for (let i = 0; i < 12; i++) {
+            const t = i / 11;
+            const r = Math.round(0x08 + t * (0x20 - 0x08));
+            const gv = Math.round(0x08 + t * (0x18 - 0x08));
+            const b = Math.round(0x10 + t * (0x28 - 0x10));
+            this.add.rectangle(GAME_WIDTH / 2, 30 + i * 50, GAME_WIDTH, 52, (r << 16) | (gv << 8) | b);
         }
 
+        // Dark storm clouds
+        const stormG = this.add.graphics();
+        stormG.fillStyle(0x1a1420, 0.7);
+        stormG.fillEllipse(200, 80, 280, 90);
+        stormG.fillEllipse(500, 60, 320, 100);
+        stormG.fillEllipse(800, 90, 260, 80);
+        stormG.fillStyle(0x2a2030, 0.5);
+        stormG.fillEllipse(350, 50, 200, 70);
+        stormG.fillEllipse(700, 70, 240, 60);
+
+        // Dark mountains silhouette
+        const mG = this.add.graphics();
+        drawMountain(mG, 150, GAME_HEIGHT - 80, 240, 200, 0x0e1018, false);
+        drawMountain(mG, 400, GAME_HEIGHT - 80, 300, 240, 0x10141c, false);
+        drawMountain(mG, 700, GAME_HEIGHT - 80, 260, 210, 0x0e1018, false);
+        drawMountain(mG, 950, GAME_HEIGHT - 80, 220, 190, 0x10141c, false);
+
+        // Dead trees silhouette
+        const treeG = this.add.graphics();
+        // Bare dead trees — just trunks and branches, no foliage
+        treeG.fillStyle(0x1a1408);
+        [[80, GAME_HEIGHT - 85, 55], [160, GAME_HEIGHT - 90, 70],
+         [860, GAME_HEIGHT - 88, 62], [940, GAME_HEIGHT - 85, 58]].forEach(([tx, ty, h]) => {
+            treeG.fillRect(tx - 3, ty - h, 6, h);
+            treeG.fillRect(tx - 15, ty - h * 0.7, 12, 3);
+            treeG.fillRect(tx + 3, ty - h * 0.85, 14, 3);
+            treeG.fillRect(tx - 10, ty - h * 0.5, 10, 2);
+        });
+
         // Ground
-        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 40, GAME_WIDTH, 80, 0x1a1408);
+        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 35, GAME_WIDTH, 70, 0x1a1408);
+        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 65, GAME_WIDTH, 10, 0x141008, 0.6);
 
         // Title
         this.add.text(GAME_WIDTH / 2, 50, 'YOUR PARTY HAS PERISHED', {
