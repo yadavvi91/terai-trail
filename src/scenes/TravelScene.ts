@@ -86,17 +86,21 @@ export class TravelScene extends Scene {
     // ─── Sky ───────────────────────────────────────────────────────────────────
 
     private buildSky(): void {
-        this.cameras.main.setBackgroundColor(0x1a6ea8);
-        for (let i = 0; i < 10; i++) {
-            const t = i / 9;
-            const r = Math.round(0x1a + t * (0x87 - 0x1a));
-            const g = Math.round(0x6e + t * (0xce - 0x6e));
-            const b = Math.round(0xa8 + t * (0xe8 - 0xa8));
-            this.add.rectangle(GAME_WIDTH / 2, (i + 0.5) * (GROUND_Y / 10), GAME_WIDTH, GROUND_Y / 10 + 2, (r << 16) | (g << 8) | b);
+        this.cameras.main.setBackgroundColor(0x0d3a6e);
+        const skySteps = 14;
+        for (let i = 0; i < skySteps; i++) {
+            const t = i / (skySteps - 1);
+            const r = Math.round(0x0d + t * (0x70 - 0x0d));
+            const gv = Math.round(0x3a + t * (0xb4 - 0x3a));
+            const b = Math.round(0x6e + t * (0xd8 - 0x6e));
+            this.add.rectangle(GAME_WIDTH / 2, (i + 0.5) * (GROUND_Y / skySteps), GAME_WIDTH, GROUND_Y / skySteps + 2, (r << 16) | (gv << 8) | b);
         }
+        // Horizon glow
+        this.add.rectangle(GAME_WIDTH / 2, GROUND_Y - 12, GAME_WIDTH, 28, 0xf0c890, 0.18);
+        this.add.rectangle(GAME_WIDTH / 2, GROUND_Y - 2, GAME_WIDTH, 14, 0xf0b060, 0.14);
 
         this.sunG = this.add.graphics();
-        drawSun(this.sunG, GAME_WIDTH - 100, 90, 38);
+        drawSun(this.sunG, GAME_WIDTH - 110, 80, 42);
 
         // Clouds
         const cloudPositions = [
@@ -161,27 +165,35 @@ export class TravelScene extends Scene {
     // ─── Ground & trail ────────────────────────────────────────────────────────
 
     private buildGroundAndTrail(): void {
-        // Green ground
-        this.add.rectangle(GAME_WIDTH / 2, GROUND_Y + 45, GAME_WIDTH, 100, 0x3d8b37);
+        // Green ground with subtle gradient
+        this.add.rectangle(GAME_WIDTH / 2, GROUND_Y + 5, GAME_WIDTH, 14, 0x4a9038, 0.5);
+        this.add.rectangle(GAME_WIDTH / 2, GROUND_Y + 50, GAME_WIDTH, 100, 0x3a7d30);
 
         // Dirt trail
-        this.add.rectangle(GAME_WIDTH / 2, GROUND_Y + 16, GAME_WIDTH, 28, 0x9e7b3a);
+        this.add.rectangle(GAME_WIDTH / 2, GROUND_Y + 16, GAME_WIDTH, 30, 0x9e7b3a);
+        // Trail edge blending
+        this.add.rectangle(GAME_WIDTH / 2, GROUND_Y + 4, GAME_WIDTH, 4, 0x7a6830, 0.5);
+        this.add.rectangle(GAME_WIDTH / 2, GROUND_Y + 30, GAME_WIDTH, 4, 0x7a6830, 0.5);
 
-        // Trail ruts (2 lines)
+        // Trail ruts (wheel tracks)
         this.add.rectangle(GAME_WIDTH / 2, GROUND_Y + 10, GAME_WIDTH, 3, 0x6a4e20);
-        this.add.rectangle(GAME_WIDTH / 2, GROUND_Y + 22, GAME_WIDTH, 3, 0x6a4e20);
+        this.add.rectangle(GAME_WIDTH / 2, GROUND_Y + 24, GAME_WIDTH, 3, 0x6a4e20);
 
-        // Scrolling grass tufts (2 sets)
+        // Scrolling grass tufts + wildflowers (2 sets for seamless scroll)
         for (let pass = 0; pass < 2; pass++) {
             const g = this.add.graphics();
             const baseX = pass * (GAME_WIDTH + 40);
-            for (let i = 0; i < 22; i++) {
-                const gx = baseX + (i / 22) * (GAME_WIDTH + 40);
-                const gy = GROUND_Y + Phaser.Math.Between(28, 52);
-                g.fillStyle(0x2d6a22, 0.7 + Math.random() * 0.3);
-                g.fillRect(gx, gy, 3, Phaser.Math.Between(6, 14));
-                g.fillStyle(0x2d6a22, 0.5);
-                g.fillRect(gx + 4, gy + 3, 2, Phaser.Math.Between(4, 10));
+            for (let i = 0; i < 28; i++) {
+                const gx = baseX + (i / 28) * (GAME_WIDTH + 40);
+                const gy = GROUND_Y + 32 + (i % 3) * 8;
+                g.fillStyle(i % 2 === 0 ? 0x2d6a22 : 0x3a7828, 0.75);
+                g.fillRect(gx, gy, 2.5, 8 + (i % 4) * 3);
+                g.fillRect(gx + 5, gy + 2, 2, 6 + (i % 3) * 2);
+                // Occasional wildflower
+                if (i % 5 === 0) {
+                    g.fillStyle([0xffdd44, 0xff8844, 0xff6644][i % 3], 0.8);
+                    g.fillCircle(gx + 3, gy - 2, 2.5);
+                }
             }
             this.groundLayers.push({ g, baseX, width: GAME_WIDTH + 40, speed: 1.0 });
         }
