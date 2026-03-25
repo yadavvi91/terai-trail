@@ -82,6 +82,9 @@ export class TravelScene extends Scene {
 
         addMuteButton(this);
 
+        // CRITICAL: Phaser does NOT auto-call resume() — must register explicitly
+        this.events.on('resume', this.onResume, this);
+
         this.tickTimer = this.time.addEvent({
             delay: TICK_MS,
             callback: this.dailyTick,
@@ -611,7 +614,7 @@ export class TravelScene extends Scene {
         this.time.delayedCall(3000, () => this.statusMsg.setText(''));
     }
 
-    resume(): void {
+    private onResume(): void {
         const gs = GameState.getInstance();
         if (gs.isGameOver() || gs.milesTraveled >= TOTAL_TRAIL_MILES) {
             this.tickTimer.remove();
@@ -631,6 +634,7 @@ export class TravelScene extends Scene {
     }
 
     shutdown(): void {
+        this.events.off('resume', this.onResume, this);
         this.input.keyboard?.removeAllListeners();
         if (this.tickTimer) this.tickTimer.remove();
     }
