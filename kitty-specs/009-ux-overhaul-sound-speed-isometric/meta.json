@@ -1,0 +1,9 @@
+{
+  "feature_number": "009",
+  "slug": "009-ux-overhaul-sound-speed-isometric",
+  "feature_slug": "009-ux-overhaul-sound-speed-isometric",
+  "friendly_name": "ux overhaul sound speed isometric",
+  "mission": "software-dev",
+  "target_branch": "main",
+  "created_at": "2026-03-25T20:26:56.308116+00:00"
+}
