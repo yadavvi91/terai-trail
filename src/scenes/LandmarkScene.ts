@@ -7,6 +7,8 @@ import { MemberStatus } from '../utils/types';
 import { GameState } from '../game/GameState';
 import { getCurrentLandmark } from '../game/TrailData';
 import { drawMountain, drawHill, drawTree, drawCloud, drawSun } from '../ui/DrawUtils';
+import { addMuteButton } from '../ui/MuteButton';
+import { SoundManager } from '../audio/SoundManager';
 
 // Fort price multipliers (forts charge more than Independence prices)
 const FORT_MULTIPLIERS: Record<string, number> = {
@@ -111,6 +113,8 @@ export class LandmarkScene extends Scene {
 
         // Action buttons
         this.buildActionButtons();
+
+        addMuteButton(this);
     }
 
     private buildActionButtons(): void {

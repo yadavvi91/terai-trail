@@ -5,6 +5,8 @@ import {
 } from '../utils/constants';
 import { GameState } from '../game/GameState';
 import { drawBuffalo, drawDeer, drawRabbit, drawSquirrel, drawTree, drawMountain, drawHill, drawCloud } from '../ui/DrawUtils';
+import { addMuteButton } from '../ui/MuteButton';
+import { SoundManager } from '../audio/SoundManager';
 
 interface AnimalDef {
     type: string;
@@ -104,6 +106,8 @@ export class HuntingScene extends Scene {
         this.input.on('pointerdown', (ptr: Phaser.Input.Pointer) => {
             if (!this.gameOver) this.shoot(ptr.x, ptr.y);
         });
+
+        addMuteButton(this);
     }
 
     private buildBackground(): void {
@@ -285,6 +289,7 @@ export class HuntingScene extends Scene {
     private shoot(px: number, py: number): void {
         if (this.ammoLeft <= 0 || this.gameOver) return;
         this.ammoLeft--;
+        SoundManager.getInstance().playGunshot();
 
         // Muzzle flash
         const flash = this.add.graphics().setDepth(18);

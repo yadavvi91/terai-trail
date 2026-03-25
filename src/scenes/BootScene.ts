@@ -1,5 +1,7 @@
 import { Scene } from 'phaser';
 import { SCENES, GAME_WIDTH, GAME_HEIGHT, COLORS, HEX_COLORS, TEXT_STYLES } from '../utils/constants';
+import { addMuteButton } from '../ui/MuteButton';
+import { SoundManager } from '../audio/SoundManager';
 
 export class BootScene extends Scene {
     constructor() {
@@ -82,6 +84,7 @@ export class BootScene extends Scene {
     }
 
     create(): void {
+        addMuteButton(this);
         this.generatePlaceholderAssets();
         this.scene.start(SCENES.TITLE);
     }

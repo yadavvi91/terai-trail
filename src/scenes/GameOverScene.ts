@@ -6,6 +6,8 @@ import {
 import { MemberStatus } from '../utils/types';
 import { GameState } from '../game/GameState';
 import { drawMountain, drawHill, drawTree, drawCloud, drawSun, drawWagon, drawOx, drawPerson, drawWoman, drawChild } from '../ui/DrawUtils';
+import { addMuteButton } from '../ui/MuteButton';
+import { SoundManager } from '../audio/SoundManager';
 
 export class GameOverScene extends Scene {
     constructor() {
@@ -16,6 +18,15 @@ export class GameOverScene extends Scene {
         const gs = GameState.getInstance();
         const victory = gs.milesTraveled >= TOTAL_TRAIL_MILES;
         victory ? this.buildVictoryScreen(gs) : this.buildDeathScreen(gs);
+
+        const sm = SoundManager.getInstance();
+        if (victory) {
+            sm.playGoodEvent();
+        } else {
+            sm.playBadEvent();
+        }
+
+        addMuteButton(this);
     }
 
     // ─── Victory ───────────────────────────────────────────────────────────────

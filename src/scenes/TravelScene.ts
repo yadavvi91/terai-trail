@@ -7,6 +7,8 @@ import { Pace, Rations, Weather, MemberStatus } from '../utils/types';
 import { GameState } from '../game/GameState';
 import { getNextLandmark } from '../game/TrailData';
 import { drawWagon, drawOx, drawPerson, drawWoman, drawChild, drawPig, drawTree, drawMountain, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
+import { addMuteButton } from '../ui/MuteButton';
+import { SoundManager } from '../audio/SoundManager';
 
 const TICK_MS = 1200;
 const GROUND_Y = GAME_HEIGHT - 80;
@@ -50,6 +52,7 @@ export class TravelScene extends Scene {
 
     private tickTimer!: Phaser.Time.TimerEvent;
     private paused: boolean = false;
+    private wagonRollTick: number = 0;
 
     constructor() {
         super(SCENES.TRAVEL);
@@ -73,6 +76,8 @@ export class TravelScene extends Scene {
         this.buildWagon();
         this.buildHUD();
         this.buildControls();
+
+        addMuteButton(this);
 
         this.tickTimer = this.time.addEvent({
             delay: TICK_MS,
@@ -441,6 +446,14 @@ export class TravelScene extends Scene {
     private dailyTick(): void {
         if (this.paused) return;
         const gs = GameState.getInstance();
+
+        // Play wagon roll sound every 3 ticks while moving
+        if (gs.pace !== Pace.STOPPED) {
+            this.wagonRollTick++;
+            if (this.wagonRollTick % 3 === 0) {
+                SoundManager.getInstance().playWagonRoll();
+            }
+        }
 
         gs.advanceDay();
 

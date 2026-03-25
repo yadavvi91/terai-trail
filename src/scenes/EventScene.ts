@@ -3,6 +3,8 @@ import { SCENES, GAME_WIDTH, GAME_HEIGHT, COLORS, HEX_COLORS, TEXT_STYLES } from
 import { GameEvent } from '../utils/types';
 import { generateRandomEvent } from '../game/EventManager';
 import { drawMountain, drawHill, drawTree, drawCloud, drawSun, drawWagon, drawOx } from '../ui/DrawUtils';
+import { addMuteButton } from '../ui/MuteButton';
+import { SoundManager } from '../audio/SoundManager';
 
 // Icon map for event types
 const EVENT_ICONS: Record<string, string> = {
@@ -42,6 +44,17 @@ export class EventScene extends Scene {
 
         this.buildBackground(mood);
         this.buildEventPanel();
+
+        // Play sound sting based on event type
+        const isGood = ['wild_fruit', 'good_weather', 'found_cache', 'travelers'].includes(this.event.id);
+        const sm = SoundManager.getInstance();
+        if (isGood) {
+            sm.playGoodEvent();
+        } else {
+            sm.playBadEvent();
+        }
+
+        addMuteButton(this);
     }
 
     private buildBackground(mood: 'danger' | 'good' | 'storm' | 'night'): void {

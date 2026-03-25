@@ -5,6 +5,8 @@ import {
 } from '../utils/constants';
 import { GameState } from '../game/GameState';
 import { drawMountain, drawHill, drawTree, drawCloud, drawSun } from '../ui/DrawUtils';
+import { addMuteButton } from '../ui/MuteButton';
+import { SoundManager } from '../audio/SoundManager';
 
 const MEMBER_LABELS = ['Trail Leader', 'Companion 2', 'Companion 3', 'Companion 4', 'Companion 5'];
 
@@ -40,6 +42,8 @@ export class PartyCreationScene extends Scene {
 
         this.buildBackground();
         this.buildMainPanel();
+
+        addMuteButton(this);
     }
 
     private buildBackground(): void {
@@ -189,7 +193,7 @@ export class PartyCreationScene extends Scene {
                 }).setOrigin(0.5);
             });
 
-            cardBg.on('pointerdown', () => this.selectProfession(prof));
+            cardBg.on('pointerdown', () => { SoundManager.getInstance().playClick(); this.selectProfession(prof); });
             cardBg.on('pointerover', () => { if (this.selectedProfession !== prof) cardBg.setFillStyle(0x6a4a2a); });
             cardBg.on('pointerout',  () => { if (this.selectedProfession !== prof) cardBg.setFillStyle(0x4a3020); });
         });
@@ -291,8 +295,8 @@ export class PartyCreationScene extends Scene {
 
         btn.on('pointerover', () => { btn.setFillStyle(0x56a844); label.setColor(HEX_COLORS.GOLD); });
         btn.on('pointerout',  () => { btn.setFillStyle(0x3d7830); label.setColor(HEX_COLORS.PARCHMENT); });
-        btn.on('pointerdown', () => this.handleContinue());
-        this.input.keyboard?.on('keydown-ENTER', () => this.handleContinue());
+        btn.on('pointerdown', () => { SoundManager.getInstance().playClick(); this.handleContinue(); });
+        this.input.keyboard?.on('keydown-ENTER', () => { SoundManager.getInstance().playClick(); this.handleContinue(); });
     }
 
     private selectProfession(prof: Profession, animate: boolean = true): void {

@@ -4,6 +4,8 @@ import {
     STORE_PRICES,
 } from '../utils/constants';
 import { GameState } from '../game/GameState';
+import { addMuteButton } from '../ui/MuteButton';
+import { SoundManager } from '../audio/SoundManager';
 
 const ITEM_ICONS: Record<string, string> = {
     OXEN:        '🐂',
@@ -273,9 +275,12 @@ export class StoreScene extends Scene {
         this.startBtn.on('pointerdown', () => this.beginJourney());
 
         this.input.keyboard?.on('keydown-ENTER', () => this.beginJourney());
+
+        addMuteButton(this);
     }
 
     private adjustQty(index: number, delta: number): void {
+        SoundManager.getInstance().playClick();
         const item = STORE_ITEMS[index];
         const gs = GameState.getInstance();
         const newQty = Math.max(item.min, this.quantities[index] + delta);
@@ -314,6 +319,7 @@ export class StoreScene extends Scene {
     }
 
     private beginJourney(): void {
+        SoundManager.getInstance().playClick();
         const gs = GameState.getInstance();
         STORE_ITEMS.forEach((item, i) => {
             (gs.supplies as any)[item.supplyKey] = this.quantities[i];

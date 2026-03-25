@@ -1,6 +1,8 @@
 import { Scene } from 'phaser';
 import { SCENES, GAME_WIDTH, GAME_HEIGHT, COLORS, TEXT_STYLES, HEX_COLORS } from '../utils/constants';
 import { drawWagon, drawOx, drawPerson, drawWoman, drawChild, drawPig, drawTree, drawMountain, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
+import { addMuteButton } from '../ui/MuteButton';
+import { SoundManager } from '../audio/SoundManager';
 
 export class TitleScene extends Scene {
     private wagonG!: Phaser.GameObjects.Graphics;
@@ -146,14 +148,18 @@ export class TitleScene extends Scene {
         this.add.rectangle(GAME_WIDTH / 2, 370, 380, 120, 0x000000, 0.55);
         this.add.rectangle(GAME_WIDTH / 2, 370, 376, 116, COLORS.PARCHMENT, 0.08);
 
+        const sm = SoundManager.getInstance();
         const travelBtn = this.createMenuButton(GAME_WIDTH / 2, 345, '1.  Travel the Trail');
-        travelBtn.on('pointerdown', () => this.scene.start(SCENES.PARTY_CREATION));
+        travelBtn.on('pointerdown', () => { sm.init(); sm.playClick(); this.scene.start(SCENES.PARTY_CREATION); });
 
         const learnBtn = this.createMenuButton(GAME_WIDTH / 2, 395, '2.  About the Trail');
-        learnBtn.on('pointerdown', () => this.showTrailInfo());
+        learnBtn.on('pointerdown', () => { sm.init(); sm.playClick(); this.showTrailInfo(); });
 
-        this.input.keyboard?.on('keydown-ONE', () => this.scene.start(SCENES.PARTY_CREATION));
-        this.input.keyboard?.on('keydown-TWO', () => this.showTrailInfo());
+        this.input.keyboard?.on('keydown-ONE', () => { sm.init(); sm.playClick(); this.scene.start(SCENES.PARTY_CREATION); });
+        this.input.keyboard?.on('keydown-TWO', () => { sm.init(); sm.playClick(); this.showTrailInfo(); });
+
+        // Mute button
+        addMuteButton(this);
 
         // ── Footer ──
         this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 16, 'Press 1 to begin your journey west', {

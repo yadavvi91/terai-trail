@@ -4,6 +4,8 @@ import { MemberStatus } from '../utils/types';
 import { GameState } from '../game/GameState';
 import { getNextLandmark } from '../game/TrailData';
 import { drawWagon, drawOx, drawPerson, drawTree, drawMountain, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
+import { addMuteButton } from '../ui/MuteButton';
+import { SoundManager } from '../audio/SoundManager';
 
 type CrossingMethod = 'ford' | 'caulk' | 'ferry' | 'wait';
 
@@ -37,6 +39,8 @@ export class RiverCrossingScene extends Scene {
 
         this.buildRiverScene(depth);
         this.buildUI(depth, gs);
+
+        addMuteButton(this);
     }
 
     private buildRiverScene(depth: number): void {
@@ -280,6 +284,7 @@ export class RiverCrossingScene extends Scene {
     private cross(method: MethodDef): void {
         if (this.resolved) return;
         this.resolved = true;
+        SoundManager.getInstance().playWaterSplash();
         const gs = GameState.getInstance();
 
         if (method.id === 'wait') {
