@@ -1,0 +1,23 @@
+src/scenes/StoreScene.ts
+  c4b157ded3d96a80 94-111,117,124,178-184,189,192-193,195-200,204,208-213,218,221-222,253,255-259,262-264,268
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "d3d5f1201b941fe4bb19d51f6f3f2bbba121f2f5",
+  "prompts": {
+    "c4b157ded3d96a80": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b7f94ea-b189-45b5-b6ab-432f20351c74",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 56,
+      "total_deletions": 22,
+      "accepted_lines": 56,
+      "overriden_lines": 0
+    }
+  }
+}
