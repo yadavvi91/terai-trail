@@ -8,6 +8,9 @@ export class SoundManager {
     private ctx: AudioContext | null = null;
     private muted: boolean = false;
     private initialized: boolean = false;
+    private musicInterval: ReturnType<typeof setInterval> | null = null;
+    private musicStep: number = 0;
+    private musicPlaying: boolean = false;
 
     private constructor() {
         this.muted = localStorage.getItem('caulk_muted') === 'true';
@@ -158,6 +161,98 @@ export class SoundManager {
     /** Button hover */
     playHover(): void {
         this.playTone(600, 0.03, 'sine', 0.06);
+    }
+
+    // ─── Trail Music ──────────────────────────────────────────────────────────
+
+    /** Catchy western marching melody — procedural, loops forever */
+    startTrailMusic(): void {
+        if (this.musicPlaying) return;
+        this.musicPlaying = true;
+        this.musicStep = 0;
+
+        // "ta-ta ta ta ta ta" marching melody in C major
+        // Each entry: [frequency (Hz), duration (ms), volume]
+        // 0 = rest
+        const melody: [number, number, number][] = [
+            // Phrase 1: "ta-ta ta ta ta ta" — upbeat march
+            [330, 120, 0.18], [330, 120, 0.18], [0, 30, 0],  [392, 200, 0.20],
+            [330, 120, 0.16], [262, 120, 0.16], [0, 30, 0],  [294, 300, 0.20],
+            // Phrase 2: ascending response
+            [330, 120, 0.18], [330, 120, 0.18], [0, 30, 0],  [349, 200, 0.18],
+            [392, 200, 0.20], [0, 60, 0],                     [440, 300, 0.22],
+            // Phrase 3: repeat first motif
+            [330, 120, 0.18], [330, 120, 0.18], [0, 30, 0],  [392, 200, 0.20],
+            [330, 120, 0.16], [262, 120, 0.16], [0, 30, 0],  [294, 300, 0.20],
+            // Phrase 4: descending resolution
+            [262, 120, 0.16], [294, 120, 0.16], [0, 30, 0],  [330, 200, 0.18],
+            [262, 200, 0.18], [0, 60, 0],                     [262, 400, 0.22],
+            // Rest between loops
+            [0, 300, 0],
+        ];
+
+        const BPM = 160;
+        const beatMs = 60000 / BPM; // ~375ms per beat, we use half-beats
+
+        this.musicInterval = setInterval(() => {
+            if (this.muted || !this.ctx) {
+                this.musicStep = (this.musicStep + 1) % melody.length;
+                return;
+            }
+            const [freq, dur, vol] = melody[this.musicStep % melody.length];
+            if (freq > 0) {
+                this.playMusicNote(freq, dur / 1000, vol);
+            }
+            this.musicStep = (this.musicStep + 1) % melody.length;
+        }, beatMs * 0.5); // eighth-note grid
+    }
+
+    stopTrailMusic(): void {
+        if (this.musicInterval) {
+            clearInterval(this.musicInterval);
+            this.musicInterval = null;
+        }
+        this.musicPlaying = false;
+        this.musicStep = 0;
+    }
+
+    /** Play a single music note with softer, warmer tone */
+    private playMusicNote(freq: number, duration: number, volume: number): void {
+        if (!this.ctx || this.muted) return;
+        const ctx = this.ctx;
+        const now = ctx.currentTime;
+
+        // Lead voice — square wave for retro feel
+        const osc = ctx.createOscillator();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(freq, now);
+
+        // Gentle filter to soften the square wave
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(freq * 3, now);
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(volume, now + 0.01); // quick attack
+        gain.gain.setValueAtTime(volume, now + duration * 0.6);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+        osc.connect(filter).connect(gain).connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + duration + 0.01);
+
+        // Sub-octave for warmth
+        const sub = ctx.createOscillator();
+        sub.type = 'sine';
+        sub.frequency.setValueAtTime(freq / 2, now);
+        const subGain = ctx.createGain();
+        subGain.gain.setValueAtTime(0.001, now);
+        subGain.gain.linearRampToValueAtTime(volume * 0.3, now + 0.01);
+        subGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+        sub.connect(subGain).connect(ctx.destination);
+        sub.start(now);
+        sub.stop(now + duration + 0.01);
     }
 
     // ─── Utility ─────────────────────────────────────────────────────────────

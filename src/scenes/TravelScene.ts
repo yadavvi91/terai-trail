@@ -85,6 +85,9 @@ export class TravelScene extends Scene {
 
         addMuteButton(this);
 
+        // Start trail music
+        SoundManager.getInstance().startTrailMusic();
+
         // CRITICAL: Phaser does NOT auto-call resume() — must register explicitly
         this.events.on('resume', this.onResume, this);
 
@@ -678,6 +681,7 @@ export class TravelScene extends Scene {
     }
 
     shutdown(): void {
+        SoundManager.getInstance().stopTrailMusic();
         this.events.off('resume', this.onResume, this);
         this.input.keyboard?.removeAllListeners();
         if (this.tickTimer) this.tickTimer.remove();
