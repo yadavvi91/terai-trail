@@ -158,11 +158,11 @@ snowflakes appear. `Weather.HOT` → shimmer bands ripple at horizon. `Weather.C
 **Estimated size**: ~380 lines
 
 ### Included Subtasks
-- [ ] T016 Add `WeatherParticle` interface, `weatherParticleG` Graphics, `weatherParticles[]`
-- [ ] T017 Implement rain particle spawning (4/frame, cap 150) and streak drawing
-- [ ] T018 Implement snow particle spawning (1/frame, cap 100) and snowflake drawing
-- [ ] T019 Implement heat shimmer band drawing (no pool, 4 rects per frame)
-- [ ] T020 Flush `weatherParticles = []` in `dailyTick()` when weather changes
+- [x] T016 Add `WeatherParticle` interface, `weatherParticleG` Graphics, `weatherParticles[]`
+- [x] T017 Implement rain particle spawning (4/frame, cap 150) and streak drawing
+- [x] T018 Implement snow particle spawning (1/frame, cap 100) and snowflake drawing
+- [x] T019 Implement heat shimmer band drawing (no pool, 4 rects per frame)
+- [x] T020 Flush `weatherParticles = []` in `dailyTick()` when weather changes
 
 **Requirements Refs**: FR-05
 
