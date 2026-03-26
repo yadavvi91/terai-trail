@@ -1,0 +1,44 @@
+src/scenes/EventScene.ts
+  c4b157ded3d96a80 169-170
+PROGRESS.md
+  c4b157ded3d96a80 128-147,149-152,154-163,167
+src/scenes/LandmarkScene.ts
+  c4b157ded3d96a80 80-81
+src/scenes/HuntingScene.ts
+  c4b157ded3d96a80 273,275-296
+src/scenes/GameOverScene.ts
+  c4b157ded3d96a80 94,99
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "50855938f612796039f15c05ea37753327b0031d",
+  "prompts": {
+    "a9d6cfb34202aba2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f256f5be-3b67-46b0-a1de-a7fbcffbb03b",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 155,
+      "total_deletions": 58,
+      "accepted_lines": 154,
+      "overriden_lines": 0
+    },
+    "c4b157ded3d96a80": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b7f94ea-b189-45b5-b6ab-432f20351c74",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 223,
+      "total_deletions": 134,
+      "accepted_lines": 187,
+      "overriden_lines": 0
+    }
+  }
+}
