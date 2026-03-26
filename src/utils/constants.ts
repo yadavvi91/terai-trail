@@ -1,3 +1,5 @@
+import { Biome, Season, Weather } from './types';
+
 // Game dimensions
 export const GAME_WIDTH = 1024;
 export const GAME_HEIGHT = 768;
@@ -92,6 +94,53 @@ export const FOOD_PER_PERSON_PER_DAY = {
     MEAGER: 2,
     BARE_BONES: 1,
 } as const;
+
+// Biome and seasonal color palettes
+export const BIOME_COLORS = {
+    // Hill color pairs [primary, secondary] per biome
+    HILL_COLORS: {
+        [Biome.PRAIRIE]:   [0x3a8028, 0x2d7020] as [number, number],
+        [Biome.MOUNTAINS]: [0x2d6428, 0x337030] as [number, number],
+        [Biome.OREGON]:    [0x1e4a1a, 0x234520] as [number, number],
+    },
+    // Mountain back layer colors per biome (3 mountains)
+    MOUNTAIN_BACK: {
+        [Biome.PRAIRIE]:   [0x6a7ea8, 0x5a7098, 0x607898] as [number, number, number],
+        [Biome.MOUNTAINS]: [0x6a7ea8, 0x5a7098, 0x607898] as [number, number, number],
+        [Biome.OREGON]:    [0x2d5a27, 0x1e4a1a, 0x2a5225] as [number, number, number],
+    },
+    // Mountain front layer colors per biome (4 mountains)
+    MOUNTAIN_FRONT: {
+        [Biome.PRAIRIE]:   [0x4a6080, 0x506a88, 0x4a6080, 0x506a88] as [number, number, number, number],
+        [Biome.MOUNTAINS]: [0x4a6080, 0x506a88, 0x4a6080, 0x506a88] as [number, number, number, number],
+        [Biome.OREGON]:    [0x1a3a18, 0x223a20, 0x1a3a18, 0x223a20] as [number, number, number, number],
+    },
+    // Seasonal grass color for isometric ground tiles
+    SEASON_GRASS: {
+        [Season.SPRING]:       0x3a8028,
+        [Season.EARLY_SUMMER]: 0x6a8028,
+        [Season.LATE_SUMMER]:  0x8a7028,
+        [Season.FALL]:         0x7a5020,
+    },
+    // Seasonal grass color variations (for tile variety)
+    SEASON_GRASS_ALT: {
+        [Season.SPRING]:       [0x3a8028, 0x2d7020, 0x347530, 0x3a8028] as number[],
+        [Season.EARLY_SUMMER]: [0x6a8028, 0x5a7020, 0x648028, 0x6a8028] as number[],
+        [Season.LATE_SUMMER]:  [0x8a7028, 0x7a6020, 0x847028, 0x8a7028] as number[],
+        [Season.FALL]:         [0x7a5020, 0x6a4018, 0x745020, 0x7a5020] as number[],
+    },
+} as const;
+
+// Sky gradients per weather type (top → bottom hex colors)
+export const SKY_GRADIENTS: Record<Weather, { top: number; bottom: number }> = {
+    [Weather.CLEAR]: { top: 0x0d3a6e, bottom: 0x70b4d8 },  // deep blue
+    [Weather.RAINY]: { top: 0x1a2030, bottom: 0x4a5a6e },  // dark grey-blue
+    [Weather.HOT]:   { top: 0x1a3a5e, bottom: 0xd0a870 },  // pale blue → warm horizon
+    [Weather.SNOWY]: { top: 0x7090a8, bottom: 0xc8d8e0 },  // white-grey
+};
+
+// Oregon biome: semi-transparent grey-green overlay applied on top of the sky gradient
+export const OREGON_SKY_OVERLAY = { color: 0x4a6040, alpha: 0.35 } as const;
 
 export const TOTAL_TRAIL_MILES = 2000;
 export const PARTY_SIZE = 5;

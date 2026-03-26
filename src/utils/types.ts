@@ -25,6 +25,19 @@ export enum Weather {
     HOT = 'Hot',
 }
 
+export enum Biome {
+    PRAIRIE   = 'PRAIRIE',
+    MOUNTAINS = 'MOUNTAINS',
+    OREGON    = 'OREGON',
+}
+
+export enum Season {
+    SPRING       = 'SPRING',
+    EARLY_SUMMER = 'EARLY_SUMMER',
+    LATE_SUMMER  = 'LATE_SUMMER',
+    FALL         = 'FALL',
+}
+
 export interface PartyMember {
     name: string;
     health: number;
