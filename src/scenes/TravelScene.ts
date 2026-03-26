@@ -6,8 +6,8 @@ import {
 import { Pace, Rations, Weather, MemberStatus } from '../utils/types';
 import { GameState } from '../game/GameState';
 import { getNextLandmark } from '../game/TrailData';
-import { drawTree, drawMountain, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
-import { drawIsoWagon, drawIsoOx, drawIsoPerson, drawIsoTree } from '../ui/IsoDrawUtils';
+import { drawTree, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
+import { drawIsoWagon, drawIsoOx, drawIsoPerson, drawIsoTree, drawIsoMountain } from '../ui/IsoDrawUtils';
 import { TILE_WIDTH, TILE_HEIGHT, drawIsoTile } from '../utils/isometric';
 import { addMuteButton } from '../ui/MuteButton';
 import { SoundManager } from '../audio/SoundManager';
@@ -151,11 +151,11 @@ export class TravelScene extends Scene {
     }
 
     private drawMountainLayer(g: Phaser.GameObjects.Graphics, offsetX: number): void {
-        drawMountain(g, offsetX + 150, GROUND_Y + 10, 240, 200, 0x6a7fa8, true);
-        drawMountain(g, offsetX + 370, GROUND_Y + 10, 200, 180, 0x5a7098, true);
-        drawMountain(g, offsetX + 560, GROUND_Y + 10, 280, 220, 0x7a8fb8, true);
-        drawMountain(g, offsetX + 780, GROUND_Y + 10, 220, 195, 0x607898, true);
-        drawMountain(g, offsetX + 960, GROUND_Y + 10, 260, 205, 0x6a8098, true);
+        drawIsoMountain(g, offsetX + 150, GROUND_Y + 10, 240, 200, 0x6a7fa8, true);
+        drawIsoMountain(g, offsetX + 370, GROUND_Y + 10, 200, 180, 0x5a7098, true);
+        drawIsoMountain(g, offsetX + 560, GROUND_Y + 10, 280, 220, 0x7a8fb8, true);
+        drawIsoMountain(g, offsetX + 780, GROUND_Y + 10, 220, 195, 0x607898, true);
+        drawIsoMountain(g, offsetX + 960, GROUND_Y + 10, 260, 205, 0x6a8098, true);
     }
 
     private drawHillLayer(g: Phaser.GameObjects.Graphics, offsetX: number): void {
@@ -180,7 +180,7 @@ export class TravelScene extends Scene {
 
     private buildGroundAndTrail(): void {
         // Isometric tile ground — scrolling diamond grid
-        // Trail runs along row ≈ middleRow (renders as diagonal down-right on screen)
+        // Trail runs along row ≈ middleRow; formula flipped so trail goes BL → TR on screen
         const cols = 28;
         const rows = 10;
         const tileW = TILE_WIDTH;
@@ -194,6 +194,7 @@ export class TravelScene extends Scene {
         const wrapDY = cols * tileH / 2;   // corresponding screen-Y span
 
         // Origin: position tile grid so the trail center is roughly at screen center
+        // With flipped x-axis, grid extends to the LEFT from origin
         const originX = GAME_WIDTH / 2 + 100;
         const originY = GROUND_Y - middleRow * tileH - 60;
 
@@ -203,7 +204,9 @@ export class TravelScene extends Scene {
             // Draw tiles in local coordinates (centered on grid origin)
             for (let row = 0; row < rows; row++) {
                 for (let col = 0; col < cols; col++) {
-                    const sx = (col - row) * (tileW / 2);
+                    // Flipped x-axis: (row - col) instead of (col - row)
+                    // This makes the trail go from bottom-left to top-right
+                    const sx = (row - col) * (tileW / 2);
                     const sy = (col + row) * (tileH / 2);
 
                     // Trail: horizontal band in world coords → diagonal on screen
@@ -239,14 +242,15 @@ export class TravelScene extends Scene {
                 [6, rows - 2], [11, rows - 2], [17, rows - 2], [23, rows - 2],  // near bottom edge
             ];
             treeOffsets.forEach(([col, row]) => {
-                const tsx = (col - row) * (tileW / 2);
+                const tsx = (row - col) * (tileW / 2);
                 const tsy = (col + row) * (tileH / 2);
                 const isPine = ((col + row) % 3 === 0);
                 drawIsoTree(g, tsx, tsy - 4, 45 + (col * 7) % 30, 0x234d1a, isPine);
             });
 
-            // Position each copy: offset diagonally along the iso axis
-            const bx = originX + pass * wrapDX;
+            // Position each copy: offset diagonally along the flipped iso axis
+            // Second copy goes to the lower-left (negative X, positive Y)
+            const bx = originX - pass * wrapDX;
             const by = originY + pass * wrapDY;
             g.setPosition(bx, by);
 
@@ -271,23 +275,24 @@ export class TravelScene extends Scene {
         }
 
         this.wagonG.clear();
-        // Wagon on the iso trail — traveling up-left (away from viewer)
-        const wx = GAME_WIDTH / 2 - 40;
-        const wy = GROUND_Y - 10;
+        // Wagon on the iso trail — traveling up-right (into the distance)
+        // Position on the road center; calculated from trail grid position
+        const wx = GAME_WIDTH / 2 + 80;
+        const wy = GROUND_Y - 125;
 
-        // Oxen ahead of wagon (up-left = traveling away from viewer)
-        drawIsoOx(this.wagonG, wx - 52, wy - 26, 1.0);
-        drawIsoOx(this.wagonG, wx - 38, wy - 18, 1.0);
+        // Oxen ahead of wagon (up-right = traveling into the distance)
+        drawIsoOx(this.wagonG, wx + 52, wy - 26, 1.0);
+        drawIsoOx(this.wagonG, wx + 38, wy - 18, 1.0);
 
         // Wagon
         drawIsoWagon(this.wagonG, wx, wy, 1.0);
 
-        // Party members walking behind wagon (down-right = behind)
+        // Party members walking behind wagon (down-left = behind)
         const gs = GameState.getInstance();
         const alive = gs.party.filter(m => m.status !== MemberStatus.DEAD).length;
         const personColors = [0x7a5a38, 0x5a3a70, 0x8a6848, 0x5a3a70, 0x7a5a38];
         for (let i = 0; i < Math.min(alive, 5); i++) {
-            drawIsoPerson(this.wagonG, wx + 24 + i * 16, wy + 6 + i * 8, 0.8, personColors[i]);
+            drawIsoPerson(this.wagonG, wx - 24 - i * 16, wy + 6 + i * 8, 0.8, personColors[i]);
         }
     }
 
@@ -465,19 +470,19 @@ export class TravelScene extends Scene {
                 layer.g.setPosition(layer.baseX, layer.baseY);
             });
 
-            // Scroll ground DIAGONALLY down-right (toward viewer)
-            // so the wagon appears to travel up-left (away, into the distance)
+            // Scroll ground DIAGONALLY down-left (toward viewer's left)
+            // so the wagon appears to travel up-right (into the distance)
             this.groundLayers.forEach(layer => {
                 const dx = scrollSpeed * layer.speed * dt;
                 const dy = dx * 0.5; // 2:1 isometric ratio
-                layer.baseX += dx;
-                layer.baseY += dy;
+                layer.baseX -= dx;   // ground moves left
+                layer.baseY += dy;   // ground moves down
 
-                // Wrap: when tiles scroll off lower-right, teleport behind
-                const minLocalX = -(10 - 1) * (TILE_WIDTH / 2); // leftmost tile local X ≈ -288
-                if (layer.baseX + minLocalX > GAME_WIDTH + 50) {
-                    layer.baseX -= layer.width * 2;
-                    layer.baseY -= layer.width; // 2 * wrapDX * 0.5 = wrapDX
+                // Wrap: when tiles scroll off lower-left, teleport to upper-right
+                const maxLocalX = (10 - 1) * (TILE_WIDTH / 2); // rightmost tile local X ≈ 288
+                if (layer.baseX + maxLocalX < -50) {
+                    layer.baseX += layer.width * 2;
+                    layer.baseY -= layer.width; // 2 * wrapDY correction
                 }
                 layer.g.setPosition(layer.baseX, layer.baseY);
             });
@@ -489,17 +494,17 @@ export class TravelScene extends Scene {
                 cl.g.x = cl.x;
             });
 
-            // Wagon bob — slight oscillation along iso diagonal
+            // Wagon bob — slight oscillation along iso diagonal (up-right direction)
             const bobPhase = Math.sin(this.scrollOffset * 0.05) * 1.5;
-            this.wagonG.x = bobPhase * 0.3;
+            this.wagonG.x = -bobPhase * 0.3;
             this.wagonG.y = bobPhase;
 
-            // Dust behind wagon (down-right = behind, since wagon travels up-left)
-            const wagonCX = GAME_WIDTH / 2 - 40;
-            const wagonCY = GROUND_Y - 10;
+            // Dust behind wagon (down-left = behind, since wagon travels up-right)
+            const wagonCX = GAME_WIDTH / 2 + 80;
+            const wagonCY = GROUND_Y - 125;
             if (Math.random() < 0.5) {
                 this.dustParticles.push({
-                    x: wagonCX + 50,
+                    x: wagonCX - 50,
                     y: wagonCY + 20,
                     alpha: 0.45,
                     r: 3 + Math.random() * 7,

@@ -1,7 +1,7 @@
 ---
 id: WP03
 title: "Mountain Realism — Noise-based Terrain"
-lane: planned
+lane: done
 depends_on: []
 ---
 # WP03: Mountain Realism
