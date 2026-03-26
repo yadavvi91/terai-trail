@@ -51,9 +51,9 @@ other WP depends on. No TravelScene changes — pure utilities only.
 **Estimated size**: ~280 lines
 
 ### Included Subtasks
-- [ ] T001 [P] Add `Biome` and `Season` enums to `src/utils/types.ts`
-- [ ] T002 [P] Add `BIOME_COLORS` and `SKY_GRADIENTS` constants to `src/utils/constants.ts`
-- [ ] T003 Create `src/utils/biome.ts` with `getBiome()`, `getSeason()`, `getMountainAlpha()`
+- [x] T001 [P] Add `Biome` and `Season` enums to `src/utils/types.ts`
+- [x] T002 [P] Add `BIOME_COLORS` and `SKY_GRADIENTS` constants to `src/utils/constants.ts`
+- [x] T003 Create `src/utils/biome.ts` with `getBiome()`, `getSeason()`, `getMountainAlpha()`
 
 **Requirements Refs**: FR-01, FR-02, FR-03, FR-06
 
