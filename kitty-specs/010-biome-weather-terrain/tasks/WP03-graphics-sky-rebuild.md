@@ -1,8 +1,11 @@
 ---
 work_package_id: WP03
 title: Graphics-Based Sky Rebuild with Weather-Reactive Gradients
-lane: planned
+lane: "doing"
 dependencies: [WP01]
+base_branch: 010-biome-weather-terrain-WP01
+base_commit: 590e56f99d77c0cc6ef92e72ca9cdff7f8d281b4
+created_at: '2026-03-26T20:36:28.726034+00:00'
 subtasks:
 - T011
 - T012
@@ -12,7 +15,7 @@ subtasks:
 phase: Phase 2 - Core Rendering
 assignee: ''
 agent: ''
-shell_pid: ''
+shell_pid: "54309"
 review_status: ''
 reviewed_by: ''
 history:
