@@ -1,0 +1,36 @@
+.claude/mcp.json
+  a9d6cfb34202aba2 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "4d7d7132d2110c8d0cf719f4daa4ffb7cc11a78d",
+  "prompts": {
+    "a9d6cfb34202aba2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f256f5be-3b67-46b0-a1de-a7fbcffbb03b",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 18,
+      "total_deletions": 18,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    },
+    "c7afd1abd519470f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f73a2a10-9f42-4fab-b038-1873b05871d2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 0,
+      "overriden_lines": 0
+    }
+  }
+}
