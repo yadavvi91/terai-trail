@@ -120,11 +120,11 @@ white-grey sky, no sun. Oregon zone → grey-green overlay on base gradient.
 **Estimated size**: ~350 lines
 
 ### Included Subtasks
-- [ ] T011 Add `skyG: Phaser.GameObjects.Graphics` property to TravelScene
-- [ ] T012 Replace `buildSky()` static rectangles with `skyG` Graphics + `drawSkyGradient()`
-- [ ] T013 Implement `drawSkyGradient(weather, biome)` — 14-band gradient + Oregon overlay
-- [ ] T014 Implement `redrawSky()` — clear + redraw + sun visibility/size logic
-- [ ] T015 Hook `redrawSky()` into `dailyTick()`; remove `cameras.main.setBackgroundColor` weather hack
+- [x] T011 Add `skyG: Phaser.GameObjects.Graphics` property to TravelScene
+- [x] T012 Replace `buildSky()` static rectangles with `skyG` Graphics + `drawSkyGradient()`
+- [x] T013 Implement `drawSkyGradient(weather, biome)` — 14-band gradient + Oregon overlay
+- [x] T014 Implement `redrawSky()` — clear + redraw + sun visibility/size logic
+- [x] T015 Hook `redrawSky()` into `dailyTick()`; remove `cameras.main.setBackgroundColor` weather hack
 
 **Requirements Refs**: FR-04
 
