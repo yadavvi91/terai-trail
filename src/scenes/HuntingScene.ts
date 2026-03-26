@@ -72,6 +72,9 @@ export class HuntingScene extends Scene {
         this.buildBackground();
         this.buildHUD();
 
+        // Start hunting ambience
+        SoundManager.getInstance().startHuntingAmbience();
+
         // Hide default cursor, show crosshair
         this.input.setDefaultCursor('none');
         this.crosshair = this.add.graphics().setDepth(20);
@@ -463,6 +466,7 @@ export class HuntingScene extends Scene {
     }
 
     shutdown(): void {
+        SoundManager.getInstance().stopTrailMusic(); // stops hunting ambience (same mechanism)
         this.input.keyboard?.removeAllListeners();
         this.input.off('pointerdown');
         this.input.off('pointermove');

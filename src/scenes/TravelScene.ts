@@ -615,6 +615,7 @@ export class TravelScene extends Scene {
         GameState.getInstance().resetSpeed();
         this.tickTimer.delay = TICK_MS;
         this.speedText?.setText('⏩ 1x');
+        SoundManager.getInstance().stopTrailMusic();
     }
 
     private onLandmarkReached(landmark: { isRiver: boolean; isFort: boolean }): void {
@@ -680,6 +681,8 @@ export class TravelScene extends Scene {
         this.speedText?.setText('⏩ 1x');
         this.tickTimer.paused = false;
         this.updateHUD();
+        // Resume trail music
+        SoundManager.getInstance().startTrailMusic();
     }
 
     shutdown(): void {

@@ -250,6 +250,40 @@ export class SoundManager {
         this.playTone(600, 0.03, 'sine', 0.06);
     }
 
+    /** Hunting ambience — tense low drone with cricket-like chirps */
+    startHuntingAmbience(): void {
+        if (this.musicPlaying) return;
+        this.musicPlaying = true;
+        this.musicStep = 0;
+
+        // Sparse, tense notes — low staccato with occasional bird chirp
+        const melody: [number, number, number][] = [
+            [110, 200, 0.08], [0, 400, 0],  [130, 150, 0.06], [0, 600, 0],
+            [1800, 40, 0.04], [0, 200, 0],  [2200, 30, 0.03], [0, 800, 0],
+            [100, 250, 0.08], [0, 500, 0],  [1600, 50, 0.04], [0, 300, 0],
+            [0, 600, 0],      [120, 200, 0.07], [0, 400, 0],
+            [2000, 35, 0.03], [0, 200, 0],  [2400, 25, 0.03], [0, 1000, 0],
+        ];
+
+        const beatMs = 150;
+        this.musicInterval = setInterval(() => {
+            if (this.muted || !this.ctx) {
+                this.musicStep = (this.musicStep + 1) % melody.length;
+                return;
+            }
+            const [freq, dur, vol] = melody[this.musicStep % melody.length];
+            if (freq > 0) {
+                // Low notes use triangle wave, high notes (chirps) use sine
+                if (freq < 200) {
+                    this.playTone(freq, dur / 1000, 'triangle', vol);
+                } else {
+                    this.playTone(freq, dur / 1000, 'sine', vol);
+                }
+            }
+            this.musicStep = (this.musicStep + 1) % melody.length;
+        }, beatMs);
+    }
+
     // ─── Trail Music ──────────────────────────────────────────────────────────
 
     /** Catchy western marching melody — procedural, loops forever */
