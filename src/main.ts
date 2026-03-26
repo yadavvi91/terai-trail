@@ -27,6 +27,9 @@ const config: Phaser.Types.Core.GameConfig = {
     dom: {
         createContainer: true,
     },
+    render: {
+        preserveDrawingBuffer: true,
+    },
     scene: [
         BootScene,
         TitleScene,
