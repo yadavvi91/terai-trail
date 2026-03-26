@@ -232,6 +232,12 @@ export function drawIsoTree(
 
 // ─── Isometric Mountain ──────────────────────────────────────────────────────
 
+/** Deterministic noise from seed for consistent mountain shapes */
+function mtnNoise(seed: number): number {
+    const x = Math.sin(seed * 127.1 + 311.7) * 43758.5453;
+    return x - Math.floor(x);
+}
+
 export function drawIsoMountain(
     g: Phaser.GameObjects.Graphics,
     sx: number,
@@ -242,57 +248,142 @@ export function drawIsoMountain(
     snowCap: boolean = true,
 ): void {
     const hw = width / 2;
+    const seed = sx * 0.013 + width * 0.007;
 
-    // Main mountain body — iso diamond pyramid
+    // Slight peak offset for natural look
+    const peakOff = (mtnNoise(seed) - 0.5) * width * 0.1;
+    const peakX = sx + peakOff;
+    const peakY = sy - height;
+    const bottomY = sy + hw * 0.3;
+
+    // ── Build jagged silhouette (left slope → peak → right slope) ──
+    const steps = 14;
+    const leftPts: Phaser.Types.Math.Vector2Like[] = [{ x: sx - hw, y: sy }];
+    const rightPts: Phaser.Types.Math.Vector2Like[] = [];
+
+    for (let i = 1; i <= steps; i++) {
+        const t = i / steps;
+        const jagAmp = width * 0.03 * (1 - t * 0.6);
+
+        // Left slope
+        const lJag = (mtnNoise(seed + i * 3.7) - 0.5) * 2 * jagAmp;
+        const lx = (sx - hw) + (peakX - (sx - hw)) * t + lJag;
+        const ly = sy - height * t;
+        leftPts.push({ x: lx, y: ly });
+
+        // Right slope
+        const rJag = (mtnNoise(seed + i * 5.1 + 50) - 0.5) * 2 * jagAmp;
+        const rx = peakX + ((sx + hw) - peakX) * t + rJag;
+        const ry = sy - height * (1 - t);
+        rightPts.unshift({ x: rx, y: ry });
+    }
+
+    // Add sub-peaks for realism
+    const sub1X = sx - hw * 0.45;
+    const sub1Y = sy - height * (0.55 + mtnNoise(seed + 20) * 0.15);
+    const sub2X = sx + hw * 0.4;
+    const sub2Y = sy - height * (0.5 + mtnNoise(seed + 30) * 0.15);
+
+    // Merge into full silhouette: left base → left slope → peak → right slope → right base → bottom
+    const outline: Phaser.Types.Math.Vector2Like[] = [
+        ...leftPts,
+        { x: peakX, y: peakY },
+        ...rightPts,
+        { x: sx + hw, y: sy },
+        { x: sx, y: bottomY },
+    ];
+
+    // Main body fill
     g.fillStyle(color);
+    g.fillPoints(outline, true);
+
+    // Sub-peak ridges (overlaid for depth)
+    g.fillStyle(color - 0x080808);
     g.fillPoints([
-        { x: sx - hw, y: sy },           // left
-        { x: sx,      y: sy - height },  // top (peak)
-        { x: sx + hw, y: sy },           // right
-        { x: sx,      y: sy + hw * 0.3 }, // bottom
+        { x: sub1X - hw * 0.25, y: sy },
+        { x: sub1X, y: sub1Y },
+        { x: sub1X + hw * 0.15, y: sy - height * 0.3 },
+        { x: sub1X + hw * 0.2, y: sy },
+        { x: sub1X, y: bottomY },
     ], true);
 
-    // Right shadow face
-    g.fillStyle(0x000000, 0.2);
+    g.fillStyle(color - 0x060606);
     g.fillPoints([
-        { x: sx,      y: sy - height },
+        { x: sub2X - hw * 0.15, y: sy },
+        { x: sub2X, y: sub2Y },
+        { x: sub2X + hw * 0.25, y: sy },
+        { x: sub2X + hw * 0.05, y: bottomY },
+    ], true);
+
+    // Right shadow face (darker)
+    g.fillStyle(0x000000, 0.18);
+    g.fillPoints([
+        { x: peakX, y: peakY },
         { x: sx + hw, y: sy },
-        { x: sx,      y: sy + hw * 0.3 },
+        { x: sx, y: bottomY },
     ], true);
 
     // Left highlight face
-    g.fillStyle(color + 0x101010, 0.3);
+    g.fillStyle(0xffffff, 0.06);
     g.fillPoints([
         { x: sx - hw, y: sy },
-        { x: sx,      y: sy - height },
-        { x: sx,      y: sy + hw * 0.3 },
+        { x: peakX, y: peakY },
+        { x: sx, y: bottomY },
     ], true);
 
-    // Rock stratification
-    g.lineStyle(1, 0x000000, 0.15);
-    for (let i = 1; i <= 3; i++) {
-        const t = i * 0.22;
-        const lw = hw * (1 - t);
+    // Rock stratification lines
+    g.lineStyle(1, 0x000000, 0.12);
+    for (let i = 1; i <= 4; i++) {
+        const t = i * 0.18;
+        const lw = hw * (1 - t) * 0.9;
         const ly = sy - height * (1 - t);
+        const jag = (mtnNoise(seed + i * 11) - 0.5) * 8;
         g.beginPath();
-        g.moveTo(sx - lw, ly + lw * 0.15);
-        g.lineTo(sx + lw, ly + lw * 0.15);
+        g.moveTo(sx - lw + jag, ly + lw * 0.12);
+        g.lineTo(sx + lw + jag, ly + lw * 0.12);
         g.strokePath();
     }
 
+    // Atmospheric haze at base
+    g.fillStyle(0x8090b0, 0.08);
+    g.fillPoints([
+        { x: sx - hw, y: sy },
+        { x: sx - hw * 0.3, y: sy - height * 0.15 },
+        { x: sx + hw * 0.3, y: sy - height * 0.15 },
+        { x: sx + hw, y: sy },
+        { x: sx, y: bottomY },
+    ], true);
+
     if (snowCap) {
-        g.fillStyle(0xedf4ff, 0.9);
+        // Main snow cap — organic shape with multiple lobes
+        const snowLine = 0.68;
+        g.fillStyle(0xedf4ff, 0.92);
         g.fillPoints([
-            { x: sx - hw * 0.25, y: sy - height * 0.72 },
-            { x: sx,             y: sy - height },
-            { x: sx + hw * 0.2,  y: sy - height * 0.72 },
+            { x: peakX - hw * 0.3, y: sy - height * snowLine },
+            { x: peakX - hw * 0.12, y: sy - height * (snowLine + 0.08) },
+            { x: peakX, y: peakY },
+            { x: peakX + hw * 0.1, y: sy - height * (snowLine + 0.06) },
+            { x: peakX + hw * 0.25, y: sy - height * snowLine },
+            { x: peakX + hw * 0.15, y: sy - height * (snowLine - 0.04) },
+            { x: peakX - hw * 0.18, y: sy - height * (snowLine - 0.03) },
         ], true);
+
+        // Snow on sub-peaks
+        if (sub1Y < sy - height * 0.45) {
+            g.fillStyle(0xedf4ff, 0.7);
+            g.fillPoints([
+                { x: sub1X - hw * 0.08, y: sub1Y + height * 0.06 },
+                { x: sub1X, y: sub1Y },
+                { x: sub1X + hw * 0.06, y: sub1Y + height * 0.06 },
+            ], true);
+        }
+
         // Snow shadow
-        g.fillStyle(0xb8d0f0, 0.4);
+        g.fillStyle(0x8aaad0, 0.25);
         g.fillPoints([
-            { x: sx,             y: sy - height },
-            { x: sx + hw * 0.2,  y: sy - height * 0.72 },
-            { x: sx + hw * 0.08, y: sy - height * 0.72 },
+            { x: peakX, y: peakY },
+            { x: peakX + hw * 0.25, y: sy - height * snowLine },
+            { x: peakX + hw * 0.1, y: sy - height * snowLine },
         ], true);
     }
 }

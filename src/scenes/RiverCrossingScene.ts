@@ -61,9 +61,9 @@ export class RiverCrossingScene extends Scene {
         drawSun(skyG, 120, 55, 32);
         drawCloud(skyG, 400, 40, 0.7);
         drawCloud(skyG, 750, 30, 0.55);
-        drawMountain(skyG, 200, 245, 200, 140, 0x6a80a0, true);
-        drawMountain(skyG, 500, 245, 260, 170, 0x5a7090, true);
-        drawMountain(skyG, 800, 245, 220, 150, 0x6a80a0, true);
+        drawMountain(skyG, 200, 245, 260, 110, 0x6a80a0, true);
+        drawMountain(skyG, 500, 245, 320, 130, 0x5a7090, true);
+        drawMountain(skyG, 800, 245, 280, 115, 0x6a80a0, true);
 
         // Far bank hills
         const farBankG = this.add.graphics();
@@ -142,10 +142,11 @@ export class RiverCrossingScene extends Scene {
             for (let col = 0; col < bankCols; col++) {
                 const sx = bankOffsetX + (col - row) * (TILE_WIDTH / 2) - (bankCols * TILE_WIDTH / 4);
                 const sy = bankBaseY + (col + row) * (TILE_HEIGHT / 2);
-                const isGrass = row >= 3;
-                const color = isGrass
-                    ? (((col + row) % 3 === 0) ? 0x3d8b37 : ((col + row) % 3 === 1) ? 0x358030 : 0x3a8534)
-                    : (((col + row) % 2 === 0) ? 0x9e7b3a : 0x8a6d32);
+                const midRow = Math.floor(bankRows / 2);
+                const isTrail = Math.abs(row - midRow) <= 1;
+                const color = isTrail
+                    ? (((col + row) % 2 === 0) ? 0x9e7b3a : 0x8a6d32)
+                    : (((col + row) % 3 === 0) ? 0x3d8b37 : ((col + row) % 3 === 1) ? 0x358030 : 0x3a8534);
                 drawIsoTile(nearBankG, sx, sy, color);
             }
         }

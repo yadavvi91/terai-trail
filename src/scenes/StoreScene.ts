@@ -35,7 +35,7 @@ const STORE_ITEMS: StoreItem[] = [
 ];
 
 export class StoreScene extends Scene {
-    private quantities: number[] = [2, 200, 3, 10, 3];
+    private quantities: number[] = [2, 500, 3, 10, 3];
     private qtyTexts: Phaser.GameObjects.Text[] = [];
     private costTexts: Phaser.GameObjects.Text[] = [];
     private spentText!: Phaser.GameObjects.Text;
@@ -48,7 +48,7 @@ export class StoreScene extends Scene {
     }
 
     create(): void {
-        this.quantities = [2, 200, 3, 10, 3];
+        this.quantities = [2, 500, 3, 10, 3];
         this.qtyTexts = [];
         this.costTexts = [];
 
@@ -168,8 +168,9 @@ export class StoreScene extends Scene {
             }).setOrigin(0.5);
 
             // Price
+            const singular = item.unit === 'boxes' ? 'box' : item.unit.replace(/s$/, '');
             const priceStr = item.price >= 1
-                ? `$${item.price} / ${item.unit.replace(/s$/, '')}`
+                ? `$${item.price} / ${singular}`
                 : `$${item.price.toFixed(2)} / lb`;
             this.add.text(col.price, y + rowH / 2, priceStr, {
                 ...TEXT_STYLES.HUD,

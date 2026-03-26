@@ -283,8 +283,8 @@ export function drawMountain(
 
     for (let i = 0; i <= steps; i++) {
         const t = i / steps; // 0 = base, 1 = peak
-        // Jag amplitude decreases near the peak
-        const jagAmp = width * 0.028 * (1 - t * 0.7);
+        // Jag amplitude — larger for more natural rocky silhouette
+        const jagAmp = width * 0.055 * (1 - t * 0.6);
         const jag = (seededNoise(seed + i * 3.7) - 0.5) * 2 * jagAmp;
 
         // Left slope — x goes from leftBaseX to peakX
@@ -354,7 +354,7 @@ export function drawMountain(
 
     // ── Snow cap ──────────────────────────────────────────────────────────────
     if (snowCap) {
-        const snowLine = 0.32; // how far down the snow goes
+        const snowLine = 0.22; // how far down the snow goes (smaller = less snow)
 
         // Build snow polygon from the jagged left and right silhouettes
         const snowPts: Phaser.Types.Math.Vector2Like[] = [];

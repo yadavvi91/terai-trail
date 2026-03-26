@@ -46,20 +46,20 @@ export class TitleScene extends Scene {
         const bg = this.add.graphics();
         drawSun(bg, GAME_WIDTH - 140, 90, 48);
 
-        // ── Far mountains (distant, desaturated/hazy) ──
+        // ── Far mountains (distant, desaturated/hazy) — wider and shorter for natural look ──
         const farMtns = this.add.graphics();
-        drawMountain(farMtns, 80,   groundY - 5, 200, 160, 0x8090a8, true);
-        drawMountain(farMtns, 280,  groundY - 5, 260, 200, 0x7888a0, true);
-        drawMountain(farMtns, 520,  groundY - 5, 220, 185, 0x8898b0, true);
-        drawMountain(farMtns, 760,  groundY - 5, 280, 215, 0x6878a0, true);
-        drawMountain(farMtns, 980,  groundY - 5, 200, 170, 0x7890a8, true);
+        drawMountain(farMtns, 80,   groundY - 5, 240, 120, 0x8090a8, true);
+        drawMountain(farMtns, 300,  groundY - 5, 300, 150, 0x7888a0, true);
+        drawMountain(farMtns, 540,  groundY - 5, 260, 135, 0x8898b0, true);
+        drawMountain(farMtns, 780,  groundY - 5, 320, 155, 0x6878a0, true);
+        drawMountain(farMtns, 980,  groundY - 5, 250, 125, 0x7890a8, true);
 
         // ── Mid mountains (closer, more saturated) ──
         const midMtns = this.add.graphics();
-        drawMountain(midMtns, 200, groundY, 180, 165, 0x5a7098, true);
-        drawMountain(midMtns, 430, groundY, 220, 195, 0x4d6890, true);
-        drawMountain(midMtns, 680, groundY, 190, 175, 0x607898, true);
-        drawMountain(midMtns, 880, groundY, 240, 180, 0x546c90, true);
+        drawMountain(midMtns, 160, groundY, 220, 130, 0x5a7098, true);
+        drawMountain(midMtns, 420, groundY, 260, 150, 0x4d6890, true);
+        drawMountain(midMtns, 680, groundY, 230, 135, 0x607898, true);
+        drawMountain(midMtns, 900, groundY, 280, 140, 0x546c90, true);
 
         // ── Near hills ──
         const hills = this.add.graphics();
@@ -87,15 +87,17 @@ export class TitleScene extends Scene {
         const tileH = TILE_HEIGHT;
         const isoBaseX = GAME_WIDTH / 2;
         const isoBaseY = groundY + 10;
+        const midRow = Math.floor(rows / 2);
 
         for (let row = 0; row < rows; row++) {
             for (let col = 0; col < cols; col++) {
                 const sx = isoBaseX + (col - row) * (tileW / 2) - (cols * tileW / 4);
                 const sy = isoBaseY + (col + row) * (tileH / 2) - rows * tileH / 2;
-                const isTrail = Math.abs(col - row - 2) <= 1;
+                // Trail: horizontal band in world → diagonal on screen
+                const isTrail = Math.abs(row - midRow) <= 1;
                 if (isTrail) {
                     drawIsoTile(isoG, sx, sy, 0x9e7b3a);
-                    if (Math.abs(col - row - 2) === 0) {
+                    if (row === midRow) {
                         drawIsoTile(isoG, sx, sy, 0x6a4e20, 0.3, tileW * 0.5, tileH * 0.5);
                     }
                 } else {
@@ -108,11 +110,15 @@ export class TitleScene extends Scene {
                 }
             }
         }
-        // Trees on the isometric ground
-        drawIsoTree(isoG, isoBaseX - 260, isoBaseY - 10, 55, 0x234d1a, false);
-        drawIsoTree(isoG, isoBaseX - 200, isoBaseY + 15, 65, 0x2a5820, true);
-        drawIsoTree(isoG, isoBaseX + 230, isoBaseY - 5, 58, 0x234d1a, false);
-        drawIsoTree(isoG, isoBaseX + 280, isoBaseY + 20, 70, 0x2a5820, false);
+        // Trees alongside trail (off-trail rows)
+        const treeTilePositions = [
+            [3, 0], [8, 0], [14, 0], [4, rows - 1], [10, rows - 1], [16, rows - 1],
+        ];
+        treeTilePositions.forEach(([c, r]) => {
+            const tsx = isoBaseX + (c - r) * (tileW / 2) - (cols * tileW / 4);
+            const tsy = isoBaseY + (c + r) * (tileH / 2) - rows * tileH / 2;
+            drawIsoTree(isoG, tsx, tsy - 4, 50 + (c * 7) % 25, 0x234d1a, (c + r) % 3 === 0);
+        });
 
         // ── Clouds ──
         const cloudG = this.add.graphics();
@@ -192,25 +198,28 @@ export class TitleScene extends Scene {
 
     update(_t: number, dt: number): void {
         const groundY = GAME_HEIGHT - 90;
-        // Wagon moves diagonally (isometric direction: right and slightly down)
+        // Wagon moves along iso diagonal UP-LEFT (away from viewer, into the distance)
         const speed = 80;
-        this.wagonX += (speed * dt) / 1000;
-        if (this.wagonX > GAME_WIDTH + 200) this.wagonX = -200;
+        this.wagonX -= (speed * dt) / 1000;
+        if (this.wagonX < -200) this.wagonX = GAME_WIDTH + 200;
 
-        const isoYOffset = this.wagonX * 0.3; // diagonal movement
+        // Isometric diagonal path: as X decreases, Y also decreases (moving up-left)
+        const wx = this.wagonX;
+        const wy = groundY + 40 - ((GAME_WIDTH - wx) / GAME_WIDTH) * 60; // up-left slope
 
-        // Dust particles along the iso trail
-        if (Math.random() < 0.4 && this.wagonX > 0 && this.wagonX < GAME_WIDTH) {
+        // Dust particles behind wagon (down-right = behind, wagon travels up-left)
+        if (Math.random() < 0.4 && wx > 0 && wx < GAME_WIDTH) {
             this.dustParticles.push({
-                x: this.wagonX - 60,
-                y: groundY + isoYOffset * 0.15 + Math.random() * 8,
+                x: wx + 50,
+                y: wy + 16 + Math.random() * 6,
                 alpha: 0.45,
                 r: 3 + Math.random() * 6,
             });
         }
         this.dustParticles = this.dustParticles.filter(p => p.alpha > 0.02);
         this.dustParticles.forEach(p => {
-            p.x -= (speed * dt) / 1000 * 0.2;
+            p.x += 20 * dt / 1000;   // drift right
+            p.y += 10 * dt / 1000;   // drift down (behind wagon)
             p.alpha -= dt / 2000;
             p.r += dt / 500;
         });
@@ -222,20 +231,18 @@ export class TitleScene extends Scene {
         });
 
         this.wagonG.clear();
-        const wx = this.wagonX;
-        const wy = groundY + 14 + (wx / GAME_WIDTH) * 30; // diagonal path
 
-        // Isometric oxen
-        drawIsoOx(this.wagonG, wx + 46, wy + 16, 0.9);
-        drawIsoOx(this.wagonG, wx + 34, wy + 22, 0.9);
+        // Oxen ahead (up-left = traveling away from viewer)
+        drawIsoOx(this.wagonG, wx - 60, wy - 30, 1.4);
+        drawIsoOx(this.wagonG, wx - 42, wy - 20, 1.4);
 
-        // Isometric wagon
-        drawIsoWagon(this.wagonG, wx, wy, 0.9);
+        // Wagon
+        drawIsoWagon(this.wagonG, wx, wy, 1.4);
 
-        // Isometric people walking behind
+        // People walking behind wagon (down-right = behind)
         const personColors = [0x7a5a38, 0x5a3a70, 0x8a6848, 0x5a3a70];
         for (let i = 0; i < 4; i++) {
-            drawIsoPerson(this.wagonG, wx - 24 - i * 16, wy + 6 + i * 8, 0.75, personColors[i]);
+            drawIsoPerson(this.wagonG, wx + 32 + i * 18, wy + 10 + i * 10, 1.1, personColors[i]);
         }
     }
 

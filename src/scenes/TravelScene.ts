@@ -19,6 +19,7 @@ const GROUND_Y = GAME_HEIGHT - 80;
 interface ScrollLayer {
     g: Phaser.GameObjects.Graphics;
     baseX: number;
+    baseY: number;
     width: number;
     speed: number; // px per scroll unit
 }
@@ -55,6 +56,7 @@ export class TravelScene extends Scene {
     private tickTimer!: Phaser.Time.TimerEvent;
     private paused: boolean = false;
     private wagonRollTick: number = 0;
+    private eventCooldown: number = 0;
     private speedText!: Phaser.GameObjects.Text;
 
     constructor() {
@@ -72,6 +74,7 @@ export class TravelScene extends Scene {
         this.cloudLayers = [];
         this.walkFrame = 0;
         this.walkTimer = 0;
+        this.eventCooldown = 8; // no events for first 8 ticks (~10 days of travel)
 
         this.buildSky();
         this.buildParallax();
@@ -135,7 +138,7 @@ export class TravelScene extends Scene {
             const g = this.add.graphics();
             const baseX = pass * (GAME_WIDTH + 100);
             this.drawMountainLayer(g, baseX);
-            this.mtnLayers.push({ g, baseX, width: GAME_WIDTH + 100, speed: 0.18 });
+            this.mtnLayers.push({ g, baseX, baseY: 0, width: GAME_WIDTH + 100, speed: 0.18 });
         }
 
         // Near hills — 2 sets
@@ -143,7 +146,7 @@ export class TravelScene extends Scene {
             const g = this.add.graphics();
             const baseX = pass * (GAME_WIDTH + 60);
             this.drawHillLayer(g, baseX);
-            this.hillLayers.push({ g, baseX, width: GAME_WIDTH + 60, speed: 0.55 });
+            this.hillLayers.push({ g, baseX, baseY: 0, width: GAME_WIDTH + 60, speed: 0.55 });
         }
     }
 
@@ -177,65 +180,77 @@ export class TravelScene extends Scene {
 
     private buildGroundAndTrail(): void {
         // Isometric tile ground — scrolling diamond grid
-        const cols = 24;
-        const rows = 8;
+        // Trail runs along row ≈ middleRow (renders as diagonal down-right on screen)
+        const cols = 28;
+        const rows = 10;
         const tileW = TILE_WIDTH;
         const tileH = TILE_HEIGHT;
+        const middleRow = Math.floor(rows / 2);
+        const grassColors = [0x3a7d30, 0x2d6a28, 0x347530, 0x3a8028];
+        const flowerColors = [0xffdd44, 0xff8844, 0xff6644];
+
+        // Wrap distance: one full copy's width along the iso diagonal
+        const wrapDX = cols * tileW / 2;   // screen-X span of one copy
+        const wrapDY = cols * tileH / 2;   // corresponding screen-Y span
+
+        // Origin: position tile grid so the trail center is roughly at screen center
+        const originX = GAME_WIDTH / 2 + 100;
+        const originY = GROUND_Y - middleRow * tileH - 60;
 
         for (let pass = 0; pass < 2; pass++) {
             const g = this.add.graphics();
-            const baseX = pass * (cols * tileW / 2);
 
+            // Draw tiles in local coordinates (centered on grid origin)
             for (let row = 0; row < rows; row++) {
                 for (let col = 0; col < cols; col++) {
-                    const sx = baseX + (col - row) * (tileW / 2) + GAME_WIDTH / 2;
-                    const sy = GROUND_Y + (col + row) * (tileH / 2) - rows * tileH / 2 + 20;
+                    const sx = (col - row) * (tileW / 2);
+                    const sy = (col + row) * (tileH / 2);
 
-                    // Determine tile type: trail diagonal, grass, or wildflower
-                    const isTrail = Math.abs(col - row) <= 1;
-                    const isTrailEdge = Math.abs(col - row) === 2;
+                    // Trail: horizontal band in world coords → diagonal on screen
+                    const isTrail = Math.abs(row - middleRow) <= 1;
+                    const isTrailEdge = Math.abs(row - middleRow) === 2;
 
                     if (isTrail) {
-                        // Trail tile
                         drawIsoTile(g, sx, sy, 0x9e7b3a);
-                        // Wheel ruts
-                        if (col === row) {
+                        // Wheel ruts on center row
+                        if (row === middleRow) {
                             drawIsoTile(g, sx, sy, 0x6a4e20, 0.4, tileW * 0.5, tileH * 0.5);
                         }
                     } else if (isTrailEdge) {
-                        // Trail edge — blended
                         drawIsoTile(g, sx, sy, 0x4a8030);
                         drawIsoTile(g, sx, sy, 0x7a6830, 0.3, tileW * 0.7, tileH * 0.7);
                     } else {
-                        // Grass tile with slight color variation
-                        const grassColors = [0x3a7d30, 0x2d6a28, 0x347530, 0x3a8028];
                         const ci = (col * 7 + row * 13) % grassColors.length;
                         drawIsoTile(g, sx, sy, grassColors[ci]);
-
                         // Occasional wildflower
                         if ((col * 3 + row * 7) % 11 === 0) {
-                            const fColors = [0xffdd44, 0xff8844, 0xff6644];
-                            g.fillStyle(fColors[(col + row) % 3], 0.8);
+                            g.fillStyle(flowerColors[(col + row) % 3], 0.8);
                             g.fillCircle(sx, sy - 2, 2.5);
                         }
                     }
                 }
             }
 
-            // Trees alongside the trail (isometric)
-            const treePositions = [
-                [-4, 2], [-5, 1], [-3, 5], [-6, 3], [5, 2], [4, 4], [6, 1], [5, 5],
+            // Trees alongside the trail (off the trail rows)
+            const treeOffsets = [
+                [3, 0], [7, 0], [12, 0], [18, 0], [24, 0],  // top side of trail
+                [3, rows - 1], [8, rows - 1], [14, rows - 1], [20, rows - 1], [25, rows - 1],  // bottom side
+                [5, 1], [10, 1], [16, 1], [22, 1],  // near top edge
+                [6, rows - 2], [11, rows - 2], [17, rows - 2], [23, rows - 2],  // near bottom edge
             ];
-            treePositions.forEach(([dc, dr]) => {
-                const col = Math.floor(cols / 2) + dc;
-                const row = Math.floor(rows / 2) + dr;
-                const tsx = baseX + (col - row) * (tileW / 2) + GAME_WIDTH / 2;
-                const tsy = GROUND_Y + (col + row) * (tileH / 2) - rows * tileH / 2 + 20;
-                const isPine = ((dc + dr) % 3 === 0);
-                drawIsoTree(g, tsx, tsy - 4, 50 + Math.abs(dc * 8), 0x234d1a, isPine);
+            treeOffsets.forEach(([col, row]) => {
+                const tsx = (col - row) * (tileW / 2);
+                const tsy = (col + row) * (tileH / 2);
+                const isPine = ((col + row) % 3 === 0);
+                drawIsoTree(g, tsx, tsy - 4, 45 + (col * 7) % 30, 0x234d1a, isPine);
             });
 
-            this.groundLayers.push({ g, baseX, width: cols * tileW / 2, speed: 1.0 });
+            // Position each copy: offset diagonally along the iso axis
+            const bx = originX + pass * wrapDX;
+            const by = originY + pass * wrapDY;
+            g.setPosition(bx, by);
+
+            this.groundLayers.push({ g, baseX: bx, baseY: by, width: wrapDX, speed: 1.0 });
         }
     }
 
@@ -256,23 +271,23 @@ export class TravelScene extends Scene {
         }
 
         this.wagonG.clear();
-        // Isometric wagon position — center-left of screen on the trail
-        const wx = GAME_WIDTH / 2 - 60;
-        const wy = GROUND_Y + 10;
+        // Wagon on the iso trail — traveling up-left (away from viewer)
+        const wx = GAME_WIDTH / 2 - 40;
+        const wy = GROUND_Y - 10;
 
-        // Oxen (in front, heading right-down in iso)
-        drawIsoOx(this.wagonG, wx + 50, wy + 20, 1.0);
-        drawIsoOx(this.wagonG, wx + 36, wy + 28, 1.0);
+        // Oxen ahead of wagon (up-left = traveling away from viewer)
+        drawIsoOx(this.wagonG, wx - 52, wy - 26, 1.0);
+        drawIsoOx(this.wagonG, wx - 38, wy - 18, 1.0);
 
         // Wagon
         drawIsoWagon(this.wagonG, wx, wy, 1.0);
 
-        // Party members walking alongside (isometric)
+        // Party members walking behind wagon (down-right = behind)
         const gs = GameState.getInstance();
         const alive = gs.party.filter(m => m.status !== MemberStatus.DEAD).length;
         const personColors = [0x7a5a38, 0x5a3a70, 0x8a6848, 0x5a3a70, 0x7a5a38];
         for (let i = 0; i < Math.min(alive, 5); i++) {
-            drawIsoPerson(this.wagonG, wx - 30 - i * 18, wy + 8 + i * 10, 0.8, personColors[i]);
+            drawIsoPerson(this.wagonG, wx + 24 + i * 16, wy + 6 + i * 8, 0.8, personColors[i]);
         }
     }
 
@@ -356,10 +371,11 @@ export class TravelScene extends Scene {
         const btnStyle = { ...TEXT_STYLES.HUD, fontSize: '13px', color: HEX_COLORS.PARCHMENT };
         const depth = 11;
 
-        // Pace buttons
+        // Pace buttons — centered in the bottom bar
+        const paceStartX = 220;
         const paceOptions: [string, Pace][] = [['Steady', Pace.STEADY], ['Strenuous', Pace.STRENUOUS], ['Grueling', Pace.GRUELING]];
         paceOptions.forEach(([label, pace], i) => {
-            const btn = this.add.text(GAME_WIDTH - 500 + i * 120, GAME_HEIGHT - 48, `[${label}]`, btnStyle)
+            const btn = this.add.text(paceStartX + i * 110, GAME_HEIGHT - 48, `[${label}]`, btnStyle)
                 .setInteractive({ useHandCursor: true }).setDepth(depth);
             btn.on('pointerover', () => btn.setColor(HEX_COLORS.GOLD));
             btn.on('pointerout', () => btn.setColor(HEX_COLORS.PARCHMENT));
@@ -368,7 +384,7 @@ export class TravelScene extends Scene {
 
         const rationOptions: [string, Rations][] = [['Filling', Rations.FILLING], ['Meager', Rations.MEAGER], ['Bare Bones', Rations.BARE_BONES]];
         rationOptions.forEach(([label, rations], i) => {
-            const btn = this.add.text(GAME_WIDTH - 500 + i * 140, GAME_HEIGHT - 28, `[${label}]`, btnStyle)
+            const btn = this.add.text(paceStartX + i * 110, GAME_HEIGHT - 28, `[${label}]`, btnStyle)
                 .setInteractive({ useHandCursor: true }).setDepth(depth);
             btn.on('pointerover', () => btn.setColor(HEX_COLORS.GOLD));
             btn.on('pointerout', () => btn.setColor(HEX_COLORS.PARCHMENT));
@@ -399,7 +415,7 @@ export class TravelScene extends Scene {
         });
 
         // Speed control button
-        this.speedText = this.add.text(GAME_WIDTH - 160, GAME_HEIGHT - 38, '⏩ 1x', {
+        this.speedText = this.add.text(GAME_WIDTH - 180, GAME_HEIGHT - 38, '⏩ 1x', {
             ...btnStyle, color: HEX_COLORS.GOLD, fontSize: '15px',
         }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(depth);
         this.speedText.on('pointerdown', () => {
@@ -429,7 +445,7 @@ export class TravelScene extends Scene {
             const scrollSpeed = 60 * gs.speedMultiplier; // visual scroll px per second (scales with speed)
             this.scrollOffset += scrollSpeed * dt;
 
-            // Scroll mountains
+            // Scroll mountains (horizontal only — distant objects parallax horizontally)
             this.mtnLayers.forEach(layer => {
                 const dx = scrollSpeed * layer.speed * dt;
                 layer.baseX -= dx;
@@ -437,44 +453,65 @@ export class TravelScene extends Scene {
                 layer.g.setX(layer.baseX);
             });
 
-            // Scroll hills
+            // Scroll hills (mostly horizontal, slight vertical for depth)
             this.hillLayers.forEach(layer => {
                 const dx = scrollSpeed * layer.speed * dt;
                 layer.baseX -= dx;
-                if (layer.baseX < -(layer.width)) layer.baseX += layer.width * 2;
-                layer.g.setX(layer.baseX);
+                layer.baseY -= dx * 0.08; // subtle vertical drift
+                if (layer.baseX < -(layer.width)) {
+                    layer.baseX += layer.width * 2;
+                    layer.baseY += layer.width * 2 * 0.08;
+                }
+                layer.g.setPosition(layer.baseX, layer.baseY);
             });
 
-            // Scroll grass
+            // Scroll ground DIAGONALLY down-right (toward viewer)
+            // so the wagon appears to travel up-left (away, into the distance)
             this.groundLayers.forEach(layer => {
                 const dx = scrollSpeed * layer.speed * dt;
-                layer.baseX -= dx;
-                if (layer.baseX < -(layer.width)) layer.baseX += layer.width * 2;
-                layer.g.setX(layer.baseX);
+                const dy = dx * 0.5; // 2:1 isometric ratio
+                layer.baseX += dx;
+                layer.baseY += dy;
+
+                // Wrap: when tiles scroll off lower-right, teleport behind
+                const minLocalX = -(10 - 1) * (TILE_WIDTH / 2); // leftmost tile local X ≈ -288
+                if (layer.baseX + minLocalX > GAME_WIDTH + 50) {
+                    layer.baseX -= layer.width * 2;
+                    layer.baseY -= layer.width; // 2 * wrapDX * 0.5 = wrapDX
+                }
+                layer.g.setPosition(layer.baseX, layer.baseY);
             });
 
-            // Drift clouds
+            // Drift clouds (horizontal)
             this.cloudLayers.forEach(cl => {
                 cl.x -= scrollSpeed * cl.speed * dt;
                 if (cl.x < -200) cl.x += GAME_WIDTH + 400;
-                cl.g.setX(cl.x - (cl.g as any)._baseX || 0);
                 cl.g.x = cl.x;
             });
 
-            // Wagon bob
-            const wy = GROUND_Y - 4 + Math.sin(this.scrollOffset * 0.05) * 1.5;
-            this.wagonG.y = wy - (GROUND_Y - 4);
+            // Wagon bob — slight oscillation along iso diagonal
+            const bobPhase = Math.sin(this.scrollOffset * 0.05) * 1.5;
+            this.wagonG.x = bobPhase * 0.3;
+            this.wagonG.y = bobPhase;
 
-            // Dust
+            // Dust behind wagon (down-right = behind, since wagon travels up-left)
+            const wagonCX = GAME_WIDTH / 2 - 40;
+            const wagonCY = GROUND_Y - 10;
             if (Math.random() < 0.5) {
-                this.dustParticles.push({ x: 130, y: GROUND_Y + 8, alpha: 0.45, r: 3 + Math.random() * 7 });
+                this.dustParticles.push({
+                    x: wagonCX + 50,
+                    y: wagonCY + 20,
+                    alpha: 0.45,
+                    r: 3 + Math.random() * 7,
+                });
             }
         }
 
-        // Update dust
+        // Update dust — drifts down-right (behind wagon traveling into distance)
         this.dustParticles = this.dustParticles.filter(p => p.alpha > 0.02);
         this.dustParticles.forEach(p => {
-            p.x -= 30 * dt;
+            p.x += 25 * dt;  // drift right
+            p.y += 12 * dt;  // drift down (iso diagonal)
             p.alpha -= dt * 0.6;
             p.r += dt * 4;
         });
@@ -522,7 +559,7 @@ export class TravelScene extends Scene {
         if (foodActual < foodNeeded) {
             gs.party.forEach(m => {
                 if (m.status !== MemberStatus.DEAD) {
-                    m.health = Math.max(0, m.health - 7);
+                    m.health = Math.max(0, m.health - 3);
                     if (m.health <= 0) {
                         m.status = MemberStatus.DEAD;
                         this.showStatus(`${m.name} has died of starvation.`);
@@ -544,8 +581,10 @@ export class TravelScene extends Scene {
             return;
         }
 
-        // Random event
-        if (Math.random() < 0.12 && gs.pace !== Pace.STOPPED) {
+        // Random event (with cooldown to prevent back-to-back events)
+        if (this.eventCooldown > 0) this.eventCooldown--;
+        if (this.eventCooldown <= 0 && Math.random() < 0.07 && gs.pace !== Pace.STOPPED) {
+            this.eventCooldown = 5; // minimum 5 ticks between events
             this.resetSpeedForSubScene();
             this.tickTimer.paused = true;
             this.scene.launch(SCENES.EVENT);
