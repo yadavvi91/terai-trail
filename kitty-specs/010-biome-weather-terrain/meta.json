@@ -2,7 +2,9 @@
   "feature_number": "010",
   "slug": "010-biome-weather-terrain",
   "feature_slug": "010-biome-weather-terrain",
-  "friendly_name": "biome weather terrain",
+  "friendly_name": "Biome-Based Scenery & Weather Terrain",
+  "source_description": "Travel scene renders identical Rocky Mountain scenery for all 2000 miles. This feature adds 3 biome zones, weather-reactive sky with particles, mountain fade-in, and seasonal grass color shifts.",
+  "vcs": "git",
   "mission": "software-dev",
   "target_branch": "main",
   "created_at": "2026-03-26T19:46:34.422001+00:00"
