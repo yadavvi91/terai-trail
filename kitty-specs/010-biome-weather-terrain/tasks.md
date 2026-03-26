@@ -197,9 +197,9 @@ next daily tick makes ground tiles noticeably more golden/dry vs spring green.
 **Estimated size**: ~260 lines
 
 ### Included Subtasks
-- [ ] T021 Extract `drawGroundTiles(g: Graphics, season: Season): void` from `buildGroundAndTrail()`
-- [ ] T022 Add `refreshGroundLayers()` to clear+redraw each ground Graphics with current season
-- [ ] T023 Hook season change detection into `dailyTick()` to call `refreshGroundLayers()`
+- [x] T021 Extract `drawGroundTiles(g: Graphics, season: Season): void` from `buildGroundAndTrail()`
+- [x] T022 Add `refreshGroundLayers()` to clear+redraw each ground Graphics with current season
+- [x] T023 Hook season change detection into `dailyTick()` to call `refreshGroundLayers()`
 
 **Requirements Refs**: FR-06, FR-07
 
