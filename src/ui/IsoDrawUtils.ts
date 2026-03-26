@@ -159,25 +159,83 @@ export function drawIsoPerson(
 
     // Shadow
     g.fillStyle(0x000000, 0.15);
-    g.fillEllipse(sx + 1 * s, sy + 2 * s, 12 * s, 6 * s);
+    g.fillEllipse(sx + 1 * s, sy + 4 * s, 14 * s, 7 * s);
 
-    // Legs
-    g.fillStyle(0x4a3020);
-    g.fillRect(sx - 3 * s, sy - 4 * s, 3 * s, 8 * s);
-    g.fillRect(sx + 1 * s, sy - 4 * s, 3 * s, 8 * s);
+    // Boots
+    g.fillStyle(0x2a1808);
+    g.fillEllipse(sx - 3 * s, sy + 2 * s, 5 * s, 4 * s);
+    g.fillEllipse(sx + 3 * s, sy + 2 * s, 5 * s, 4 * s);
 
-    // Body
+    // Legs (trousers)
+    g.fillStyle(0x4a3828);
+    g.fillRect(sx - 5 * s, sy - 8 * s, 4 * s, 11 * s);
+    g.fillRect(sx + 1 * s, sy - 8 * s, 4 * s, 11 * s);
+
+    // Torso
     g.fillStyle(clothColor);
-    g.fillEllipse(sx, sy - 12 * s, 10 * s, 14 * s);
+    g.fillPoints([
+        { x: sx - 6 * s, y: sy - 8 * s },
+        { x: sx - 7 * s, y: sy - 20 * s },
+        { x: sx + 7 * s, y: sy - 20 * s },
+        { x: sx + 6 * s, y: sy - 8 * s },
+    ], true);
+
+    // Belt
+    g.fillStyle(0x2a1808);
+    g.fillRect(sx - 6 * s, sy - 9 * s, 12 * s, 2 * s);
+
+    // Belt buckle
+    g.fillStyle(0xc8a040);
+    g.fillRect(sx - 1 * s, sy - 10 * s, 2 * s, 3 * s);
+
+    // Arms
+    const darkerCloth = clothColor - 0x101010;
+    g.fillStyle(darkerCloth > 0 ? darkerCloth : clothColor);
+    // Left arm (angled slightly out)
+    g.fillPoints([
+        { x: sx - 7 * s, y: sy - 19 * s },
+        { x: sx - 10 * s, y: sy - 10 * s },
+        { x: sx - 7 * s, y: sy - 10 * s },
+    ], true);
+    // Right arm
+    g.fillPoints([
+        { x: sx + 7 * s, y: sy - 19 * s },
+        { x: sx + 10 * s, y: sy - 10 * s },
+        { x: sx + 7 * s, y: sy - 10 * s },
+    ], true);
+
+    // Hands
+    g.fillStyle(0xd4956a);
+    g.fillCircle(sx - 9 * s, sy - 9 * s, 2 * s);
+    g.fillCircle(sx + 9 * s, sy - 9 * s, 2 * s);
+
+    // Neck
+    g.fillStyle(0xd4956a);
+    g.fillRect(sx - 2 * s, sy - 23 * s, 4 * s, 4 * s);
 
     // Head
     g.fillStyle(0xd4956a);
-    g.fillCircle(sx, sy - 22 * s, 5 * s);
+    g.fillCircle(sx, sy - 27 * s, 6 * s);
 
-    // Hat
+    // Eyes
+    g.fillStyle(0x1a0e04);
+    g.fillCircle(sx - 2 * s, sy - 28 * s, 1 * s);
+    g.fillCircle(sx + 2 * s, sy - 28 * s, 1 * s);
+
+    // Hat brim
     g.fillStyle(0x3a2510);
-    g.fillEllipse(sx, sy - 26 * s, 12 * s, 6 * s);
-    g.fillEllipse(sx, sy - 28 * s, 8 * s, 5 * s);
+    g.fillEllipse(sx, sy - 32 * s, 14 * s, 5 * s);
+    // Hat crown
+    g.fillStyle(0x4a3218);
+    g.fillPoints([
+        { x: sx - 5 * s, y: sy - 32 * s },
+        { x: sx - 4 * s, y: sy - 38 * s },
+        { x: sx + 4 * s, y: sy - 38 * s },
+        { x: sx + 5 * s, y: sy - 32 * s },
+    ], true);
+    // Hat band
+    g.fillStyle(0xc8a040);
+    g.fillRect(sx - 5 * s, sy - 33 * s, 10 * s, 1.5 * s);
 }
 
 // ─── Isometric Tree ──────────────────────────────────────────────────────────
@@ -356,7 +414,7 @@ export function drawIsoMountain(
 
     if (snowCap) {
         // Main snow cap — organic shape with multiple lobes
-        const snowLine = 0.68;
+        const snowLine = 0.84;
         g.fillStyle(0xedf4ff, 0.92);
         g.fillPoints([
             { x: peakX - hw * 0.3, y: sy - height * snowLine },

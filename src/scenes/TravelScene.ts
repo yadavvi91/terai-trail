@@ -154,11 +154,12 @@ export class TravelScene extends Scene {
     }
 
     private drawMountainLayer(g: Phaser.GameObjects.Graphics, offsetX: number): void {
-        drawIsoMountain(g, offsetX + 150, GROUND_Y + 10, 240, 200, 0x6a7fa8, true);
-        drawIsoMountain(g, offsetX + 370, GROUND_Y + 10, 200, 180, 0x5a7098, true);
-        drawIsoMountain(g, offsetX + 560, GROUND_Y + 10, 280, 220, 0x7a8fb8, true);
-        drawIsoMountain(g, offsetX + 780, GROUND_Y + 10, 220, 195, 0x607898, true);
-        drawIsoMountain(g, offsetX + 960, GROUND_Y + 10, 260, 205, 0x6a8098, true);
+        // Distant mountains — shorter heights for background perspective
+        drawIsoMountain(g, offsetX + 150, GROUND_Y + 10, 220, 130, 0x6a7fa8, true);
+        drawIsoMountain(g, offsetX + 370, GROUND_Y + 10, 180, 110, 0x5a7098, true);
+        drawIsoMountain(g, offsetX + 560, GROUND_Y + 10, 250, 150, 0x7a8fb8, true);
+        drawIsoMountain(g, offsetX + 780, GROUND_Y + 10, 200, 120, 0x607898, true);
+        drawIsoMountain(g, offsetX + 960, GROUND_Y + 10, 230, 140, 0x6a8098, true);
     }
 
     private drawHillLayer(g: Phaser.GameObjects.Graphics, offsetX: number): void {
@@ -293,9 +294,9 @@ export class TravelScene extends Scene {
         // Party members walking behind wagon (down-left = behind)
         const gs = GameState.getInstance();
         const alive = gs.party.filter(m => m.status !== MemberStatus.DEAD).length;
-        const personColors = [0x7a5a38, 0x5a3a70, 0x8a6848, 0x5a3a70, 0x7a5a38];
+        const personColors = [0x8a4428, 0x2a4a7a, 0x6a5830, 0x7a2a4a, 0x3a6a3a];
         for (let i = 0; i < Math.min(alive, 5); i++) {
-            drawIsoPerson(this.wagonG, wx - 24 - i * 16, wy + 6 + i * 8, 0.8, personColors[i]);
+            drawIsoPerson(this.wagonG, wx - 28 - i * 18, wy + 8 + i * 9, 0.7, personColors[i]);
         }
     }
 
