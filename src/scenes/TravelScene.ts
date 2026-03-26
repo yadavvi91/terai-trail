@@ -595,6 +595,13 @@ export class TravelScene extends Scene {
         if (this.paused) return;
         const gs = GameState.getInstance();
 
+        // Safety: if game should already be over, transition immediately
+        if (gs.isGameOver() || gs.milesTraveled >= TOTAL_TRAIL_MILES) {
+            this.tickTimer.remove();
+            this.scene.start(SCENES.GAME_OVER);
+            return;
+        }
+
         // Play wagon roll sound every 3 ticks while moving
         if (gs.pace !== Pace.STOPPED) {
             this.wagonRollTick++;
@@ -632,6 +639,13 @@ export class TravelScene extends Scene {
             });
         }
 
+        // Check game over FIRST — before landmarks/events can intercept
+        if (gs.isGameOver()) {
+            this.tickTimer.remove();
+            this.time.delayedCall(600, () => this.scene.start(SCENES.GAME_OVER));
+            return;
+        }
+
         // Weather
         if (Math.random() < 0.08) {
             const weathers = [Weather.CLEAR, Weather.CLEAR, Weather.RAINY, Weather.HOT, Weather.SNOWY];
@@ -656,7 +670,7 @@ export class TravelScene extends Scene {
             return;
         }
 
-        if (gs.milesTraveled >= TOTAL_TRAIL_MILES || gs.isGameOver()) {
+        if (gs.milesTraveled >= TOTAL_TRAIL_MILES) {
             this.tickTimer.remove();
             this.time.delayedCall(600, () => this.scene.start(SCENES.GAME_OVER));
             return;
