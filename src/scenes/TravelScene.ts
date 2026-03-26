@@ -135,21 +135,30 @@ export class TravelScene extends Scene {
 
     // ─── Parallax mountains + hills ───────────────────────────────────────────
 
+    // Vertical-to-horizontal scroll ratios for parallax layers
+    // Smaller than ground's 0.5 to keep distant layers visually stable
+    private static readonly MTN_Y_RATIO = 0.06;
+    private static readonly HILL_Y_RATIO = 0.15;
+
     private buildParallax(): void {
-        // Far mountains — 2 sets side by side so we can scroll endlessly
+        // Far mountains — 2 sets tiled diagonally for seamless isometric scroll
+        const mtnW = GAME_WIDTH + 100;
         for (let pass = 0; pass < 2; pass++) {
             const g = this.add.graphics();
-            const baseX = pass * (GAME_WIDTH + 100);
+            const baseX = pass * mtnW;
+            const baseY = -pass * mtnW * TravelScene.MTN_Y_RATIO;
             this.drawMountainLayer(g, baseX);
-            this.mtnLayers.push({ g, baseX, baseY: 0, width: GAME_WIDTH + 100, speed: 0.18 });
+            this.mtnLayers.push({ g, baseX, baseY, width: mtnW, speed: 0.18 });
         }
 
-        // Near hills — 2 sets
+        // Near hills — 2 sets tiled diagonally
+        const hillW = GAME_WIDTH + 60;
         for (let pass = 0; pass < 2; pass++) {
             const g = this.add.graphics();
-            const baseX = pass * (GAME_WIDTH + 60);
+            const baseX = pass * hillW;
+            const baseY = -pass * hillW * TravelScene.HILL_Y_RATIO;
             this.drawHillLayer(g, baseX);
-            this.hillLayers.push({ g, baseX, baseY: 0, width: GAME_WIDTH + 60, speed: 0.55 });
+            this.hillLayers.push({ g, baseX, baseY, width: hillW, speed: 0.55 });
         }
     }
 
@@ -166,24 +175,29 @@ export class TravelScene extends Scene {
         this.drawSoftMountain(g, offsetX + 950, GROUND_Y - 5, 270, 115, 0x506a88);
     }
 
-    /** Draw a single soft, rounded mountain with optional snow dusting */
+    /** Draw a single soft, isometric-style mountain (asymmetric — gentle left, steep right) */
     private drawSoftMountain(
         g: Phaser.GameObjects.Graphics, cx: number, baseY: number,
         width: number, height: number, color: number,
     ): void {
         const hw = width / 2;
+        // Peak shifted right for isometric 3/4 perspective
+        const peakShift = hw * 0.2;
 
-        // Main body — smooth arc using many small segments
+        // Main body — asymmetric arc (gentle left slope, steeper right slope)
         g.fillStyle(color);
         g.beginPath();
         g.moveTo(cx - hw, baseY);
-        const segments = 20;
+        const segments = 24;
         for (let i = 0; i <= segments; i++) {
             const t = i / segments;
             const x = cx - hw + width * t;
-            // Bell curve shape: smoothstep-like profile
-            const profile = Math.sin(t * Math.PI);
-            const jitter = Math.sin(t * 17.3) * height * 0.03; // subtle irregularity
+            // Asymmetric profile: peak at ~0.6 instead of 0.5
+            const peakT = 0.6;
+            const profile = t < peakT
+                ? Math.sin((t / peakT) * Math.PI * 0.5)        // gentle rise
+                : Math.sin(0.5 * Math.PI + ((t - peakT) / (1 - peakT)) * Math.PI * 0.5); // steeper fall
+            const jitter = Math.sin(t * 17.3) * height * 0.03;
             const y = baseY - height * profile + jitter;
             g.lineTo(x, y);
         }
@@ -191,23 +205,56 @@ export class TravelScene extends Scene {
         g.closePath();
         g.fillPath();
 
-        // Atmospheric haze at base (blends mountain into hills)
+        // Lit face (left slope — facing the "sun" from upper-left)
+        g.fillStyle(0xffffff, 0.06);
+        g.beginPath();
+        g.moveTo(cx - hw, baseY);
+        for (let i = 0; i <= 14; i++) {
+            const t = i / 14;
+            const x = cx - hw + width * 0.6 * t;
+            const profile = Math.sin((t) * Math.PI * 0.5);
+            const y = baseY - height * profile + Math.sin(t * 17.3) * height * 0.03;
+            g.lineTo(x, y);
+        }
+        g.lineTo(cx + peakShift, baseY);
+        g.closePath();
+        g.fillPath();
+
+        // Shadow face (right slope — steeper, darker)
+        g.fillStyle(0x000000, 0.08);
+        g.beginPath();
+        g.moveTo(cx + peakShift, baseY - height);
+        for (let i = 0; i <= 10; i++) {
+            const t = i / 10;
+            const x = cx + peakShift + (hw - peakShift) * t;
+            const profile = Math.cos(t * Math.PI * 0.5);
+            const y = baseY - height * profile;
+            g.lineTo(x, y);
+        }
+        g.lineTo(cx + hw, baseY);
+        g.lineTo(cx + peakShift, baseY);
+        g.closePath();
+        g.fillPath();
+
+        // Atmospheric haze at base
         g.fillStyle(0x6a8ab0, 0.15);
         g.fillRect(cx - hw, baseY - height * 0.2, width, height * 0.2);
 
-        // Snow dusting on peaks (subtle, not a hard cap)
+        // Snow dusting on peaks (subtle, shifted to match asymmetric peak)
         if (height > 100) {
-            g.fillStyle(0xdce8f4, 0.35);
+            g.fillStyle(0xdce8f4, 0.3);
             g.beginPath();
-            g.moveTo(cx - hw * 0.25, baseY - height * 0.82);
+            const snowL = cx + peakShift - hw * 0.3;
+            const snowR = cx + peakShift + hw * 0.15;
+            g.moveTo(snowL, baseY - height * 0.85);
             for (let i = 0; i <= 10; i++) {
                 const t = i / 10;
-                const x = cx - hw * 0.25 + hw * 0.5 * t;
+                const x = snowL + (snowR - snowL) * t;
                 const profile = Math.sin(t * Math.PI);
-                const y = baseY - height * (0.82 + 0.18 * profile) + Math.sin(t * 13) * 3;
+                const y = baseY - height * (0.85 + 0.15 * profile) + Math.sin(t * 13) * 3;
                 g.lineTo(x, y);
             }
-            g.lineTo(cx + hw * 0.25, baseY - height * 0.82);
+            g.lineTo(snowR, baseY - height * 0.85);
             g.closePath();
             g.fillPath();
         }
@@ -509,22 +556,28 @@ export class TravelScene extends Scene {
             const scrollSpeed = 60 * gs.speedMultiplier; // visual scroll px per second (scales with speed)
             this.scrollOffset += scrollSpeed * dt;
 
-            // Scroll mountains (horizontal only — distant objects parallax horizontally)
+            // Scroll mountains diagonally — subtle Y drift for isometric feel
             this.mtnLayers.forEach(layer => {
                 const dx = scrollSpeed * layer.speed * dt;
+                const dy = dx * TravelScene.MTN_Y_RATIO;
                 layer.baseX -= dx;
-                if (layer.baseX < -(layer.width)) layer.baseX += layer.width * 2;
-                layer.g.setX(layer.baseX);
-            });
-
-            // Scroll hills (mostly horizontal, slight vertical for depth)
-            this.hillLayers.forEach(layer => {
-                const dx = scrollSpeed * layer.speed * dt;
-                layer.baseX -= dx;
-                layer.baseY -= dx * 0.08; // subtle vertical drift
+                layer.baseY += dy;
                 if (layer.baseX < -(layer.width)) {
                     layer.baseX += layer.width * 2;
-                    layer.baseY += layer.width * 2 * 0.08;
+                    layer.baseY -= layer.width * 2 * TravelScene.MTN_Y_RATIO;
+                }
+                layer.g.setPosition(layer.baseX, layer.baseY);
+            });
+
+            // Scroll hills diagonally — moderate Y drift
+            this.hillLayers.forEach(layer => {
+                const dx = scrollSpeed * layer.speed * dt;
+                const dy = dx * TravelScene.HILL_Y_RATIO;
+                layer.baseX -= dx;
+                layer.baseY += dy;
+                if (layer.baseX < -(layer.width)) {
+                    layer.baseX += layer.width * 2;
+                    layer.baseY -= layer.width * 2 * TravelScene.HILL_Y_RATIO;
                 }
                 layer.g.setPosition(layer.baseX, layer.baseY);
             });
