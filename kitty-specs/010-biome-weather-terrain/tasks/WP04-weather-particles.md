@@ -14,7 +14,7 @@ subtasks:
 - T020
 phase: Phase 2 - Core Rendering
 assignee: ''
-agent: ''
+agent: "claude"
 shell_pid: "5795"
 review_status: ''
 reviewed_by: ''
@@ -286,3 +286,4 @@ of the weather block, so CLEAR weather shows nothing.
 ## Activity Log
 
 - 2026-03-26T19:48:26Z – system – lane=planned – Prompt created.
+- 2026-03-26T20:44:58Z – claude – shell_pid=5795 – lane=doing – Assigned agent via workflow command
