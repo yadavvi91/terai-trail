@@ -1,7 +1,7 @@
 ---
 work_package_id: WP02
 title: Zone-Reactive Mountain & Hill Parallax Layers
-lane: "doing"
+lane: "for_review"
 dependencies: [WP01]
 base_branch: 010-biome-weather-terrain-WP01
 base_commit: 590e56f99d77c0cc6ef92e72ca9cdff7f8d281b4
@@ -345,3 +345,4 @@ per frame (one per mtnLayer) costs negligible CPU.
 
 - 2026-03-26T19:48:26Z – system – lane=planned – Prompt created.
 - 2026-03-26T20:26:00Z – claude – shell_pid=94790 – lane=doing – Assigned agent via workflow command
+- 2026-03-26T20:29:12Z – claude – shell_pid=94790 – lane=for_review – Ready for review: biome-reactive mountains/hills, snowCap param, alpha fade-in, refreshParallaxLayers, dailyTick hook.
