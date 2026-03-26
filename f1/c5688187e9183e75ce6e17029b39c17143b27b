@@ -1,0 +1,25 @@
+src/scenes/TravelScene.ts
+  a9d6cfb34202aba2 157-162,297,299
+src/ui/IsoDrawUtils.ts
+  a9d6cfb34202aba2 162,164-167,169-174,176-205,207-214,218,220-223,225,227-238,417
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "f1c5688187e9183e75ce6e17029b39c17143b27b",
+  "prompts": {
+    "a9d6cfb34202aba2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f256f5be-3b67-46b0-a1de-a7fbcffbb03b",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 78,
+      "total_deletions": 19,
+      "accepted_lines": 78,
+      "overriden_lines": 0
+    }
+  }
+}
