@@ -2,8 +2,10 @@ import { Scene } from 'phaser';
 import {
     SCENES, GAME_WIDTH, GAME_HEIGHT, COLORS, HEX_COLORS, TEXT_STYLES,
     MILES_PER_DAY, FOOD_PER_PERSON_PER_DAY, TOTAL_TRAIL_MILES,
+    SKY_GRADIENTS, OREGON_SKY_OVERLAY,
 } from '../utils/constants';
-import { Pace, Rations, Weather, MemberStatus } from '../utils/types';
+import { Pace, Rations, Weather, MemberStatus, Biome } from '../utils/types';
+import { getBiome } from '../utils/biome';
 import { GameState } from '../game/GameState';
 import { getNextLandmark } from '../game/TrailData';
 import { drawTree, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
@@ -31,7 +33,12 @@ export class TravelScene extends Scene {
     private groundLayers: ScrollLayer[] = [];
     private cloudLayers: { g: Phaser.GameObjects.Graphics; x: number; speed: number }[] = [];
     private sunG!: Phaser.GameObjects.Graphics;
+    private skyG!: Phaser.GameObjects.Graphics;
     private scrollOffset: number = 0;
+
+    // Weather/biome change tracking for sky redraw
+    private currentWeather: Weather = Weather.CLEAR;
+    private currentBiome: Biome = Biome.PRAIRIE;
 
     // Wagon graphics (redrawn each tick)
     private wagonG!: Phaser.GameObjects.Graphics;
@@ -76,6 +83,11 @@ export class TravelScene extends Scene {
         this.walkTimer = 0;
         this.eventCooldown = 8; // no events for first 8 ticks (~10 days of travel)
 
+        const gs0 = GameState.getInstance();
+        this.currentBiome = getBiome(gs0.milesTraveled);
+        this.currentWeather = gs0.weather;
+        this.cameras.main.setBackgroundColor(0x0d1a2e);  // safe dark fallback
+
         this.buildSky();
         this.buildParallax();
         this.buildGroundAndTrail();
@@ -103,18 +115,9 @@ export class TravelScene extends Scene {
     // ─── Sky ───────────────────────────────────────────────────────────────────
 
     private buildSky(): void {
-        this.cameras.main.setBackgroundColor(0x0d3a6e);
-        const skySteps = 14;
-        for (let i = 0; i < skySteps; i++) {
-            const t = i / (skySteps - 1);
-            const r = Math.round(0x0d + t * (0x70 - 0x0d));
-            const gv = Math.round(0x3a + t * (0xb4 - 0x3a));
-            const b = Math.round(0x6e + t * (0xd8 - 0x6e));
-            this.add.rectangle(GAME_WIDTH / 2, (i + 0.5) * (GROUND_Y / skySteps), GAME_WIDTH, GROUND_Y / skySteps + 2, (r << 16) | (gv << 8) | b);
-        }
-        // Horizon glow
-        this.add.rectangle(GAME_WIDTH / 2, GROUND_Y - 12, GAME_WIDTH, 28, 0xf0c890, 0.18);
-        this.add.rectangle(GAME_WIDTH / 2, GROUND_Y - 2, GAME_WIDTH, 14, 0xf0b060, 0.14);
+        // Dynamic sky gradient via Graphics (replaces static add.rectangle() strips)
+        this.skyG = this.add.graphics();
+        this.drawSkyGradient(this.currentWeather, this.currentBiome);
 
         this.sunG = this.add.graphics();
         drawSun(this.sunG, GAME_WIDTH - 110, 80, 42);
@@ -131,6 +134,58 @@ export class TravelScene extends Scene {
             drawCloud(g, pos.x, pos.y, pos.s);
             this.cloudLayers.push({ g, x: pos.x, speed: 0.008 + Math.random() * 0.006 });
         });
+    }
+
+    private drawSkyGradient(weather: Weather, biome: Biome): void {
+        const gradient = SKY_GRADIENTS[weather];
+        const topR = (gradient.top >> 16) & 0xff;
+        const topG = (gradient.top >> 8) & 0xff;
+        const topB = gradient.top & 0xff;
+        const botR = (gradient.bottom >> 16) & 0xff;
+        const botG = (gradient.bottom >> 8) & 0xff;
+        const botB = gradient.bottom & 0xff;
+
+        const skySteps = 14;
+        const stripH = GROUND_Y / skySteps;
+
+        for (let i = 0; i < skySteps; i++) {
+            const t = i / (skySteps - 1);
+            const r = Math.round(topR + t * (botR - topR));
+            const gv = Math.round(topG + t * (botG - topG));
+            const b = Math.round(topB + t * (botB - topB));
+            this.skyG.fillStyle((r << 16) | (gv << 8) | b);
+            this.skyG.fillRect(0, i * stripH, GAME_WIDTH, stripH + 2);
+        }
+
+        // Horizon glow (Clear and Hot only)
+        if (weather === Weather.CLEAR || weather === Weather.HOT) {
+            this.skyG.fillStyle(0xf0c890, 0.18);
+            this.skyG.fillRect(0, GROUND_Y - 12, GAME_WIDTH, 28);
+            this.skyG.fillStyle(0xf0b060, 0.14);
+            this.skyG.fillRect(0, GROUND_Y - 2, GAME_WIDTH, 14);
+        }
+
+        // Oregon biome: grey-green overlay on top of weather gradient
+        if (biome === Biome.OREGON) {
+            this.skyG.fillStyle(OREGON_SKY_OVERLAY.color, OREGON_SKY_OVERLAY.alpha);
+            this.skyG.fillRect(0, 0, GAME_WIDTH, GROUND_Y);
+        }
+    }
+
+    private redrawSky(): void {
+        const gs = GameState.getInstance();
+
+        this.skyG.clear();
+        this.drawSkyGradient(gs.weather, this.currentBiome);
+
+        // Sun: visible for CLEAR and HOT; bigger for HOT
+        const showSun = gs.weather === Weather.CLEAR || gs.weather === Weather.HOT;
+        this.sunG.setVisible(showSun);
+        if (showSun) {
+            this.sunG.clear();
+            const sunRadius = gs.weather === Weather.HOT ? 52 : 42;
+            drawSun(this.sunG, GAME_WIDTH - 110, 80, sunRadius);
+        }
     }
 
     // ─── Parallax mountains + hills ───────────────────────────────────────────
@@ -705,6 +760,15 @@ export class TravelScene extends Scene {
             gs.weather = weathers[Math.floor(Math.random() * weathers.length)];
         }
 
+        // Sky redraw on weather or biome change
+        const newWeather = gs.weather;
+        const newBiome = getBiome(gs.milesTraveled);
+        if (newWeather !== this.currentWeather || newBiome !== this.currentBiome) {
+            this.currentWeather = newWeather;
+            this.currentBiome = newBiome;
+            this.redrawSky();
+        }
+
         // Check landmark
         const next = getNextLandmark(prevMiles);
         if (next && gs.milesTraveled >= next.miles) {
@@ -770,14 +834,7 @@ export class TravelScene extends Scene {
         const barW = GAME_WIDTH - 200;
         this.milesBar.setSize(Math.max(4, pct * barW), 6);
 
-        // Sky tint for weather
-        const skyColors: Record<Weather, number> = {
-            [Weather.CLEAR]: 0x1a6ea8,
-            [Weather.RAINY]: 0x4a5a6e,
-            [Weather.HOT]:   0xd0883a,
-            [Weather.SNOWY]: 0xa0b8c8,
-        };
-        this.cameras.main.setBackgroundColor(skyColors[gs.weather]);
+        // Sky handled by skyG Graphics + redrawSky() — no camera background hack needed
     }
 
     private showStatus(msg: string): void {
