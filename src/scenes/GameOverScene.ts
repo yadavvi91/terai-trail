@@ -91,11 +91,12 @@ export class GameOverScene extends Scene {
         const groundCols = 18;
         const groundRows = 6;
         const groundOffsetX = GAME_WIDTH / 2;
+        const midRow = Math.floor(groundRows / 2);
         for (let row = 0; row < groundRows; row++) {
             for (let col = 0; col < groundCols; col++) {
                 const sx = groundOffsetX + (col - row) * (TILE_WIDTH / 2) - (groundCols * TILE_WIDTH / 4);
                 const sy = groundBaseY + (col + row) * (TILE_HEIGHT / 2);
-                const isTrail = row === 0;
+                const isTrail = Math.abs(row - midRow) <= 1;
                 const color = isTrail
                     ? (((col + row) % 2 === 0) ? 0x9e7b3a : 0x8a6d32)
                     : (((col + row) % 3 === 0) ? 0x3a8030 : ((col + row) % 3 === 1) ? 0x358028 : 0x3a8534);

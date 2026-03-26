@@ -166,7 +166,8 @@ export class EventScene extends Scene {
             for (let col = 0; col < cols; col++) {
                 const sx = GAME_WIDTH / 2 + (col - row) * (TILE_WIDTH / 2) - (cols * TILE_WIDTH / 4);
                 const sy = groundY + 10 + (col + row) * (TILE_HEIGHT / 2) - rows * TILE_HEIGHT / 2;
-                const isTrail = Math.abs(col - row - 1) <= 1;
+                const midRow = Math.floor(rows / 2);
+                const isTrail = Math.abs(row - midRow) <= 1;
                 drawIsoTile(isoG, sx, sy, isTrail ? trailColor : groundColor);
             }
         }

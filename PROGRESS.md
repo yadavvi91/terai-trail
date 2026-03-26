@@ -125,19 +125,46 @@ Shared procedural art library using only Phaser 3 Graphics API:
 
 ---
 
-## Known Issues / Next Steps
+## Isometric Diagonal Movement Rework *(uncommitted — 2026-03-26)*
 
-### 🔴 Isometric movement is broken
-Ground tiles are isometric diamonds, but all movement is still horizontal:
-- Parallax scrolls left-to-right instead of diagonally
-- Wagon is stationary (TravelScene) or moves horizontally (TitleScene)
-- Animals in HuntingScene move horizontally
-- **Fix needed**: rework scroll direction to follow isometric axes (down-right = forward), use `worldToScreen()` transforms for all movement
+The isometric ground tiles were in place but all movement was still horizontal — the game looked like a checkerboard wallpaper behind a side-scroller. This rework made movement truly isometric.
+
+### Trail direction fix (all scenes)
+- **Old**: trail followed `col ≈ row` (rendered as a vertical stripe on screen)
+- **New**: trail follows `row ≈ middleRow` (horizontal band in world coords → **diagonal down-right on screen**)
+- Updated in: TravelScene, TitleScene, EventScene, RiverCrossingScene, LandmarkScene, GameOverScene
+
+### TravelScene — diagonal ground scrolling
+- Ground tiles now scroll **diagonally** at 2:1 iso ratio (`baseX += dx`, `baseY += dx * 0.5`)
+- Ground moves **down-right toward the viewer**, so the wagon appears to travel **up-left into the distance**
+- Two-copy wrapping handles diagonal offset seamlessly along the iso axis
+- Hill parallax: added subtle vertical drift alongside horizontal scroll for depth
+- Mountains: horizontal-only parallax (correct for distant objects)
+
+### Wagon positioning
+- Oxen positioned **ahead** of wagon (up-left = into the distance)
+- Party members walk **behind** wagon (down-right = toward viewer)
+- Dust particles spawn behind wagon and drift down-right
+
+### TitleScene
+- Wagon animates from lower-right to upper-left (traveling away from viewer)
+- Dust trail behind wagon drifts down-right
+- Oxen ahead (up-left), people behind (down-right)
+
+### HuntingScene
+- Animals now spawn from **all 4 screen edges** and move along iso-aligned diagonals
+- Old: horizontal-only movement. New: down-right, up-left, down-left, up-right paths
+
+### Playwright MCP config fix
+- Fixed `.claude/mcp.json`: package was `@anthropic-ai/mcp-server-playwright` (doesn't exist) → `@playwright/mcp@latest`
+
+---
+
+## Known Issues / Next Steps
 
 ### Future work
 - Background music track (asset-based, currently only procedural SFX)
-- Proper isometric diagonal scrolling and movement
-- More detailed isometric entity art
+- More detailed isometric entity art (wagon/ox/person could face the travel direction more clearly)
 - Mobile touch controls
 - Save/load game state
 

@@ -270,13 +270,30 @@ export class HuntingScene extends Scene {
         let def = ANIMALS[0];
         for (const a of ANIMALS) { r -= a.spawnWeight; if (r <= 0) { def = a; break; } }
 
-        const fromLeft = Math.random() < 0.5;
-        const x = fromLeft ? -50 : GAME_WIDTH + 50;
-        const y = Phaser.Math.Between(60, GAME_HEIGHT - 70);
+        // Spawn from edges — animals move along iso-ish diagonals
         const speed = def.speed * (0.7 + Math.random() * 0.6);
-        const vx = fromLeft ? speed : -speed;
-        const vy = (Math.random() - 0.5) * speed * 0.25;
-        const flipped = !fromLeft;
+        const spawnSide = Math.floor(Math.random() * 4); // 0=left, 1=right, 2=top, 3=bottom
+        let x: number, y: number, vx: number, vy: number;
+        if (spawnSide === 0) {
+            // From left, move right and slightly down (iso diagonal)
+            x = -50; y = Phaser.Math.Between(80, GAME_HEIGHT - 120);
+            vx = speed; vy = speed * 0.3;
+        } else if (spawnSide === 1) {
+            // From right, move left and slightly up
+            x = GAME_WIDTH + 50; y = Phaser.Math.Between(80, GAME_HEIGHT - 120);
+            vx = -speed; vy = -speed * 0.3;
+        } else if (spawnSide === 2) {
+            // From top-right, move down-left (iso diagonal)
+            x = Phaser.Math.Between(GAME_WIDTH / 2, GAME_WIDTH + 50);
+            y = -30;
+            vx = -speed * 0.6; vy = speed * 0.8;
+        } else {
+            // From bottom-left, move up-right (iso diagonal)
+            x = Phaser.Math.Between(-50, GAME_WIDTH / 2);
+            y = GAME_HEIGHT + 30;
+            vx = speed * 0.6; vy = -speed * 0.8;
+        }
+        const flipped = vx < 0;
 
         const g = this.add.graphics().setDepth(5);
         this.drawAnimal(g, def.type, 0, 0, def.scale, flipped);
