@@ -1,0 +1,29 @@
+src/scenes/EventScene.ts
+  a9d6cfb34202aba2 50,52-72
+src/audio/SoundManager.ts
+  a9d6cfb34202aba2 148,155,161-245
+src/scenes/TravelScene.ts
+  a9d6cfb34202aba2 274,276-277,292,296,298-300
+src/ui/IsoDrawUtils.ts
+  a9d6cfb34202aba2 151-155,162-163,166-171,175,177,179-182,184-187,189,194-197,202,204-208,210,213,215-217,221-223,228-229,232-233,236-248,252,256-259,263
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "29149a042c89dd656b3168f6f9c0c922cd983a52",
+  "prompts": {
+    "a9d6cfb34202aba2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f256f5be-3b67-46b0-a1de-a7fbcffbb03b",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 187,
+      "total_deletions": 58,
+      "accepted_lines": 187,
+      "overriden_lines": 0
+    }
+  }
+}
