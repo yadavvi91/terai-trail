@@ -12,7 +12,7 @@ subtasks:
 - T003
 phase: Phase 1 - Foundation
 assignee: ''
-agent: ''
+agent: "claude"
 shell_pid: "50469"
 review_status: ''
 reviewed_by: ''
@@ -261,3 +261,4 @@ export function getMountainAlpha(milesTraveled: number): number {
 ## Activity Log
 
 - 2026-03-26T19:48:26Z – system – lane=planned – Prompt created.
+- 2026-03-26T20:10:35Z – claude – shell_pid=50469 – lane=doing – Assigned agent via workflow command
