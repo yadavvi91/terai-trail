@@ -17,6 +17,16 @@ import { SoundManager } from '../audio/SoundManager';
 const TICK_MS = 1200;
 const GROUND_Y = GAME_HEIGHT - 80;
 
+interface WeatherParticle {
+    x: number;
+    y: number;
+    vx: number;     // horizontal velocity px/sec
+    vy: number;     // vertical velocity px/sec
+    alpha: number;
+    length: number; // streak length for rain; 0 for snow
+    type: 'rain' | 'snow';
+}
+
 // Scrollable layer item
 interface ScrollLayer {
     g: Phaser.GameObjects.Graphics;
@@ -44,6 +54,8 @@ export class TravelScene extends Scene {
     private wagonG!: Phaser.GameObjects.Graphics;
     private dustG!: Phaser.GameObjects.Graphics;
     private dustParticles: { x: number; y: number; alpha: number; r: number }[] = [];
+    private weatherParticleG!: Phaser.GameObjects.Graphics;
+    private weatherParticles: WeatherParticle[] = [];
     private isMoving: boolean = false;
     private walkFrame: number = 0;
     private walkTimer: number = 0;
@@ -75,6 +87,7 @@ export class TravelScene extends Scene {
         this.scrollOffset = 0;
         this.isMoving = false;
         this.dustParticles = [];
+        this.weatherParticles = [];
         this.mtnLayers = [];
         this.hillLayers = [];
         this.groundLayers = [];
@@ -92,6 +105,7 @@ export class TravelScene extends Scene {
         this.buildParallax();
         this.buildGroundAndTrail();
         this.buildWagon();
+        this.weatherParticleG = this.add.graphics();  // above parallax, below HUD
         this.buildHUD();
         this.buildControls();
 
@@ -695,6 +709,72 @@ export class TravelScene extends Scene {
 
         // Redraw wagon + people with animation
         this.redrawWagon(delta);
+
+        // ─── Weather particles ────────────────────────────────────────────────
+        const weather = gs.weather;
+        this.weatherParticleG.clear();
+
+        if (weather === Weather.RAINY) {
+            // Spawn new rain streaks (cap 150)
+            if (this.weatherParticles.length < 150) {
+                for (let i = 0; i < 4; i++) {
+                    this.weatherParticles.push({
+                        x: Math.random() * GAME_WIDTH,
+                        y: -10,
+                        vx: -15 + Math.random() * 5,
+                        vy: 400 + Math.random() * 200,
+                        alpha: 0.35 + Math.random() * 0.3,
+                        length: 8 + Math.random() * 12,
+                        type: 'rain',
+                    });
+                }
+            }
+            // Update and draw rain streaks
+            this.weatherParticles = this.weatherParticles.filter(p => p.y < GAME_HEIGHT + 20);
+            this.weatherParticles.forEach(p => {
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                this.weatherParticleG.lineStyle(1, 0x8aaabf, p.alpha);
+                this.weatherParticleG.beginPath();
+                this.weatherParticleG.moveTo(p.x, p.y);
+                this.weatherParticleG.lineTo(p.x + p.vx * 0.025, p.y + p.length);
+                this.weatherParticleG.strokePath();
+            });
+        } else if (weather === Weather.SNOWY) {
+            // Spawn new snowflakes (cap 100)
+            if (this.weatherParticles.length < 100) {
+                const t = Date.now() * 0.001;
+                this.weatherParticles.push({
+                    x: Math.random() * GAME_WIDTH,
+                    y: -5,
+                    vx: Math.sin(t + Math.random() * 6) * 12,
+                    vy: 35 + Math.random() * 30,
+                    alpha: 0.6 + Math.random() * 0.4,
+                    length: 0,
+                    type: 'snow',
+                });
+            }
+            // Update and draw snowflakes
+            this.weatherParticles = this.weatherParticles.filter(p => p.y < GAME_HEIGHT + 10);
+            this.weatherParticles.forEach(p => {
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.vx += Math.sin(Date.now() * 0.001 + p.y * 0.01) * 0.5 * dt;
+                this.weatherParticleG.fillStyle(0xffffff, p.alpha);
+                this.weatherParticleG.fillCircle(p.x, p.y, 1.5 + Math.random() * 0.5);
+            });
+        } else if (weather === Weather.HOT) {
+            // Heat shimmer: 4 flickering transparent horizontal bands near ground
+            for (let i = 0; i < 4; i++) {
+                const shimmerAlpha = 0.03 + Math.random() * 0.04;
+                const shimmerY = GROUND_Y - 25 + i * 9 + (Math.random() - 0.5) * 3;
+                this.weatherParticleG.fillStyle(0xffd080, shimmerAlpha);
+                this.weatherParticleG.fillRect(0, shimmerY, GAME_WIDTH, 3 + Math.random() * 2);
+            }
+            // Drain any lingering rain/snow particles
+            this.weatherParticles = this.weatherParticles.filter(p => p.y < GAME_HEIGHT + 20);
+        }
+        // CLEAR: weatherParticleG.clear() called unconditionally above handles it
     }
 
     // ─── Daily Tick ────────────────────────────────────────────────────────────
@@ -755,9 +835,13 @@ export class TravelScene extends Scene {
         }
 
         // Weather
+        const oldWeather = gs.weather;
         if (Math.random() < 0.08) {
             const weathers = [Weather.CLEAR, Weather.CLEAR, Weather.RAINY, Weather.HOT, Weather.SNOWY];
             gs.weather = weathers[Math.floor(Math.random() * weathers.length)];
+        }
+        if (gs.weather !== oldWeather) {
+            this.weatherParticles = [];  // flush immediately on weather change
         }
 
         // Sky redraw on weather or biome change
