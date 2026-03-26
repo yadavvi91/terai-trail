@@ -1,8 +1,11 @@
 ---
 work_package_id: WP05
 title: Seasonal Ground Tile Colors
-lane: planned
+lane: "doing"
 dependencies: [WP01, WP02]
+base_branch: 010-biome-weather-terrain-WP05-merge-base
+base_commit: a541079ab3db5197f5833422ecfd7ea1b5a5d6e7
+created_at: '2026-03-26T20:47:18.490817+00:00'
 subtasks:
 - T021
 - T022
@@ -10,7 +13,7 @@ subtasks:
 phase: Phase 3 - Polish
 assignee: ''
 agent: ''
-shell_pid: ''
+shell_pid: "29676"
 review_status: ''
 reviewed_by: ''
 history:
