@@ -1,0 +1,44 @@
+kitty-specs/010-biome-weather-terrain/tasks/WP05-seasonal-ground-tiles.md
+  9e62d1cbd7d80ef0 1,6,16,25-40,42-240
+kitty-specs/010-biome-weather-terrain/tasks/WP01-biome-season-functions.md
+  9e62d1cbd7d80ef0 1,5,16,27-42,44-260
+kitty-specs/010-biome-weather-terrain/tasks/WP02-zone-mountain-hill-layers.md
+  9e62d1cbd7d80ef0 1,6,20,31-46,48-343
+kitty-specs/010-biome-weather-terrain/tasks/WP03-graphics-sky-rebuild.md
+  9e62d1cbd7d80ef0 1,6,18,26-41,43-263
+kitty-specs/010-biome-weather-terrain/tasks/WP04-weather-particles.md
+  9e62d1cbd7d80ef0 1,6,18,26-41,43-285
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "b1821284845058c7911dcdb1466120009dd6e96e",
+  "prompts": {
+    "9e62d1cbd7d80ef0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97fe22b2-39d1-4a09-a3ee-fc4158cb49db",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 1821,
+      "total_deletions": 1,
+      "accepted_lines": 1721,
+      "overriden_lines": 81
+    },
+    "a9d6cfb34202aba2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f256f5be-3b67-46b0-a1de-a7fbcffbb03b",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 2,
+      "overriden_lines": 0
+    }
+  }
+}
