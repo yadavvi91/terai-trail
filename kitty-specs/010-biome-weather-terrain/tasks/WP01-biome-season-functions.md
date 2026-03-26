@@ -1,7 +1,7 @@
 ---
 work_package_id: WP01
 title: Biome/Season Enums, Pure Functions & Color Palettes
-lane: "doing"
+lane: "for_review"
 dependencies: []
 base_branch: main
 base_commit: d1fd696ea21c01bb8622b675099fda290bcd656d
@@ -262,3 +262,4 @@ export function getMountainAlpha(milesTraveled: number): number {
 
 - 2026-03-26T19:48:26Z – system – lane=planned – Prompt created.
 - 2026-03-26T20:10:35Z – claude – shell_pid=50469 – lane=doing – Assigned agent via workflow command
+- 2026-03-26T20:21:44Z – claude – shell_pid=50469 – lane=for_review – Ready for review: Biome/Season enums, BIOME_COLORS/SKY_GRADIENTS constants, getBiome/getSeason/getMountainAlpha pure functions. tsc --noEmit passes for all new files.
