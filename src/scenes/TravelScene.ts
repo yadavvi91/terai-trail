@@ -7,7 +7,7 @@ import { Pace, Rations, Weather, MemberStatus } from '../utils/types';
 import { GameState } from '../game/GameState';
 import { getNextLandmark } from '../game/TrailData';
 import { drawTree, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
-import { drawIsoWagon, drawIsoOx, drawIsoPerson, drawIsoTree, drawIsoMountain } from '../ui/IsoDrawUtils';
+import { drawIsoWagon, drawIsoOx, drawIsoPerson, drawIsoTree } from '../ui/IsoDrawUtils';
 import { TILE_WIDTH, TILE_HEIGHT, drawIsoTile } from '../utils/isometric';
 import { addMuteButton } from '../ui/MuteButton';
 import { SoundManager } from '../audio/SoundManager';
@@ -154,12 +154,63 @@ export class TravelScene extends Scene {
     }
 
     private drawMountainLayer(g: Phaser.GameObjects.Graphics, offsetX: number): void {
-        // Distant mountains — shorter heights for background perspective
-        drawIsoMountain(g, offsetX + 150, GROUND_Y + 10, 220, 130, 0x6a7fa8, true);
-        drawIsoMountain(g, offsetX + 370, GROUND_Y + 10, 180, 110, 0x5a7098, true);
-        drawIsoMountain(g, offsetX + 560, GROUND_Y + 10, 250, 150, 0x7a8fb8, true);
-        drawIsoMountain(g, offsetX + 780, GROUND_Y + 10, 200, 120, 0x607898, true);
-        drawIsoMountain(g, offsetX + 960, GROUND_Y + 10, 230, 140, 0x6a8098, true);
+        // Distant mountains — soft rounded silhouettes that blend with sky
+        // Back layer (farthest, lightest, tallest)
+        this.drawSoftMountain(g, offsetX + 200, GROUND_Y - 10, 320, 160, 0x6a7ea8);
+        this.drawSoftMountain(g, offsetX + 500, GROUND_Y - 10, 360, 180, 0x5a7098);
+        this.drawSoftMountain(g, offsetX + 850, GROUND_Y - 10, 300, 150, 0x607898);
+        // Front layer (closer, slightly darker, shorter, overlapping)
+        this.drawSoftMountain(g, offsetX + 100, GROUND_Y - 5, 260, 110, 0x4a6080);
+        this.drawSoftMountain(g, offsetX + 380, GROUND_Y - 5, 280, 120, 0x506a88);
+        this.drawSoftMountain(g, offsetX + 650, GROUND_Y - 5, 240, 100, 0x4a6080);
+        this.drawSoftMountain(g, offsetX + 950, GROUND_Y - 5, 270, 115, 0x506a88);
+    }
+
+    /** Draw a single soft, rounded mountain with optional snow dusting */
+    private drawSoftMountain(
+        g: Phaser.GameObjects.Graphics, cx: number, baseY: number,
+        width: number, height: number, color: number,
+    ): void {
+        const hw = width / 2;
+
+        // Main body — smooth arc using many small segments
+        g.fillStyle(color);
+        g.beginPath();
+        g.moveTo(cx - hw, baseY);
+        const segments = 20;
+        for (let i = 0; i <= segments; i++) {
+            const t = i / segments;
+            const x = cx - hw + width * t;
+            // Bell curve shape: smoothstep-like profile
+            const profile = Math.sin(t * Math.PI);
+            const jitter = Math.sin(t * 17.3) * height * 0.03; // subtle irregularity
+            const y = baseY - height * profile + jitter;
+            g.lineTo(x, y);
+        }
+        g.lineTo(cx + hw, baseY);
+        g.closePath();
+        g.fillPath();
+
+        // Atmospheric haze at base (blends mountain into hills)
+        g.fillStyle(0x6a8ab0, 0.15);
+        g.fillRect(cx - hw, baseY - height * 0.2, width, height * 0.2);
+
+        // Snow dusting on peaks (subtle, not a hard cap)
+        if (height > 100) {
+            g.fillStyle(0xdce8f4, 0.35);
+            g.beginPath();
+            g.moveTo(cx - hw * 0.25, baseY - height * 0.82);
+            for (let i = 0; i <= 10; i++) {
+                const t = i / 10;
+                const x = cx - hw * 0.25 + hw * 0.5 * t;
+                const profile = Math.sin(t * Math.PI);
+                const y = baseY - height * (0.82 + 0.18 * profile) + Math.sin(t * 13) * 3;
+                g.lineTo(x, y);
+            }
+            g.lineTo(cx + hw * 0.25, baseY - height * 0.82);
+            g.closePath();
+            g.fillPath();
+        }
     }
 
     private drawHillLayer(g: Phaser.GameObjects.Graphics, offsetX: number): void {
@@ -279,8 +330,10 @@ export class TravelScene extends Scene {
         this.wagonG.clear();
         // Wagon on the iso trail — traveling up-right (into the distance)
         // Position on the road center; calculated from trail grid position
-        const wx = GAME_WIDTH / 2 + 80;
-        const wy = GROUND_Y - 125;
+        // Trail center line: x + 2y = 1868 (derived from grid origin + tile math)
+        // Wagon must satisfy wx + 2*wy = 1868 to sit on the trail center
+        const wx = GAME_WIDTH / 2 + 230;   // 742
+        const wy = GROUND_Y - 125;          // 563  → 742 + 2*563 = 1868 ✓
 
         // Oxen ahead of wagon (up-right = traveling into the distance)
         drawIsoOx(this.wagonG, wx + 52, wy - 26, 1.0);
@@ -297,7 +350,8 @@ export class TravelScene extends Scene {
         for (let i = 0; i < Math.min(alive, 5); i++) {
             // Each person has a slightly offset walk phase for natural look
             const phase = isWalking ? (walkPhase + i * 0.2) % 1.0 : -1;
-            drawIsoPerson(this.wagonG, wx - 28 - i * 18, wy + 8 + i * 9, 0.7, personColors[i], phase, true);
+            // Offset follows trail direction (-2:1) so people stay on the road
+            drawIsoPerson(this.wagonG, wx - 24 - i * 14, wy + 12 + i * 7, 0.7, personColors[i], phase, true);
         }
     }
 
@@ -505,11 +559,11 @@ export class TravelScene extends Scene {
             this.wagonG.y = bobPhase;
 
             // Dust behind wagon (down-left = behind, since wagon travels up-right)
-            const wagonCX = GAME_WIDTH / 2 + 80;
+            const wagonCX = GAME_WIDTH / 2 + 230;
             const wagonCY = GROUND_Y - 125;
             if (Math.random() < 0.5) {
                 this.dustParticles.push({
-                    x: wagonCX - 50,
+                    x: wagonCX - 40,
                     y: wagonCY + 20,
                     alpha: 0.45,
                     r: 3 + Math.random() * 7,

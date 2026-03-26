@@ -20,9 +20,9 @@ export function drawIsoWagon(
     const bodyH = 24 * s;
     const bodyDepth = 16 * s;
 
-    // Body shadow
-    g.fillStyle(0x000000, 0.2);
-    g.fillEllipse(sx + 4 * s, sy + 12 * s, bodyW * 1.1, bodyH * 0.5);
+    // Body shadow — flat on ground plane, slightly offset for sun direction
+    g.fillStyle(0x000000, 0.15);
+    g.fillEllipse(sx, sy + 6 * s, bodyW * 1.2, bodyH * 0.4);
 
     // Body — top face
     g.fillStyle(0x6b3a18);
