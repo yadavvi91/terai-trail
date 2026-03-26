@@ -1,0 +1,9 @@
+{
+  "feature_number": "010",
+  "slug": "010-biome-weather-terrain",
+  "feature_slug": "010-biome-weather-terrain",
+  "friendly_name": "biome weather terrain",
+  "mission": "software-dev",
+  "target_branch": "main",
+  "created_at": "2026-03-26T19:46:34.422001+00:00"
+}
