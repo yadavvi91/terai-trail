@@ -1,7 +1,7 @@
 ---
 work_package_id: WP03
 title: Graphics-Based Sky Rebuild with Weather-Reactive Gradients
-lane: "for_review"
+lane: "doing"
 dependencies: [WP01]
 base_branch: 010-biome-weather-terrain-WP01
 base_commit: 590e56f99d77c0cc6ef92e72ca9cdff7f8d281b4
@@ -15,7 +15,7 @@ subtasks:
 phase: Phase 2 - Core Rendering
 assignee: ''
 agent: "claude"
-shell_pid: "54309"
+shell_pid: "5040"
 review_status: ''
 reviewed_by: ''
 history:
@@ -266,3 +266,4 @@ detection into a single block to avoid redundant `getBiome()` calls.
 - 2026-03-26T19:48:26Z – system – lane=planned – Prompt created.
 - 2026-03-26T20:36:32Z – claude – shell_pid=54309 – lane=doing – Assigned agent via workflow command
 - 2026-03-26T20:44:35Z – claude – shell_pid=54309 – lane=for_review – Ready for review: skyG Graphics, drawSkyGradient, redrawSky, dailyTick hook, updateHUD hack removed.
+- 2026-03-26T20:44:43Z – claude – shell_pid=5040 – lane=doing – Started review via workflow command
