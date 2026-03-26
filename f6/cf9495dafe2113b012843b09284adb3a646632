@@ -1,0 +1,25 @@
+kitty-specs/009-ux-overhaul-sound-speed-isometric/tasks/done/WP03-mountain-realism.md
+  a9d6cfb34202aba2 4
+src/scenes/TravelScene.ts
+  a9d6cfb34202aba2 9-10,154-158,183,197,207-209,245,251-253,278-281,283-285,290,295,473-474,478-479,481-485,497,499,502-504,507
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "f6cf9495dafe2113b012843b09284adb3a646632",
+  "prompts": {
+    "a9d6cfb34202aba2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f256f5be-3b67-46b0-a1de-a7fbcffbb03b",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 54,
+      "total_deletions": 49,
+      "accepted_lines": 41,
+      "overriden_lines": 0
+    }
+  }
+}
