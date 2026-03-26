@@ -1,0 +1,49 @@
+src/ui/IsoDrawUtils.ts
+  a9d6cfb34202aba2 235-240,251-294,296,298-301,303-307,310,312-315,318-319,321,323,327,330-331,334-338,340,342-343,347-355,358-360,362-368,370-380,382,384-386
+src/scenes/StoreScene.ts
+  a9d6cfb34202aba2 38,51,171,173
+src/scenes/RiverCrossingScene.ts
+  c4b157ded3d96a80 145-149
+  a9d6cfb34202aba2 64-66
+src/ui/DrawUtils.ts
+  a9d6cfb34202aba2 286-287,357
+src/scenes/TitleScene.ts
+  c4b157ded3d96a80 90,96-97,100,113-121,201,203-204,206-208,210-211,213-214,221-222,235,239,242
+  a9d6cfb34202aba2 49,51-55,59-62,236-237,240,245
+src/scenes/TravelScene.ts
+  c4b157ded3d96a80 22,141,149,183-185,188-190,192-198,203,206-207,209-211,215-216,227,234-239,241-245,248-251,253,274-276,278-280,285,290,448,456,460-465,468-469,472-482,485,492-495,497-499,501-506,510,513-514
+  a9d6cfb34202aba2 59,77,374-375,378,387,418,562,584-587
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "aea57253a9b7b7d5d0c4dc8fd8e2e53c29f4b3ef",
+  "prompts": {
+    "a9d6cfb34202aba2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f256f5be-3b67-46b0-a1de-a7fbcffbb03b",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 150,
+      "overriden_lines": 0
+    },
+    "c4b157ded3d96a80": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b7f94ea-b189-45b5-b6ab-432f20351c74",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 120,
+      "overriden_lines": 0
+    }
+  }
+}
