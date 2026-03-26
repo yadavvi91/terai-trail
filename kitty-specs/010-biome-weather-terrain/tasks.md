@@ -81,13 +81,13 @@ Mile 400 → faint silhouettes. Mile 700 → full grey-blue peaks. Mile 1600 →
 **Estimated size**: ~460 lines
 
 ### Included Subtasks
-- [ ] T004 Add `currentBiome` and `currentSeason` properties to TravelScene
-- [ ] T005 Add `drawMountainLayerForBiome(g, offsetX, biome)` replacing `drawMountainLayer()`
-- [ ] T006 Add optional `snowCap = true` param to `drawSoftMountain()`
-- [ ] T007 Add `drawHillLayerForBiome(g, offsetX, biome, season)` replacing `drawHillLayer()`
-- [ ] T008 Add `refreshParallaxLayers()` to clear+redraw all mtn/hill Graphics
-- [ ] T009 Hook biome/season change detection into `dailyTick()`
-- [ ] T010 Add per-frame mountain alpha fade-in in `update()`
+- [x] T004 Add `currentBiome` and `currentSeason` properties to TravelScene
+- [x] T005 Add `drawMountainLayerForBiome(g, offsetX, biome)` replacing `drawMountainLayer()`
+- [x] T006 Add optional `snowCap = true` param to `drawSoftMountain()`
+- [x] T007 Add `drawHillLayerForBiome(g, offsetX, biome, season)` replacing `drawHillLayer()`
+- [x] T008 Add `refreshParallaxLayers()` to clear+redraw all mtn/hill Graphics
+- [x] T009 Hook biome/season change detection into `dailyTick()`
+- [x] T010 Add per-frame mountain alpha fade-in in `update()`
 
 **Requirements Refs**: FR-01, FR-02, FR-03, FR-07
 
