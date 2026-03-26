@@ -1,7 +1,7 @@
 ---
 work_package_id: WP02
 title: Zone-Reactive Mountain & Hill Parallax Layers
-lane: "doing"
+lane: "done"
 dependencies: [WP01]
 base_branch: 010-biome-weather-terrain-WP01
 base_commit: 590e56f99d77c0cc6ef92e72ca9cdff7f8d281b4
@@ -18,8 +18,8 @@ phase: Phase 2 - Core Rendering
 assignee: ''
 agent: "claude"
 shell_pid: "30737"
-review_status: ''
-reviewed_by: ''
+review_status: "approved"
+reviewed_by: "Vishal Yadav"
 history:
 - timestamp: '2026-03-26T19:48:26Z'
   lane: planned
@@ -347,3 +347,4 @@ per frame (one per mtnLayer) costs negligible CPU.
 - 2026-03-26T20:26:00Z – claude – shell_pid=94790 – lane=doing – Assigned agent via workflow command
 - 2026-03-26T20:29:12Z – claude – shell_pid=94790 – lane=for_review – Ready for review: biome-reactive mountains/hills, snowCap param, alpha fade-in, refreshParallaxLayers, dailyTick hook.
 - 2026-03-26T20:36:01Z – claude – shell_pid=30737 – lane=doing – Started review via workflow command
+- 2026-03-26T20:36:14Z – claude – shell_pid=30737 – lane=done – Review passed: drawMountainLayerForBiome uses BIOME_COLORS, snowCap=false for Oregon, drawHillLayerForBiome biome-appropriate tree colors, refreshParallaxLayers resets baseX/baseY correctly, alpha fade-in in update(), dailyTick hook. tsc clean.
