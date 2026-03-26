@@ -1,8 +1,11 @@
 ---
 work_package_id: WP02
 title: Zone-Reactive Mountain & Hill Parallax Layers
-lane: planned
+lane: "doing"
 dependencies: [WP01]
+base_branch: 010-biome-weather-terrain-WP01
+base_commit: 590e56f99d77c0cc6ef92e72ca9cdff7f8d281b4
+created_at: '2026-03-26T20:25:58.285029+00:00'
 subtasks:
 - T004
 - T005
@@ -14,7 +17,7 @@ subtasks:
 phase: Phase 2 - Core Rendering
 assignee: ''
 agent: ''
-shell_pid: ''
+shell_pid: "94790"
 review_status: ''
 reviewed_by: ''
 history:
