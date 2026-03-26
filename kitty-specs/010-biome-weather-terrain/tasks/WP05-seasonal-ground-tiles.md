@@ -1,7 +1,7 @@
 ---
 work_package_id: WP05
 title: Seasonal Ground Tile Colors
-lane: "doing"
+lane: "done"
 dependencies: [WP01, WP02]
 base_branch: 010-biome-weather-terrain-WP05-merge-base
 base_commit: a541079ab3db5197f5833422ecfd7ea1b5a5d6e7
@@ -14,8 +14,8 @@ phase: Phase 3 - Polish
 assignee: ''
 agent: "claude"
 shell_pid: "62008"
-review_status: ''
-reviewed_by: ''
+review_status: "approved"
+reviewed_by: "Vishal Yadav"
 history:
 - timestamp: '2026-03-26T19:48:26Z'
   lane: planned
@@ -244,3 +244,4 @@ if (newSeason !== this.currentSeason) {
 - 2026-03-26T20:47:19Z – claude – shell_pid=29676 – lane=doing – Assigned agent via workflow command
 - 2026-03-26T20:48:56Z – claude – shell_pid=29676 – lane=for_review – Ready for review: drawGroundTiles extracted, SEASON_GRASS_ALT colors, refreshGroundLayers, dailyTick hook.
 - 2026-03-26T20:48:58Z – claude – shell_pid=62008 – lane=doing – Started review via workflow command
+- 2026-03-26T20:49:04Z – claude – shell_pid=62008 – lane=done – Review passed: drawGroundTiles correct, SEASON_GRASS_ALT used, trail colors unchanged, refreshGroundLayers preserves scroll position.
