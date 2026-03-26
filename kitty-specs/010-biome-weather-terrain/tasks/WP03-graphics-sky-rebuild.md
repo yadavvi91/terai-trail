@@ -14,7 +14,7 @@ subtasks:
 - T015
 phase: Phase 2 - Core Rendering
 assignee: ''
-agent: ''
+agent: "claude"
 shell_pid: "54309"
 review_status: ''
 reviewed_by: ''
@@ -264,3 +264,4 @@ detection into a single block to avoid redundant `getBiome()` calls.
 ## Activity Log
 
 - 2026-03-26T19:48:26Z – system – lane=planned – Prompt created.
+- 2026-03-26T20:36:32Z – claude – shell_pid=54309 – lane=doing – Assigned agent via workflow command
