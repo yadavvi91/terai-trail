@@ -1,9 +1,10 @@
 import { Scene } from 'phaser';
 import {
     SCENES, GAME_WIDTH, GAME_HEIGHT, COLORS, HEX_COLORS, TEXT_STYLES,
-    MILES_PER_DAY, FOOD_PER_PERSON_PER_DAY, TOTAL_TRAIL_MILES,
+    MILES_PER_DAY, FOOD_PER_PERSON_PER_DAY, TOTAL_TRAIL_MILES, BIOME_COLORS,
 } from '../utils/constants';
-import { Pace, Rations, Weather, MemberStatus } from '../utils/types';
+import { Pace, Rations, Weather, MemberStatus, Biome, Season } from '../utils/types';
+import { getBiome, getSeason, getMountainAlpha } from '../utils/biome';
 import { GameState } from '../game/GameState';
 import { getNextLandmark } from '../game/TrailData';
 import { drawTree, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
@@ -53,6 +54,10 @@ export class TravelScene extends Scene {
     private statusMsg!: Phaser.GameObjects.Text;
     private milesBar!: Phaser.GameObjects.Rectangle;
 
+    // Biome/season tracking
+    private currentBiome: Biome = Biome.PRAIRIE;
+    private currentSeason: Season = Season.SPRING;
+
     private tickTimer!: Phaser.Time.TimerEvent;
     private paused: boolean = false;
     private wagonRollTick: number = 0;
@@ -75,6 +80,10 @@ export class TravelScene extends Scene {
         this.walkFrame = 0;
         this.walkTimer = 0;
         this.eventCooldown = 8; // no events for first 8 ticks (~10 days of travel)
+
+        const gs0 = GameState.getInstance();
+        this.currentBiome = getBiome(gs0.milesTraveled);
+        this.currentSeason = getSeason(gs0.currentDate.getMonth());
 
         this.buildSky();
         this.buildParallax();
@@ -147,7 +156,7 @@ export class TravelScene extends Scene {
             const g = this.add.graphics();
             const baseX = pass * mtnW;
             const baseY = -pass * mtnW * TravelScene.MTN_Y_RATIO;
-            this.drawMountainLayer(g, baseX);
+            this.drawMountainLayerForBiome(g, baseX, this.currentBiome);
             this.mtnLayers.push({ g, baseX, baseY, width: mtnW, speed: 0.18 });
         }
 
@@ -157,28 +166,36 @@ export class TravelScene extends Scene {
             const g = this.add.graphics();
             const baseX = pass * hillW;
             const baseY = -pass * hillW * TravelScene.HILL_Y_RATIO;
-            this.drawHillLayer(g, baseX);
+            this.drawHillLayerForBiome(g, baseX, this.currentBiome, this.currentSeason);
             this.hillLayers.push({ g, baseX, baseY, width: hillW, speed: 0.55 });
         }
     }
 
+    // DEPRECATED — use drawMountainLayerForBiome
     private drawMountainLayer(g: Phaser.GameObjects.Graphics, offsetX: number): void {
-        // Distant mountains — soft rounded silhouettes that blend with sky
-        // Back layer (farthest, lightest, tallest)
-        this.drawSoftMountain(g, offsetX + 200, GROUND_Y - 10, 320, 160, 0x6a7ea8);
-        this.drawSoftMountain(g, offsetX + 500, GROUND_Y - 10, 360, 180, 0x5a7098);
-        this.drawSoftMountain(g, offsetX + 850, GROUND_Y - 10, 300, 150, 0x607898);
-        // Front layer (closer, slightly darker, shorter, overlapping)
-        this.drawSoftMountain(g, offsetX + 100, GROUND_Y - 5, 260, 110, 0x4a6080);
-        this.drawSoftMountain(g, offsetX + 380, GROUND_Y - 5, 280, 120, 0x506a88);
-        this.drawSoftMountain(g, offsetX + 650, GROUND_Y - 5, 240, 100, 0x4a6080);
-        this.drawSoftMountain(g, offsetX + 950, GROUND_Y - 5, 270, 115, 0x506a88);
+        this.drawMountainLayerForBiome(g, offsetX, Biome.MOUNTAINS);
+    }
+
+    private drawMountainLayerForBiome(g: Phaser.GameObjects.Graphics, offsetX: number, biome: Biome): void {
+        const back = BIOME_COLORS.MOUNTAIN_BACK[biome];
+        const front = BIOME_COLORS.MOUNTAIN_FRONT[biome];
+        const snowCap = biome !== Biome.OREGON;
+
+        // Back layer (farthest, tallest)
+        this.drawSoftMountain(g, offsetX + 200, GROUND_Y - 10, 320, 160, back[0], snowCap);
+        this.drawSoftMountain(g, offsetX + 500, GROUND_Y - 10, 360, 180, back[1], snowCap);
+        this.drawSoftMountain(g, offsetX + 850, GROUND_Y - 10, 300, 150, back[2], snowCap);
+        // Front layer (closer, shorter, overlapping)
+        this.drawSoftMountain(g, offsetX + 100, GROUND_Y - 5, 260, 110, front[0], snowCap);
+        this.drawSoftMountain(g, offsetX + 380, GROUND_Y - 5, 280, 120, front[1], snowCap);
+        this.drawSoftMountain(g, offsetX + 650, GROUND_Y - 5, 240, 100, front[2], snowCap);
+        this.drawSoftMountain(g, offsetX + 950, GROUND_Y - 5, 270, 115, front[3], snowCap);
     }
 
     /** Draw a single soft, isometric-style mountain (asymmetric — gentle left, steep right) */
     private drawSoftMountain(
         g: Phaser.GameObjects.Graphics, cx: number, baseY: number,
-        width: number, height: number, color: number,
+        width: number, height: number, color: number, snowCap = true,
     ): void {
         const hw = width / 2;
         // Peak shifted right for isometric 3/4 perspective
@@ -241,7 +258,7 @@ export class TravelScene extends Scene {
         g.fillRect(cx - hw, baseY - height * 0.2, width, height * 0.2);
 
         // Snow dusting on peaks (subtle, shifted to match asymmetric peak)
-        if (height > 100) {
+        if (height > 100 && snowCap) {
             g.fillStyle(0xdce8f4, 0.3);
             g.beginPath();
             const snowL = cx + peakShift - hw * 0.3;
@@ -261,21 +278,52 @@ export class TravelScene extends Scene {
     }
 
     private drawHillLayer(g: Phaser.GameObjects.Graphics, offsetX: number): void {
-        drawHill(g, offsetX + 100,  GROUND_Y + 8, 240, 0x2d6428);
-        drawHill(g, offsetX + 330,  GROUND_Y + 8, 200, 0x337030);
-        drawHill(g, offsetX + 520,  GROUND_Y + 8, 260, 0x2d6428);
-        drawHill(g, offsetX + 740,  GROUND_Y + 8, 220, 0x337030);
-        drawHill(g, offsetX + 940,  GROUND_Y + 8, 180, 0x2d6428);
-        drawHill(g, offsetX + 1080, GROUND_Y + 8, 200, 0x337030);
-        // Trees on hillsides
-        drawTree(g, offsetX + 60,  GROUND_Y + 4, 62, 0x234d1a, false);
-        drawTree(g, offsetX + 90,  GROUND_Y - 4, 74, 0x2a5820, false);
-        drawTree(g, offsetX + 280, GROUND_Y + 2, 55, 0x234d1a, false);
-        drawTree(g, offsetX + 480, GROUND_Y - 2, 68, 0x2a5820, false);
-        drawTree(g, offsetX + 510, GROUND_Y + 4, 58, 0x234d1a, true);  // pine
-        drawTree(g, offsetX + 720, GROUND_Y - 4, 72, 0x2a5820, false);
-        drawTree(g, offsetX + 900, GROUND_Y + 2, 60, 0x234d1a, true);
-        drawTree(g, offsetX + 930, GROUND_Y - 6, 80, 0x2a5820, false);
+        this.drawHillLayerForBiome(g, offsetX, Biome.MOUNTAINS, Season.SPRING);
+    }
+
+    private drawHillLayerForBiome(g: Phaser.GameObjects.Graphics, offsetX: number, biome: Biome, _season: Season): void {
+        const [c1, c2] = BIOME_COLORS.HILL_COLORS[biome];
+
+        drawHill(g, offsetX + 100,  GROUND_Y + 8, 240, c1);
+        drawHill(g, offsetX + 330,  GROUND_Y + 8, 200, c2);
+        drawHill(g, offsetX + 520,  GROUND_Y + 8, 260, c1);
+        drawHill(g, offsetX + 740,  GROUND_Y + 8, 220, c2);
+        drawHill(g, offsetX + 940,  GROUND_Y + 8, 180, c1);
+        drawHill(g, offsetX + 1080, GROUND_Y + 8, 200, c2);
+
+        // Trees alongside trail — biome-appropriate colors
+        const treeC1 = biome === Biome.OREGON ? 0x1a3a18 : 0x234d1a;
+        const treeC2 = biome === Biome.OREGON ? 0x223a20 : 0x2a5820;
+        drawTree(g, offsetX + 60,  GROUND_Y + 4, 62, treeC1, false);
+        drawTree(g, offsetX + 90,  GROUND_Y - 4, 74, treeC2, false);
+        drawTree(g, offsetX + 280, GROUND_Y + 2, 55, treeC1, false);
+        drawTree(g, offsetX + 480, GROUND_Y - 2, 68, treeC2, false);
+        drawTree(g, offsetX + 510, GROUND_Y + 4, 58, treeC1, true);   // pine
+        drawTree(g, offsetX + 720, GROUND_Y - 4, 72, treeC2, false);
+        drawTree(g, offsetX + 900, GROUND_Y + 2, 60, treeC1, true);
+        drawTree(g, offsetX + 930, GROUND_Y - 6, 80, treeC2, false);
+    }
+
+    private refreshParallaxLayers(): void {
+        const mtnW = GAME_WIDTH + 100;
+        this.mtnLayers.forEach((layer, pass) => {
+            layer.g.clear();
+            layer.g.setPosition(0, 0);
+            this.drawMountainLayerForBiome(layer.g, pass * mtnW, this.currentBiome);
+            layer.baseX = pass * mtnW;
+            layer.baseY = -pass * mtnW * TravelScene.MTN_Y_RATIO;
+            layer.g.setPosition(layer.baseX, layer.baseY);
+        });
+
+        const hillW = GAME_WIDTH + 60;
+        this.hillLayers.forEach((layer, pass) => {
+            layer.g.clear();
+            layer.g.setPosition(0, 0);
+            this.drawHillLayerForBiome(layer.g, pass * hillW, this.currentBiome, this.currentSeason);
+            layer.baseX = pass * hillW;
+            layer.baseY = -pass * hillW * TravelScene.HILL_Y_RATIO;
+            layer.g.setPosition(layer.baseX, layer.baseY);
+        });
     }
 
     // ─── Ground & trail ────────────────────────────────────────────────────────
@@ -599,6 +647,10 @@ export class TravelScene extends Scene {
                 layer.g.setPosition(layer.baseX, layer.baseY);
             });
 
+            // Mountain alpha fade-in (prairie zone: 0–300 invisible, 300–640 fade in)
+            const mountainAlpha = getMountainAlpha(gs.milesTraveled);
+            this.mtnLayers.forEach(layer => layer.g.setAlpha(mountainAlpha));
+
             // Drift clouds (horizontal)
             this.cloudLayers.forEach(cl => {
                 cl.x -= scrollSpeed * cl.speed * dt;
@@ -703,6 +755,15 @@ export class TravelScene extends Scene {
         if (Math.random() < 0.08) {
             const weathers = [Weather.CLEAR, Weather.CLEAR, Weather.RAINY, Weather.HOT, Weather.SNOWY];
             gs.weather = weathers[Math.floor(Math.random() * weathers.length)];
+        }
+
+        // Biome/season change detection — refresh parallax layers if zone or season changed
+        const newBiome = getBiome(gs.milesTraveled);
+        const newSeason = getSeason(gs.currentDate.getMonth());
+        if (newBiome !== this.currentBiome || newSeason !== this.currentSeason) {
+            this.currentBiome = newBiome;
+            this.currentSeason = newSeason;
+            this.refreshParallaxLayers();
         }
 
         // Check landmark
