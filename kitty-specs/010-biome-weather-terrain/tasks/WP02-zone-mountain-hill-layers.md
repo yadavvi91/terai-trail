@@ -16,7 +16,7 @@ subtasks:
 - T010
 phase: Phase 2 - Core Rendering
 assignee: ''
-agent: ''
+agent: "claude"
 shell_pid: "94790"
 review_status: ''
 reviewed_by: ''
@@ -344,3 +344,4 @@ per frame (one per mtnLayer) costs negligible CPU.
 ## Activity Log
 
 - 2026-03-26T19:48:26Z – system – lane=planned – Prompt created.
+- 2026-03-26T20:26:00Z – claude – shell_pid=94790 – lane=doing – Assigned agent via workflow command
