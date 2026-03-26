@@ -1,7 +1,7 @@
 ---
 work_package_id: WP04
 title: Weather Particle System (Rain, Snow, Heat Shimmer)
-lane: "doing"
+lane: "for_review"
 dependencies: [WP01]
 base_branch: 010-biome-weather-terrain-WP01
 base_commit: 590e56f99d77c0cc6ef92e72ca9cdff7f8d281b4
@@ -287,3 +287,4 @@ of the weather block, so CLEAR weather shows nothing.
 
 - 2026-03-26T19:48:26Z – system – lane=planned – Prompt created.
 - 2026-03-26T20:44:58Z – claude – shell_pid=5795 – lane=doing – Assigned agent via workflow command
+- 2026-03-26T20:47:00Z – claude – shell_pid=5795 – lane=for_review – Ready for review: WeatherParticle interface, rain/snow/heat shimmer, pool caps enforced, dailyTick flush.
