@@ -332,80 +332,89 @@ export class TravelScene extends Scene {
         // Isometric tile ground — scrolling diamond grid
         // Trail runs along row ≈ middleRow; formula flipped so trail goes BL → TR on screen
         const cols = 28;
-        const rows = 10;
-        const tileW = TILE_WIDTH;
         const tileH = TILE_HEIGHT;
-        const middleRow = Math.floor(rows / 2);
-        const grassColors = [0x3a7d30, 0x2d6a28, 0x347530, 0x3a8028];
-        const flowerColors = [0xffdd44, 0xff8844, 0xff6644];
+        const middleRow = Math.floor(10 / 2);
 
         // Wrap distance: one full copy's width along the iso diagonal
-        const wrapDX = cols * tileW / 2;   // screen-X span of one copy
-        const wrapDY = cols * tileH / 2;   // corresponding screen-Y span
+        const wrapDX = cols * TILE_WIDTH / 2;   // screen-X span of one copy
+        const wrapDY = cols * tileH / 2;        // corresponding screen-Y span
 
         // Origin: position tile grid so the trail center is roughly at screen center
-        // With flipped x-axis, grid extends to the LEFT from origin
         const originX = GAME_WIDTH / 2 + 100;
         const originY = GROUND_Y - middleRow * tileH - 60;
 
         for (let pass = 0; pass < 2; pass++) {
             const g = this.add.graphics();
-
-            // Draw tiles in local coordinates (centered on grid origin)
-            for (let row = 0; row < rows; row++) {
-                for (let col = 0; col < cols; col++) {
-                    // Flipped x-axis: (row - col) instead of (col - row)
-                    // This makes the trail go from bottom-left to top-right
-                    const sx = (row - col) * (tileW / 2);
-                    const sy = (col + row) * (tileH / 2);
-
-                    // Trail: horizontal band in world coords → diagonal on screen
-                    const isTrail = Math.abs(row - middleRow) <= 1;
-                    const isTrailEdge = Math.abs(row - middleRow) === 2;
-
-                    if (isTrail) {
-                        drawIsoTile(g, sx, sy, 0x9e7b3a);
-                        // Wheel ruts on center row
-                        if (row === middleRow) {
-                            drawIsoTile(g, sx, sy, 0x6a4e20, 0.4, tileW * 0.5, tileH * 0.5);
-                        }
-                    } else if (isTrailEdge) {
-                        drawIsoTile(g, sx, sy, 0x4a8030);
-                        drawIsoTile(g, sx, sy, 0x7a6830, 0.3, tileW * 0.7, tileH * 0.7);
-                    } else {
-                        const ci = (col * 7 + row * 13) % grassColors.length;
-                        drawIsoTile(g, sx, sy, grassColors[ci]);
-                        // Occasional wildflower
-                        if ((col * 3 + row * 7) % 11 === 0) {
-                            g.fillStyle(flowerColors[(col + row) % 3], 0.8);
-                            g.fillCircle(sx, sy - 2, 2.5);
-                        }
-                    }
-                }
-            }
-
-            // Trees alongside the trail (off the trail rows)
-            const treeOffsets = [
-                [3, 0], [7, 0], [12, 0], [18, 0], [24, 0],  // top side of trail
-                [3, rows - 1], [8, rows - 1], [14, rows - 1], [20, rows - 1], [25, rows - 1],  // bottom side
-                [5, 1], [10, 1], [16, 1], [22, 1],  // near top edge
-                [6, rows - 2], [11, rows - 2], [17, rows - 2], [23, rows - 2],  // near bottom edge
-            ];
-            treeOffsets.forEach(([col, row]) => {
-                const tsx = (row - col) * (tileW / 2);
-                const tsy = (col + row) * (tileH / 2);
-                const isPine = ((col + row) % 3 === 0);
-                drawIsoTree(g, tsx, tsy - 4, 45 + (col * 7) % 30, 0x234d1a, isPine);
-            });
+            this.drawGroundTiles(g, this.currentSeason);
 
             // Position each copy: offset diagonally along the flipped iso axis
-            // Second copy goes to the lower-left (negative X, positive Y)
             const bx = originX - pass * wrapDX;
             const by = originY + pass * wrapDY;
             g.setPosition(bx, by);
 
             this.groundLayers.push({ g, baseX: bx, baseY: by, width: wrapDX, speed: 1.0 });
         }
+    }
+
+    private drawGroundTiles(g: Phaser.GameObjects.Graphics, season: Season): void {
+        const cols = 28;
+        const rows = 10;
+        const tileW = TILE_WIDTH;
+        const tileH = TILE_HEIGHT;
+        const middleRow = Math.floor(rows / 2);
+
+        const grassColors = BIOME_COLORS.SEASON_GRASS_ALT[season];
+        const flowerColors = [0xffdd44, 0xff8844, 0xff6644];
+
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+                const sx = (row - col) * (tileW / 2);
+                const sy = (col + row) * (tileH / 2);
+
+                const isTrail = Math.abs(row - middleRow) <= 1;
+                const isTrailEdge = Math.abs(row - middleRow) === 2;
+
+                if (isTrail) {
+                    drawIsoTile(g, sx, sy, 0x9e7b3a);  // UNCHANGED — dirt
+                    if (row === middleRow) {
+                        drawIsoTile(g, sx, sy, 0x6a4e20, 0.4, tileW * 0.5, tileH * 0.5);
+                    }
+                } else if (isTrailEdge) {
+                    drawIsoTile(g, sx, sy, 0x4a8030);   // UNCHANGED — trail edge
+                    drawIsoTile(g, sx, sy, 0x7a6830, 0.3, tileW * 0.7, tileH * 0.7);
+                } else {
+                    const ci = (col * 7 + row * 13) % grassColors.length;
+                    drawIsoTile(g, sx, sy, grassColors[ci]);
+                    if ((col * 3 + row * 7) % 11 === 0) {
+                        g.fillStyle(flowerColors[(col + row) % 3], 0.8);
+                        g.fillCircle(sx, sy - 2, 2.5);
+                    }
+                }
+            }
+        }
+
+        // Trees alongside the trail (keep existing positions and logic unchanged)
+        const treeOffsets = [
+            [3, 0], [7, 0], [12, 0], [18, 0], [24, 0],
+            [3, rows - 1], [8, rows - 1], [14, rows - 1], [20, rows - 1], [25, rows - 1],
+            [5, 1], [10, 1], [16, 1], [22, 1],
+            [6, rows - 2], [11, rows - 2], [17, rows - 2], [23, rows - 2],
+        ];
+        treeOffsets.forEach(([col, row]) => {
+            const tsx = (row - col) * (tileW / 2);
+            const tsy = (col + row) * (tileH / 2);
+            const isPine = ((col + row) % 3 === 0);
+            drawIsoTree(g, tsx, tsy - 4, 45 + (col * 7) % 30, 0x234d1a, isPine);
+        });
+    }
+
+    private refreshGroundLayers(): void {
+        this.groundLayers.forEach(layer => {
+            layer.g.clear();
+            this.drawGroundTiles(layer.g, this.currentSeason);
+            // Preserve scroll position — setPosition reapplies baseX/baseY
+            layer.g.setPosition(layer.baseX, layer.baseY);
+        });
     }
 
     // ─── Wagon ─────────────────────────────────────────────────────────────────
@@ -757,13 +766,14 @@ export class TravelScene extends Scene {
             gs.weather = weathers[Math.floor(Math.random() * weathers.length)];
         }
 
-        // Biome/season change detection — refresh parallax layers if zone or season changed
+        // Biome/season change detection — refresh parallax and ground layers if zone or season changed
         const newBiome = getBiome(gs.milesTraveled);
         const newSeason = getSeason(gs.currentDate.getMonth());
         if (newBiome !== this.currentBiome || newSeason !== this.currentSeason) {
             this.currentBiome = newBiome;
             this.currentSeason = newSeason;
             this.refreshParallaxLayers();
+            this.refreshGroundLayers();
         }
 
         // Check landmark
