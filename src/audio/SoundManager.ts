@@ -145,17 +145,104 @@ export class SoundManager {
         creak.stop(now + 0.2);
     }
 
-    /** Positive event chime */
+    /** Positive event chime — ascending major triad */
     playGoodEvent(): void {
         this.playTone(523, 0.12, 'sine', 0.2);
         setTimeout(() => this.playTone(659, 0.12, 'sine', 0.2), 120);
         setTimeout(() => this.playTone(784, 0.18, 'sine', 0.25), 240);
     }
 
-    /** Negative event sting */
+    /** Negative event sting — descending minor */
     playBadEvent(): void {
         this.playTone(300, 0.2, 'sawtooth', 0.15);
         setTimeout(() => this.playTone(200, 0.3, 'sawtooth', 0.12), 200);
+    }
+
+    /** Supply/loot found — coin-like "ka-ching" */
+    playSupplyFound(): void {
+        this.playTone(1200, 0.06, 'square', 0.12);
+        setTimeout(() => this.playTone(1600, 0.08, 'square', 0.14), 70);
+        setTimeout(() => this.playTone(2000, 0.12, 'sine', 0.10), 140);
+    }
+
+    /** Danger/warning — low alarm pulse */
+    playDanger(): void {
+        if (!this.ctx || this.muted) return;
+        this.init();
+        const ctx = this.ctx!;
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.linearRampToValueAtTime(120, now + 0.4);
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.setValueAtTime(0.05, now + 0.15);
+        gain.gain.setValueAtTime(0.18, now + 0.2);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.45);
+    }
+
+    /** Breakdown/damage — metallic clang */
+    playBreakdown(): void {
+        if (!this.ctx || this.muted) return;
+        this.init();
+        const ctx = this.ctx!;
+        const now = ctx.currentTime;
+        // Metal hit
+        const osc = ctx.createOscillator();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(200, now + 0.3);
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(600, now);
+        filter.Q.setValueAtTime(3, now);
+        osc.connect(filter).connect(gain).connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.35);
+    }
+
+    /** Weather event — wind whoosh */
+    playWeather(): void {
+        if (!this.ctx || this.muted) return;
+        this.init();
+        const ctx = this.ctx!;
+        const now = ctx.currentTime;
+        const bufferSize = ctx.sampleRate * 0.5;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            const t = i / ctx.sampleRate;
+            const env = Math.sin(t * Math.PI / 0.5); // fade in and out
+            data[i] = (Math.random() * 2 - 1) * env * 0.3;
+        }
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(400, now);
+        filter.frequency.linearRampToValueAtTime(800, now + 0.25);
+        filter.frequency.linearRampToValueAtTime(300, now + 0.5);
+        filter.Q.setValueAtTime(1.5, now);
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.25, now);
+        source.connect(filter).connect(gain).connect(ctx.destination);
+        source.start(now);
+        source.stop(now + 0.5);
+    }
+
+    /** Meeting travelers — friendly horn/bugle */
+    playTravelers(): void {
+        this.playTone(392, 0.15, 'triangle', 0.18);
+        setTimeout(() => this.playTone(523, 0.12, 'triangle', 0.18), 160);
+        setTimeout(() => this.playTone(659, 0.15, 'triangle', 0.20), 300);
+        setTimeout(() => this.playTone(784, 0.25, 'triangle', 0.22), 460);
     }
 
     /** Button hover */

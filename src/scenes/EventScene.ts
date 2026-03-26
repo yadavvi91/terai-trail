@@ -47,13 +47,29 @@ export class EventScene extends Scene {
         this.buildBackground(mood);
         this.buildEventPanel();
 
-        // Play sound sting based on event type
-        const isGood = ['wild_fruit', 'good_weather', 'found_cache', 'travelers'].includes(this.event.id);
+        // Play context-specific sound per event type
         const sm = SoundManager.getInstance();
-        if (isGood) {
-            sm.playGoodEvent();
-        } else {
-            sm.playBadEvent();
+        switch (this.event.id) {
+            case 'found_cache':
+            case 'wild_fruit':
+                sm.playSupplyFound(); break;
+            case 'travelers':
+                sm.playTravelers(); break;
+            case 'good_weather':
+            case 'hail_storm':
+                sm.playWeather(); break;
+            case 'breakdown':
+                sm.playBreakdown(); break;
+            case 'disease':
+            case 'snake_bite':
+            case 'bad_water':
+                sm.playDanger(); break;
+            case 'theft':
+            case 'lost_oxen':
+            case 'injury':
+                sm.playBadEvent(); break;
+            default:
+                sm.playGoodEvent(); break;
         }
 
         addMuteButton(this);

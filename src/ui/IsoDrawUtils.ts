@@ -148,94 +148,119 @@ export function drawIsoOx(
 
 // ─── Isometric Person ────────────────────────────────────────────────────────
 
+/**
+ * Draw an isometric person.
+ * @param walkPhase 0..1 for walking animation (leg swing). -1 = standing still.
+ * @param facingAway true = three-quarter back view (walking away from camera)
+ */
 export function drawIsoPerson(
     g: Phaser.GameObjects.Graphics,
     sx: number,
     sy: number,
     scale: number = 1,
     clothColor: number = 0x7a5a38,
+    walkPhase: number = -1,
+    facingAway: boolean = false,
 ): void {
     const s = scale;
+    // Walking leg swing: convert phase (0..1) to offset
+    const walking = walkPhase >= 0;
+    const legSwing = walking ? Math.sin(walkPhase * Math.PI * 2) * 4 * s : 0;
+    const armSwing = walking ? Math.sin(walkPhase * Math.PI * 2) * 3 * s : 0;
+    const bob = walking ? Math.abs(Math.sin(walkPhase * Math.PI * 2)) * 1.5 * s : 0;
+    const bodyY = sy - bob; // slight vertical bounce
 
     // Shadow
     g.fillStyle(0x000000, 0.15);
-    g.fillEllipse(sx + 1 * s, sy + 4 * s, 14 * s, 7 * s);
+    g.fillEllipse(sx + 1 * s, bodyY + 4 * s, 14 * s, 7 * s);
 
-    // Boots
+    // Back leg boot
     g.fillStyle(0x2a1808);
-    g.fillEllipse(sx - 3 * s, sy + 2 * s, 5 * s, 4 * s);
-    g.fillEllipse(sx + 3 * s, sy + 2 * s, 5 * s, 4 * s);
+    g.fillEllipse(sx - 3 * s - legSwing * 0.5, bodyY + 2 * s, 5 * s, 4 * s);
+    // Back leg
+    g.fillStyle(0x3a2818);
+    g.fillRect(sx - 5 * s - legSwing * 0.5, bodyY - 8 * s, 4 * s, 11 * s);
 
-    // Legs (trousers)
+    // Front leg boot
+    g.fillStyle(0x2a1808);
+    g.fillEllipse(sx + 3 * s + legSwing * 0.5, bodyY + 2 * s, 5 * s, 4 * s);
+    // Front leg
     g.fillStyle(0x4a3828);
-    g.fillRect(sx - 5 * s, sy - 8 * s, 4 * s, 11 * s);
-    g.fillRect(sx + 1 * s, sy - 8 * s, 4 * s, 11 * s);
+    g.fillRect(sx + 1 * s + legSwing * 0.5, bodyY - 8 * s, 4 * s, 11 * s);
 
     // Torso
     g.fillStyle(clothColor);
     g.fillPoints([
-        { x: sx - 6 * s, y: sy - 8 * s },
-        { x: sx - 7 * s, y: sy - 20 * s },
-        { x: sx + 7 * s, y: sy - 20 * s },
-        { x: sx + 6 * s, y: sy - 8 * s },
+        { x: sx - 6 * s, y: bodyY - 8 * s },
+        { x: sx - 7 * s, y: bodyY - 20 * s },
+        { x: sx + 7 * s, y: bodyY - 20 * s },
+        { x: sx + 6 * s, y: bodyY - 8 * s },
     ], true);
 
     // Belt
     g.fillStyle(0x2a1808);
-    g.fillRect(sx - 6 * s, sy - 9 * s, 12 * s, 2 * s);
+    g.fillRect(sx - 6 * s, bodyY - 9 * s, 12 * s, 2 * s);
 
-    // Belt buckle
-    g.fillStyle(0xc8a040);
-    g.fillRect(sx - 1 * s, sy - 10 * s, 2 * s, 3 * s);
+    if (!facingAway) {
+        // Belt buckle (only visible from front)
+        g.fillStyle(0xc8a040);
+        g.fillRect(sx - 1 * s, bodyY - 10 * s, 2 * s, 3 * s);
+    }
 
-    // Arms
+    // Arms — swing opposite to legs
     const darkerCloth = clothColor - 0x101010;
     g.fillStyle(darkerCloth > 0 ? darkerCloth : clothColor);
-    // Left arm (angled slightly out)
+    // Left arm
     g.fillPoints([
-        { x: sx - 7 * s, y: sy - 19 * s },
-        { x: sx - 10 * s, y: sy - 10 * s },
-        { x: sx - 7 * s, y: sy - 10 * s },
+        { x: sx - 7 * s, y: bodyY - 19 * s },
+        { x: sx - 10 * s + armSwing, y: bodyY - 10 * s },
+        { x: sx - 7 * s, y: bodyY - 10 * s },
     ], true);
     // Right arm
     g.fillPoints([
-        { x: sx + 7 * s, y: sy - 19 * s },
-        { x: sx + 10 * s, y: sy - 10 * s },
-        { x: sx + 7 * s, y: sy - 10 * s },
+        { x: sx + 7 * s, y: bodyY - 19 * s },
+        { x: sx + 10 * s - armSwing, y: bodyY - 10 * s },
+        { x: sx + 7 * s, y: bodyY - 10 * s },
     ], true);
 
     // Hands
     g.fillStyle(0xd4956a);
-    g.fillCircle(sx - 9 * s, sy - 9 * s, 2 * s);
-    g.fillCircle(sx + 9 * s, sy - 9 * s, 2 * s);
+    g.fillCircle(sx - 9 * s + armSwing, bodyY - 9 * s, 2 * s);
+    g.fillCircle(sx + 9 * s - armSwing, bodyY - 9 * s, 2 * s);
 
     // Neck
-    g.fillStyle(0xd4956a);
-    g.fillRect(sx - 2 * s, sy - 23 * s, 4 * s, 4 * s);
+    g.fillStyle(facingAway ? 0xc08050 : 0xd4956a);
+    g.fillRect(sx - 2 * s, bodyY - 23 * s, 4 * s, 4 * s);
 
     // Head
-    g.fillStyle(0xd4956a);
-    g.fillCircle(sx, sy - 27 * s, 6 * s);
+    g.fillStyle(facingAway ? 0xc08050 : 0xd4956a);
+    g.fillCircle(sx, bodyY - 27 * s, 6 * s);
 
-    // Eyes
-    g.fillStyle(0x1a0e04);
-    g.fillCircle(sx - 2 * s, sy - 28 * s, 1 * s);
-    g.fillCircle(sx + 2 * s, sy - 28 * s, 1 * s);
+    if (facingAway) {
+        // Back of head — hair
+        g.fillStyle(0x3a2210);
+        g.fillCircle(sx, bodyY - 27 * s, 5.5 * s);
+    } else {
+        // Eyes
+        g.fillStyle(0x1a0e04);
+        g.fillCircle(sx - 2 * s, bodyY - 28 * s, 1 * s);
+        g.fillCircle(sx + 2 * s, bodyY - 28 * s, 1 * s);
+    }
 
     // Hat brim
     g.fillStyle(0x3a2510);
-    g.fillEllipse(sx, sy - 32 * s, 14 * s, 5 * s);
+    g.fillEllipse(sx, bodyY - 32 * s, 14 * s, 5 * s);
     // Hat crown
     g.fillStyle(0x4a3218);
     g.fillPoints([
-        { x: sx - 5 * s, y: sy - 32 * s },
-        { x: sx - 4 * s, y: sy - 38 * s },
-        { x: sx + 4 * s, y: sy - 38 * s },
-        { x: sx + 5 * s, y: sy - 32 * s },
+        { x: sx - 5 * s, y: bodyY - 32 * s },
+        { x: sx - 4 * s, y: bodyY - 38 * s },
+        { x: sx + 4 * s, y: bodyY - 38 * s },
+        { x: sx + 5 * s, y: bodyY - 32 * s },
     ], true);
     // Hat band
     g.fillStyle(0xc8a040);
-    g.fillRect(sx - 5 * s, sy - 33 * s, 10 * s, 1.5 * s);
+    g.fillRect(sx - 5 * s, bodyY - 33 * s, 10 * s, 1.5 * s);
 }
 
 // ─── Isometric Tree ──────────────────────────────────────────────────────────

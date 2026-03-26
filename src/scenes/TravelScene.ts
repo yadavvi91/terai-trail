@@ -271,12 +271,10 @@ export class TravelScene extends Scene {
     }
 
     private redrawWagon(dt: number = 0): void {
-        // Walking frame toggle
+        // Smooth walk cycle: walkTimer accumulates ms, phase = 0..1
         this.walkTimer += dt;
-        if (this.walkTimer > 280) {
-            this.walkFrame = this.walkFrame === 0 ? 1 : 0;
-            this.walkTimer = 0;
-        }
+        const walkCycleMs = 600; // one full stride
+        const walkPhase = (this.walkTimer % walkCycleMs) / walkCycleMs;
 
         this.wagonG.clear();
         // Wagon on the iso trail — traveling up-right (into the distance)
@@ -291,12 +289,15 @@ export class TravelScene extends Scene {
         // Wagon
         drawIsoWagon(this.wagonG, wx, wy, 1.0);
 
-        // Party members walking behind wagon (down-left = behind)
+        // Party members walking behind wagon (down-left = behind, facing away)
         const gs = GameState.getInstance();
         const alive = gs.party.filter(m => m.status !== MemberStatus.DEAD).length;
         const personColors = [0x8a4428, 0x2a4a7a, 0x6a5830, 0x7a2a4a, 0x3a6a3a];
+        const isWalking = gs.pace !== Pace.STOPPED;
         for (let i = 0; i < Math.min(alive, 5); i++) {
-            drawIsoPerson(this.wagonG, wx - 28 - i * 18, wy + 8 + i * 9, 0.7, personColors[i]);
+            // Each person has a slightly offset walk phase for natural look
+            const phase = isWalking ? (walkPhase + i * 0.2) % 1.0 : -1;
+            drawIsoPerson(this.wagonG, wx - 28 - i * 18, wy + 8 + i * 9, 0.7, personColors[i], phase, true);
         }
     }
 
