@@ -376,6 +376,117 @@ export class SoundManager {
         sub.stop(now + duration + 0.01);
     }
 
+    // ─── Game Over Music ──────────────────────────────────────────────────────
+
+    /** Funeral organ dirge — slow, somber organ chords */
+    playFuneralOrgan(): void {
+        if (!this.ctx || this.muted) return;
+        this.init();
+        const ctx = this.ctx!;
+        const now = ctx.currentTime;
+
+        // Organ-like tone: layered sine waves with slight detuning
+        const playOrganChord = (freqs: number[], startTime: number, dur: number, vol: number) => {
+            freqs.forEach((freq, i) => {
+                // Fundamental
+                const osc = ctx.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now + startTime);
+
+                // Slight vibrato for organ warmth
+                const vibrato = ctx.createOscillator();
+                vibrato.type = 'sine';
+                vibrato.frequency.setValueAtTime(5);
+                const vibratoGain = ctx.createGain();
+                vibratoGain.gain.setValueAtTime(2, now + startTime);
+                vibrato.connect(vibratoGain).connect(osc.frequency);
+                vibrato.start(now + startTime);
+                vibrato.stop(now + startTime + dur + 0.5);
+
+                // 2nd harmonic for organ character
+                const harm = ctx.createOscillator();
+                harm.type = 'sine';
+                harm.frequency.setValueAtTime(freq * 2, now + startTime);
+
+                const gain = ctx.createGain();
+                const harmGain = ctx.createGain();
+
+                // Slow swell and release like a pipe organ
+                gain.gain.setValueAtTime(0.001, now + startTime);
+                gain.gain.linearRampToValueAtTime(vol, now + startTime + 0.3);
+                gain.gain.setValueAtTime(vol, now + startTime + dur - 0.4);
+                gain.gain.linearRampToValueAtTime(0.001, now + startTime + dur);
+
+                harmGain.gain.setValueAtTime(0.001, now + startTime);
+                harmGain.gain.linearRampToValueAtTime(vol * 0.3, now + startTime + 0.3);
+                harmGain.gain.exponentialRampToValueAtTime(0.001, now + startTime + dur);
+
+                osc.connect(gain).connect(ctx.destination);
+                harm.connect(harmGain).connect(ctx.destination);
+                osc.start(now + startTime);
+                osc.stop(now + startTime + dur + 0.1);
+                harm.start(now + startTime);
+                harm.stop(now + startTime + dur + 0.1);
+            });
+        };
+
+        // Slow funeral dirge in D minor — each chord held long
+        const vol = 0.06;
+        const beat = 1.8;
+        // Dm chord (D3, F3, A3)
+        playOrganChord([147, 175, 220], 0, beat, vol);
+        // Gm chord (G3, Bb3, D4)
+        playOrganChord([196, 233, 294], beat, beat, vol);
+        // A chord (A3, C#4, E4) — dominant, tense
+        playOrganChord([220, 277, 330], beat * 2, beat, vol);
+        // Dm chord again — resolution
+        playOrganChord([147, 175, 220], beat * 3, beat * 1.5, vol);
+        // Final low D — deep rumble
+        playOrganChord([73.5, 147], beat * 4.5, beat * 2, vol * 0.8);
+    }
+
+    /** Victory fanfare — triumphant brass-like melody */
+    playVictoryFanfare(): void {
+        if (!this.ctx || this.muted) return;
+        this.init();
+        const ctx = this.ctx!;
+        const now = ctx.currentTime;
+
+        // Bright brass-like tone: sawtooth through lowpass filter
+        const playBrass = (freq: number, start: number, dur: number, vol: number) => {
+            const osc = ctx.createOscillator();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(freq, now + start);
+
+            const filter = ctx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(freq * 4, now + start);
+            filter.Q.setValueAtTime(1, now + start);
+
+            const gain = ctx.createGain();
+            gain.gain.setValueAtTime(0.001, now + start);
+            gain.gain.linearRampToValueAtTime(vol, now + start + 0.03);
+            gain.gain.setValueAtTime(vol, now + start + dur * 0.7);
+            gain.gain.linearRampToValueAtTime(0.001, now + start + dur);
+
+            osc.connect(filter).connect(gain).connect(ctx.destination);
+            osc.start(now + start);
+            osc.stop(now + start + dur + 0.1);
+        };
+
+        const vol = 0.1;
+        // C major fanfare: C-E-G-C ascending, then triumphant phrase
+        playBrass(262, 0, 0.25, vol);       // C4
+        playBrass(330, 0.3, 0.25, vol);     // E4
+        playBrass(392, 0.6, 0.25, vol);     // G4
+        playBrass(523, 0.9, 0.5, vol);      // C5 (hold)
+        // Second phrase — descending heroic
+        playBrass(494, 1.5, 0.2, vol);      // B4
+        playBrass(523, 1.75, 0.2, vol);     // C5
+        playBrass(587, 2.0, 0.8, vol * 1.2); // D5 (triumphant hold)
+        playBrass(523, 2.9, 1.0, vol);      // C5 (final resolve)
+    }
+
     // ─── Utility ─────────────────────────────────────────────────────────────
 
     private playTone(freq: number, duration: number, type: OscillatorType, volume: number): void {

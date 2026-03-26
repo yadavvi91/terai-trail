@@ -22,10 +22,11 @@ export class GameOverScene extends Scene {
         victory ? this.buildVictoryScreen(gs) : this.buildDeathScreen(gs);
 
         const sm = SoundManager.getInstance();
+        sm.stopTrailMusic();
         if (victory) {
-            sm.playGoodEvent();
+            sm.playVictoryFanfare();
         } else {
-            sm.playBadEvent();
+            sm.playFuneralOrgan();
         }
 
         addMuteButton(this);
