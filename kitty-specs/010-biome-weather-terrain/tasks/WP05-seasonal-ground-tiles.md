@@ -1,7 +1,7 @@
 ---
 work_package_id: WP05
 title: Seasonal Ground Tile Colors
-lane: "doing"
+lane: "for_review"
 dependencies: [WP01, WP02]
 base_branch: 010-biome-weather-terrain-WP05-merge-base
 base_commit: a541079ab3db5197f5833422ecfd7ea1b5a5d6e7
@@ -242,3 +242,4 @@ if (newSeason !== this.currentSeason) {
 
 - 2026-03-26T19:48:26Z – system – lane=planned – Prompt created.
 - 2026-03-26T20:47:19Z – claude – shell_pid=29676 – lane=doing – Assigned agent via workflow command
+- 2026-03-26T20:48:56Z – claude – shell_pid=29676 – lane=for_review – Ready for review: drawGroundTiles extracted, SEASON_GRASS_ALT colors, refreshGroundLayers, dailyTick hook.
