@@ -1,8 +1,11 @@
 ---
 work_package_id: WP04
 title: Weather Particle System (Rain, Snow, Heat Shimmer)
-lane: planned
+lane: "doing"
 dependencies: [WP01]
+base_branch: 010-biome-weather-terrain-WP01
+base_commit: 590e56f99d77c0cc6ef92e72ca9cdff7f8d281b4
+created_at: '2026-03-26T20:44:57.306251+00:00'
 subtasks:
 - T016
 - T017
@@ -12,7 +15,7 @@ subtasks:
 phase: Phase 2 - Core Rendering
 assignee: ''
 agent: ''
-shell_pid: ''
+shell_pid: "5795"
 review_status: ''
 reviewed_by: ''
 history:
