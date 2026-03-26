@@ -233,11 +233,6 @@ export class TravelScene extends Scene {
         }
     }
 
-    // DEPRECATED — use drawMountainLayerForBiome
-    private drawMountainLayer(g: Phaser.GameObjects.Graphics, offsetX: number): void {
-        this.drawMountainLayerForBiome(g, offsetX, Biome.MOUNTAINS);
-    }
-
     private drawMountainLayerForBiome(g: Phaser.GameObjects.Graphics, offsetX: number, biome: Biome): void {
         const back = BIOME_COLORS.MOUNTAIN_BACK[biome];
         const front = BIOME_COLORS.MOUNTAIN_FRONT[biome];
@@ -337,10 +332,6 @@ export class TravelScene extends Scene {
             g.closePath();
             g.fillPath();
         }
-    }
-
-    private drawHillLayer(g: Phaser.GameObjects.Graphics, offsetX: number): void {
-        this.drawHillLayerForBiome(g, offsetX, Biome.MOUNTAINS, Season.SPRING);
     }
 
     private drawHillLayerForBiome(g: Phaser.GameObjects.Graphics, offsetX: number, biome: Biome, _season: Season): void {
