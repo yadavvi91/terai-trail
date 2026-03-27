@@ -9,7 +9,7 @@ import { getBiome, getSeason, getMountainAlpha } from '../utils/biome';
 import { GameState } from '../game/GameState';
 import { getNextLandmark } from '../game/TrailData';
 import { drawTree, drawHill, drawCloud, drawSun } from '../ui/DrawUtils';
-import { drawIsoWagon, drawIsoOx, drawIsoPerson, drawIsoTree } from '../ui/IsoDrawUtils';
+import { drawIsoWagon, drawIsoOx, drawIsoPerson, drawIsoTree, PioneerRole } from '../ui/IsoDrawUtils';
 import { TILE_WIDTH, TILE_HEIGHT, drawIsoTile } from '../utils/isometric';
 import { addMuteButton } from '../ui/MuteButton';
 import { SoundManager } from '../audio/SoundManager';
@@ -681,7 +681,9 @@ export class TravelScene extends Scene {
 
     private buildWagon(): void {
         this.dustG = this.add.graphics();
+        this.dustG.setDepth(7);
         this.wagonG = this.add.graphics();
+        this.wagonG.setDepth(8);
         this.redrawWagon();
     }
 
@@ -699,23 +701,28 @@ export class TravelScene extends Scene {
         const wx = GAME_WIDTH / 2 + 230;   // 742
         const wy = GROUND_Y - 125;          // 563  → 742 + 2*563 = 1868 ✓
 
-        // Oxen ahead of wagon (up-right = traveling into the distance)
-        drawIsoOx(this.wagonG, wx + 52, wy - 26, 1.0);
-        drawIsoOx(this.wagonG, wx + 38, wy - 18, 1.0);
+        // Oxen ahead of wagon — side by side (yoked pair)
+        // Same distance along trail, offset perpendicular to trail direction.
+        // Trail runs upper-right (+x, -0.5y). Perpendicular is (+x, +0.5y).
+        const oxAheadX = wx + 48;
+        const oxAheadY = wy - 24;
+        const oxPhase = this.paused ? 0 : walkPhase;
+        drawIsoOx(this.wagonG, oxAheadX - 7, oxAheadY - 4, 1.0, oxPhase);        // left ox
+        drawIsoOx(this.wagonG, oxAheadX + 7, oxAheadY + 4, 1.0, oxPhase + 0.5);  // right ox (opposite phase)
 
         // Wagon
         drawIsoWagon(this.wagonG, wx, wy, 1.0);
 
         // Party members walking behind wagon (down-left = behind, facing away)
+        // 1850s pioneer family: father, mother, then children
         const gs = GameState.getInstance();
         const alive = gs.party.filter(m => m.status !== MemberStatus.DEAD).length;
-        const personColors = [0x8a4428, 0x2a4a7a, 0x6a5830, 0x7a2a4a, 0x3a6a3a];
+        const personColors = [0x8a4428, 0x5a3a70, 0x6a5830, 0x7a2a4a, 0x3a6a3a];
+        const roles: PioneerRole[] = ['father', 'mother', 'child', 'child', 'child'];
         const isWalking = gs.pace !== Pace.STOPPED;
         for (let i = 0; i < Math.min(alive, 5); i++) {
-            // Each person has a slightly offset walk phase for natural look
             const phase = isWalking ? (walkPhase + i * 0.2) % 1.0 : -1;
-            // Offset follows trail direction (-2:1) so people stay on the road
-            drawIsoPerson(this.wagonG, wx - 24 - i * 14, wy + 12 + i * 7, 0.7, personColors[i], phase, true);
+            drawIsoPerson(this.wagonG, wx - 24 - i * 14, wy + 12 + i * 7, 0.7, personColors[i], phase, true, roles[i]);
         }
     }
 
