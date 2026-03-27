@@ -109,7 +109,8 @@ export class TravelScene extends Scene {
         this.buildParallax();
         this.buildGroundAndTrail();
         this.buildWagon();
-        this.weatherParticleG = this.add.graphics();  // above parallax, below HUD
+        this.weatherParticleG = this.add.graphics();
+        this.weatherParticleG.setDepth(9);  // above ground, below HUD
         this.buildHUD();
         this.buildControls();
 
@@ -135,9 +136,11 @@ export class TravelScene extends Scene {
     private buildSky(): void {
         // Dynamic sky gradient via Graphics (replaces static add.rectangle() strips)
         this.skyG = this.add.graphics();
+        this.skyG.setDepth(0);
         this.drawSkyGradient(this.currentWeather, this.currentBiome);
 
         this.sunG = this.add.graphics();
+        this.sunG.setDepth(8.5);  // above hills/mountains so sun is never covered
         drawSun(this.sunG, GAME_WIDTH - 110, 80, 42);
 
         // Clouds — dense overcast in bad weather, scattered in good weather.
@@ -298,8 +301,11 @@ export class TravelScene extends Scene {
 
     // Vertical-to-horizontal scroll ratios for parallax layers
     // Smaller than ground's 0.5 to keep distant layers visually stable
-    private static readonly MTN_Y_RATIO = 0.06;
-    private static readonly HILL_Y_RATIO = 0.15;
+    private static readonly MTN_Y_RATIO  = 0.50;  // match isometric 2:1 tile slope
+    private static readonly HILL_Y_RATIO = 0.50;  // match isometric 2:1 tile slope
+
+    // Hill scroll speed — close to ground (1.0) since hills are the nearest parallax layer
+    private static readonly HILL_SCROLL_SPEED = 1.0;  // same as ground tiles — hills are terrain, not distant parallax
 
     private buildParallax(): void {
         // Far mountains — 2 sets tiled diagonally for seamless isometric scroll
@@ -319,7 +325,7 @@ export class TravelScene extends Scene {
             const baseX = pass * hillW;
             const baseY = -pass * hillW * TravelScene.HILL_Y_RATIO;
             this.drawHillLayerForBiome(g, baseX, this.currentBiome, this.currentSeason);
-            this.hillLayers.push({ g, baseX, baseY, width: hillW, speed: 0.55 });
+            this.hillLayers.push({ g, baseX, baseY, width: hillW, speed: TravelScene.HILL_SCROLL_SPEED });
         }
     }
 
