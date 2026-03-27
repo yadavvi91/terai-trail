@@ -1,0 +1,23 @@
+src/scenes/TravelScene.ts
+  9e62d1cbd7d80ef0 112-113,139,143,304-308,328
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.20",
+  "base_commit_sha": "3fa43cd317bd8161edbe70b4cd238154c3ca867f",
+  "prompts": {
+    "9e62d1cbd7d80ef0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97fe22b2-39d1-4a09-a3ee-fc4158cb49db",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 10,
+      "total_deletions": 4,
+      "accepted_lines": 10,
+      "overriden_lines": 0
+    }
+  }
+}
