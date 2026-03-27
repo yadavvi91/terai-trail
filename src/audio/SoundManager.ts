@@ -396,7 +396,7 @@ export class SoundManager {
                 // Slight vibrato for organ warmth
                 const vibrato = ctx.createOscillator();
                 vibrato.type = 'sine';
-                vibrato.frequency.setValueAtTime(5);
+                vibrato.frequency.setValueAtTime(5, now + startTime);
                 const vibratoGain = ctx.createGain();
                 vibratoGain.gain.setValueAtTime(2, now + startTime);
                 vibrato.connect(vibratoGain).connect(osc.frequency);
