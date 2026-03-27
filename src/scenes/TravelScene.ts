@@ -594,8 +594,11 @@ export class TravelScene extends Scene {
         // Isometric tile ground — scrolling diamond grid
         // Trail runs along row ≈ middleRow; formula flipped so trail goes BL → TR on screen
         const cols = 28;
+        const rows = 24;
         const tileH = TILE_HEIGHT;
-        const middleRow = Math.floor(10 / 2);
+        // middleRow = 18 places the dirt trail at the wagon's screen position,
+        // with 18 rows (0-17) extending toward the horizon and 5 rows (19-23) near the viewer.
+        const middleRow = 18;
 
         // Wrap distance: one full copy's width along the iso diagonal
         const wrapDX = cols * TILE_WIDTH / 2;   // screen-X span of one copy
@@ -605,25 +608,47 @@ export class TravelScene extends Scene {
         const originX = GAME_WIDTH / 2 + 100;
         const originY = GROUND_Y - middleRow * tileH - 60;
 
-        for (let pass = 0; pass < 2; pass++) {
+        // 3 copies for full diagonal coverage — ensures the screen is always
+        // filled even as tiles scroll. Hills (depth 6) sit ON TOP and create
+        // the natural diagonal horizon edge.
+        for (let pass = 0; pass < 3; pass++) {
             const g = this.add.graphics();
+            g.setDepth(5);   // below hills (6) which cover them at the horizon
             this.drawGroundTiles(g, this.currentSeason);
 
-            // Position each copy: offset diagonally along the flipped iso axis
+            // Position each copy: offset diagonally along the iso scroll axis
             const bx = originX - pass * wrapDX;
             const by = originY + pass * wrapDY;
             g.setPosition(bx, by);
 
             this.groundLayers.push({ g, baseX: bx, baseY: by, width: wrapDX, speed: 1.0 });
         }
+
+        // Diagonal mask — slope 0.5, positioned at the hill baseline.
+        // Ground tiles only appear below this line. Hills (depth 6) sit
+        // on top of ground tiles and create the visible diagonal edge.
+        // Sun/clouds are at depth 8.5+ so they're never covered.
+        const groundMaskG = this.add.graphics();
+        const extend = 800;
+        const maskSlope = 0.5;
+        const maskAtZero = HORIZON_Y + 60; // hill baseline at x=0
+        groundMaskG.beginPath();
+        groundMaskG.moveTo(-extend, maskAtZero + extend * maskSlope);
+        groundMaskG.lineTo(GAME_WIDTH + extend, maskAtZero - (GAME_WIDTH + extend) * maskSlope);
+        groundMaskG.lineTo(GAME_WIDTH + extend, GAME_HEIGHT + extend);
+        groundMaskG.lineTo(-extend, GAME_HEIGHT + extend);
+        groundMaskG.closePath();
+        groundMaskG.fillPath();
+        const groundMask = groundMaskG.createGeometryMask();
+        this.groundLayers.forEach(l => l.g.setMask(groundMask));
     }
 
     private drawGroundTiles(g: Phaser.GameObjects.Graphics, season: Season): void {
         const cols = 28;
-        const rows = 10;
+        const rows = 24;
         const tileW = TILE_WIDTH;
         const tileH = TILE_HEIGHT;
-        const middleRow = Math.floor(rows / 2);
+        const middleRow = 18;
 
         const grassColors = BIOME_COLORS.SEASON_GRASS_ALT[season];
         const flowerColors = [0xffdd44, 0xff8844, 0xff6644];
@@ -637,16 +662,16 @@ export class TravelScene extends Scene {
                 const isTrailEdge = Math.abs(row - middleRow) === 2;
 
                 if (isTrail) {
-                    drawIsoTile(g, sx, sy, 0x9e7b3a);  // UNCHANGED — dirt
+                    drawIsoTile(g, sx, sy, 0x9e7b3a);
                     if (row === middleRow) {
                         drawIsoTile(g, sx, sy, 0x6a4e20, 0.4, tileW * 0.5, tileH * 0.5);
                     }
                 } else if (isTrailEdge) {
-                    drawIsoTile(g, sx, sy, 0x4a8030);   // UNCHANGED — trail edge
+                    drawIsoTile(g, sx, sy, 0x4a8030);
                     drawIsoTile(g, sx, sy, 0x7a6830, 0.3, tileW * 0.7, tileH * 0.7);
                 } else {
-                    const ci = (col * 7 + row * 13) % grassColors.length;
-                    drawIsoTile(g, sx, sy, grassColors[ci]);
+                    // Uniform green — no checkerboard on grass, only the trail has it
+                    drawIsoTile(g, sx, sy, grassColors[0]);
                     if ((col * 3 + row * 7) % 11 === 0) {
                         g.fillStyle(flowerColors[(col + row) % 3], 0.8);
                         g.fillCircle(sx, sy - 2, 2.5);
@@ -655,12 +680,23 @@ export class TravelScene extends Scene {
             }
         }
 
-        // Trees alongside the trail (keep existing positions and logic unchanged)
+        // Trees scattered across the ground (near trail and in distance)
         const treeOffsets = [
-            [3, 0], [7, 0], [12, 0], [18, 0], [24, 0],
+            // Near side of trail (rows > middleRow)
             [3, rows - 1], [8, rows - 1], [14, rows - 1], [20, rows - 1], [25, rows - 1],
-            [5, 1], [10, 1], [16, 1], [22, 1],
             [6, rows - 2], [11, rows - 2], [17, rows - 2], [23, rows - 2],
+            [4, rows - 3], [9, rows - 3], [15, rows - 3], [21, rows - 3],
+            // Far side of trail — close to trail (rows just below middleRow)
+            [3, middleRow - 3], [7, middleRow - 3], [14, middleRow - 3], [20, middleRow - 3], [25, middleRow - 3],
+            [5, middleRow - 4], [10, middleRow - 4], [17, middleRow - 4], [23, middleRow - 4],
+            [4, middleRow - 5], [9, middleRow - 5], [15, middleRow - 5], [22, middleRow - 5],
+            [6, middleRow - 6], [13, middleRow - 6], [19, middleRow - 6], [26, middleRow - 6],
+            // Mid-distance far side (toward horizon)
+            [5, middleRow - 8], [12, middleRow - 8], [19, middleRow - 8],
+            [7, middleRow - 10], [14, middleRow - 10], [22, middleRow - 10],
+            [4, middleRow - 12], [11, middleRow - 12], [18, middleRow - 12],
+            // Near mid-distance
+            [7, middleRow + 3], [14, middleRow + 3], [22, middleRow + 3],
         ];
         treeOffsets.forEach(([col, row]) => {
             const tsx = (row - col) * (tileW / 2);
