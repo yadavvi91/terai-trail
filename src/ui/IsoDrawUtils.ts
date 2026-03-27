@@ -186,55 +186,108 @@ export function drawIsoOx(
     sx: number,
     sy: number,
     scale: number = 1,
+    animFrame: number = 0,  // 0-1 walk cycle phase
 ): void {
     const s = scale;
 
+    // Ox oriented along the isometric trail (upper-right direction).
+    const bodyLen = 9 * s;   // half-length (shorter, stockier ox)
+    const bodyWid = 6 * s;
+
+    const headX = sx + bodyLen;
+    const headY = sy - bodyLen * 0.5;
+    const rumpX = sx - bodyLen;
+    const rumpY = sy + bodyLen * 0.5;
+
     // Shadow
     g.fillStyle(0x000000, 0.15);
-    g.fillEllipse(sx + 2 * s, sy + 6 * s, 28 * s, 10 * s);
+    g.fillEllipse(sx + 2 * s, sy + 5 * s, bodyLen * 2.2, bodyWid * 1.2);
 
-    // Body — isometric ellipse (viewed from above-side)
+    // Legs — animated walk cycle (front and rear pairs alternate)
+    const legW = 2.5 * s;
+    const legH = 7 * s;
+    const swing = Math.sin(animFrame * Math.PI * 2) * 3 * s; // leg swing amount
+    g.fillStyle(0x3d2a08);
+    // Rear near leg — at rump, tucked under body edge
+    const rnx = rumpX + 2 * s, rny = rumpY + bodyWid * 0.1;
+    g.fillRect(rnx + swing * 0.5, rny, legW, legH);
+    // Rear far leg (opposite phase, slightly behind)
+    g.fillRect(rnx + 5 * s - swing * 0.5, rny - 2.5 * s, legW, legH);
+    // Front near leg — at head end
+    const fnx = headX - 5 * s, fny = headY + bodyWid * 0.1;
+    g.fillRect(fnx - swing * 0.5, fny, legW, legH);
+    // Front far leg (opposite phase)
+    g.fillRect(fnx + 5 * s + swing * 0.5, fny - 2.5 * s, legW, legH);
+    // Hooves
+    g.fillStyle(0x1a0e04);
+    g.fillRect(rnx + swing * 0.5, rny + legH, legW, 2 * s);
+    g.fillRect(rnx + 5 * s - swing * 0.5, rny - 2.5 * s + legH, legW, 2 * s);
+    g.fillRect(fnx - swing * 0.5, fny + legH, legW, 2 * s);
+    g.fillRect(fnx + 5 * s + swing * 0.5, fny - 2.5 * s + legH, legW, 2 * s);
+
+    // Body — tapered: wider at rump, narrower at neck/head
+    const rumpWid = bodyWid * 1.3;  // back is broader
+    const neckWid = bodyWid * 0.8;  // neck area is narrower
     g.fillStyle(0x6b4c20);
-    g.fillEllipse(sx, sy - 4 * s, 26 * s, 14 * s);
+    g.fillPoints([
+        { x: rumpX,     y: rumpY - rumpWid },      // rump top
+        { x: headX,     y: headY - neckWid },       // head top
+        { x: headX,     y: headY + neckWid * 0.3 }, // head bottom
+        { x: rumpX,     y: rumpY + rumpWid * 0.3 }, // rump bottom
+    ], true);
 
-    // Hump
+    // Body highlight (top surface, lit from above)
+    g.fillStyle(0x7a5c30, 0.5);
+    g.fillPoints([
+        { x: rumpX + 2 * s, y: rumpY - rumpWid + 1 * s },
+        { x: headX - 2 * s, y: headY - neckWid + 1 * s },
+        { x: headX - 2 * s, y: headY - neckWid * 0.3 },
+        { x: rumpX + 2 * s, y: rumpY - rumpWid * 0.3 },
+    ], true);
+
+    // Hump (near shoulders/neck — shifted toward head end)
+    const humpX = sx + bodyLen * 0.5;
+    const humpY = sy - bodyLen * 0.25 - bodyWid - 2 * s;
     g.fillStyle(0x7a5c30);
-    g.fillEllipse(sx - 4 * s, sy - 10 * s, 12 * s, 8 * s);
+    g.fillEllipse(humpX, humpY, 9 * s, 5 * s);
 
-    // Head (angled forward-right in iso)
+    // Head — at the head end, angled forward-up
     g.fillStyle(0x6b4c20);
-    g.fillEllipse(sx + 12 * s, sy + 2 * s, 12 * s, 10 * s);
+    g.fillEllipse(headX + 4 * s, headY - 4 * s, 10 * s, 8 * s);
 
     // Horns
     g.fillStyle(0xe8d080);
     g.fillTriangle(
-        sx + 10 * s, sy - 4 * s,
-        sx + 7 * s,  sy - 12 * s,
-        sx + 14 * s, sy - 4 * s,
+        headX + 2 * s,  headY - 8 * s,
+        headX - 1 * s,  headY - 14 * s,
+        headX + 6 * s,  headY - 10 * s,
     );
 
     // Eye
     g.fillStyle(0x1a0e04);
-    g.fillCircle(sx + 14 * s, sy - 1 * s, 1.5 * s);
+    g.fillCircle(headX + 6 * s, headY - 5 * s, 1.5 * s);
 
-    // Legs (visible from iso angle)
+    // Tail — at rump end
+    g.lineStyle(1.5 * s, 0x4a3010);
+    g.beginPath();
+    g.moveTo(rumpX, rumpY);
+    g.lineTo(rumpX - 6 * s, rumpY + 4 * s);
+    g.strokePath();
+    // Tail tuft
     g.fillStyle(0x3d2a08);
-    g.fillRect(sx - 8 * s, sy + 2 * s, 4 * s, 8 * s);
-    g.fillRect(sx - 2 * s, sy + 2 * s, 4 * s, 7 * s);
-    g.fillRect(sx + 4 * s, sy + 3 * s, 4 * s, 7 * s);
-    g.fillRect(sx + 10 * s, sy + 4 * s, 4 * s, 6 * s);
-
-    // Tail
-    g.fillStyle(0x6b4c20);
-    g.fillRect(sx - 14 * s, sy - 2 * s, 2 * s, 8 * s);
+    g.fillCircle(rumpX - 6 * s, rumpY + 4 * s, 2 * s);
 }
 
 // ─── Isometric Person ────────────────────────────────────────────────────────
 
+/** Pioneer role for visual differentiation */
+export type PioneerRole = 'father' | 'mother' | 'child';
+
 /**
- * Draw an isometric person.
- * @param walkPhase 0..1 for walking animation (leg swing). -1 = standing still.
- * @param facingAway true = three-quarter back view (walking away from camera)
+ * Draw an isometric pioneer.  Role determines hat style, proportions, clothing:
+ *  - father: wide-brim frontier hat, suspenders, taller
+ *  - mother: bonnet, long dress/skirt
+ *  - child:  smaller, simple cap or bare-headed
  */
 export function drawIsoPerson(
     g: Phaser.GameObjects.Graphics,
@@ -244,32 +297,45 @@ export function drawIsoPerson(
     clothColor: number = 0x7a5a38,
     walkPhase: number = -1,
     facingAway: boolean = false,
+    role: PioneerRole = 'father',
 ): void {
-    const s = scale;
-    // Walking leg swing: convert phase (0..1) to offset
+    const isChild = role === 'child';
+    const s = scale * (isChild ? 0.7 : 1); // children are smaller
     const walking = walkPhase >= 0;
     const legSwing = walking ? Math.sin(walkPhase * Math.PI * 2) * 4 * s : 0;
     const armSwing = walking ? Math.sin(walkPhase * Math.PI * 2) * 3 * s : 0;
     const bob = walking ? Math.abs(Math.sin(walkPhase * Math.PI * 2)) * 1.5 * s : 0;
-    const bodyY = sy - bob; // slight vertical bounce
+    const bodyY = sy - bob;
 
     // Shadow
     g.fillStyle(0x000000, 0.15);
     g.fillEllipse(sx + 1 * s, bodyY + 4 * s, 14 * s, 7 * s);
 
-    // Back leg boot
-    g.fillStyle(0x2a1808);
-    g.fillEllipse(sx - 3 * s - legSwing * 0.5, bodyY + 2 * s, 5 * s, 4 * s);
-    // Back leg
-    g.fillStyle(0x3a2818);
-    g.fillRect(sx - 5 * s - legSwing * 0.5, bodyY - 8 * s, 4 * s, 11 * s);
-
-    // Front leg boot
-    g.fillStyle(0x2a1808);
-    g.fillEllipse(sx + 3 * s + legSwing * 0.5, bodyY + 2 * s, 5 * s, 4 * s);
-    // Front leg
-    g.fillStyle(0x4a3828);
-    g.fillRect(sx + 1 * s + legSwing * 0.5, bodyY - 8 * s, 4 * s, 11 * s);
+    if (role === 'mother') {
+        // --- MOTHER: long skirt instead of separate legs ---
+        const sway = walking ? Math.sin(walkPhase * Math.PI * 2) * 2 * s : 0;
+        g.fillStyle(0x5a3a28);
+        g.fillPoints([
+            { x: sx - 6 * s, y: bodyY - 8 * s },
+            { x: sx + 6 * s, y: bodyY - 8 * s },
+            { x: sx + 8 * s + sway, y: bodyY + 3 * s },
+            { x: sx - 8 * s - sway, y: bodyY + 3 * s },
+        ], true);
+        // Feet peeking
+        g.fillStyle(0x2a1808);
+        g.fillEllipse(sx - 3 * s, bodyY + 3 * s, 4 * s, 3 * s);
+        g.fillEllipse(sx + 3 * s, bodyY + 3 * s, 4 * s, 3 * s);
+    } else {
+        // --- FATHER / CHILD: trousers + boots ---
+        g.fillStyle(0x2a1808);
+        g.fillEllipse(sx - 3 * s - legSwing * 0.5, bodyY + 2 * s, 5 * s, 4 * s);
+        g.fillStyle(0x3a2818);
+        g.fillRect(sx - 5 * s - legSwing * 0.5, bodyY - 8 * s, 4 * s, 11 * s);
+        g.fillStyle(0x2a1808);
+        g.fillEllipse(sx + 3 * s + legSwing * 0.5, bodyY + 2 * s, 5 * s, 4 * s);
+        g.fillStyle(0x4a3828);
+        g.fillRect(sx + 1 * s + legSwing * 0.5, bodyY - 8 * s, 4 * s, 11 * s);
+    }
 
     // Torso
     g.fillStyle(clothColor);
@@ -280,26 +346,35 @@ export function drawIsoPerson(
         { x: sx + 6 * s, y: bodyY - 8 * s },
     ], true);
 
-    // Belt
-    g.fillStyle(0x2a1808);
-    g.fillRect(sx - 6 * s, bodyY - 9 * s, 12 * s, 2 * s);
-
-    if (!facingAway) {
-        // Belt buckle (only visible from front)
-        g.fillStyle(0xc8a040);
-        g.fillRect(sx - 1 * s, bodyY - 10 * s, 2 * s, 3 * s);
+    if (role === 'father') {
+        // Suspenders
+        g.fillStyle(0x3a2010, 0.7);
+        g.fillRect(sx - 4 * s, bodyY - 20 * s, 2 * s, 12 * s);
+        g.fillRect(sx + 2 * s, bodyY - 20 * s, 2 * s, 12 * s);
+    } else if (role === 'mother') {
+        // Collar / shawl
+        g.fillStyle(0xf0e0c0, 0.5);
+        g.fillEllipse(sx, bodyY - 20 * s, 10 * s, 4 * s);
     }
 
-    // Arms — swing opposite to legs
+    // Belt (not on children)
+    if (!isChild) {
+        g.fillStyle(0x2a1808);
+        g.fillRect(sx - 6 * s, bodyY - 9 * s, 12 * s, 2 * s);
+        if (!facingAway) {
+            g.fillStyle(0xc8a040);
+            g.fillRect(sx - 1 * s, bodyY - 10 * s, 2 * s, 3 * s);
+        }
+    }
+
+    // Arms
     const darkerCloth = clothColor - 0x101010;
     g.fillStyle(darkerCloth > 0 ? darkerCloth : clothColor);
-    // Left arm
     g.fillPoints([
         { x: sx - 7 * s, y: bodyY - 19 * s },
         { x: sx - 10 * s + armSwing, y: bodyY - 10 * s },
         { x: sx - 7 * s, y: bodyY - 10 * s },
     ], true);
-    // Right arm
     g.fillPoints([
         { x: sx + 7 * s, y: bodyY - 19 * s },
         { x: sx + 10 * s - armSwing, y: bodyY - 10 * s },
@@ -320,30 +395,43 @@ export function drawIsoPerson(
     g.fillCircle(sx, bodyY - 27 * s, 6 * s);
 
     if (facingAway) {
-        // Back of head — hair
         g.fillStyle(0x3a2210);
         g.fillCircle(sx, bodyY - 27 * s, 5.5 * s);
     } else {
-        // Eyes
         g.fillStyle(0x1a0e04);
         g.fillCircle(sx - 2 * s, bodyY - 28 * s, 1 * s);
         g.fillCircle(sx + 2 * s, bodyY - 28 * s, 1 * s);
     }
 
-    // Hat brim
-    g.fillStyle(0x3a2510);
-    g.fillEllipse(sx, bodyY - 32 * s, 14 * s, 5 * s);
-    // Hat crown
-    g.fillStyle(0x4a3218);
-    g.fillPoints([
-        { x: sx - 5 * s, y: bodyY - 32 * s },
-        { x: sx - 4 * s, y: bodyY - 38 * s },
-        { x: sx + 4 * s, y: bodyY - 38 * s },
-        { x: sx + 5 * s, y: bodyY - 32 * s },
-    ], true);
-    // Hat band
-    g.fillStyle(0xc8a040);
-    g.fillRect(sx - 5 * s, bodyY - 33 * s, 10 * s, 1.5 * s);
+    // --- Hat / headwear by role ---
+    if (role === 'father') {
+        g.fillStyle(0x3a2510);
+        g.fillEllipse(sx, bodyY - 32 * s, 16 * s, 5 * s);
+        g.fillStyle(0x4a3218);
+        g.fillPoints([
+            { x: sx - 5 * s, y: bodyY - 32 * s },
+            { x: sx - 4 * s, y: bodyY - 35 * s },
+            { x: sx + 4 * s, y: bodyY - 35 * s },
+            { x: sx + 5 * s, y: bodyY - 32 * s },
+        ], true);
+        g.fillStyle(0xc8a040);
+        g.fillRect(sx - 5 * s, bodyY - 33 * s, 10 * s, 1.5 * s);
+    } else if (role === 'mother') {
+        g.fillStyle(0xf0e0c0);
+        g.fillEllipse(sx, bodyY - 31 * s, 14 * s, 10 * s);
+        g.fillStyle(0xe0d0b0);
+        g.fillEllipse(sx + 3 * s, bodyY - 28 * s, 6 * s, 5 * s);
+        g.fillStyle(clothColor);
+        g.fillRect(sx + 5 * s, bodyY - 26 * s, 1.5 * s, 6 * s);
+    } else {
+        if (facingAway) {
+            g.fillStyle(0x5a3a20);
+            g.fillEllipse(sx, bodyY - 30 * s, 10 * s, 5 * s);
+        } else {
+            g.fillStyle(0x5a3a20);
+            g.fillEllipse(sx, bodyY - 31 * s, 10 * s, 5 * s);
+        }
+    }
 }
 
 // ─── Isometric Tree ──────────────────────────────────────────────────────────
