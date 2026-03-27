@@ -15,85 +15,168 @@ export function drawIsoWagon(
 ): void {
     const s = scale;
 
-    // Wagon body — isometric box
-    const bodyW = 48 * s;
-    const bodyH = 24 * s;
-    const bodyDepth = 16 * s;
+    // Covered wagon — isometric box body, rounded canvas bonnet, 4 visible wheels.
+    const bodyW = 52 * s;   // diamond width (along isometric axis)
+    const bodyH = 26 * s;   // diamond height
+    const bodyD = 16 * s;   // vertical height of wooden box
 
-    // Body shadow — flat on ground plane, slightly offset for sun direction
+    // ─── Shadow ───
     g.fillStyle(0x000000, 0.15);
-    g.fillEllipse(sx, sy + 6 * s, bodyW * 1.2, bodyH * 0.4);
+    g.fillEllipse(sx, sy + 8 * s, bodyW * 1.2, bodyH * 0.5);
 
-    // Body — top face
+    // ─── Wheel helper ───
+    const drawWheel = (wx: number, wy: number, big: boolean) => {
+        const wh = big ? 18 * s : 14 * s;
+        const ww = big ? 5 * s : 4 * s;
+        // Iron rim
+        g.fillStyle(0x3a3a3a);
+        g.fillEllipse(wx, wy, ww + 2, wh + 2);
+        // Wood
+        g.fillStyle(0x5c3516);
+        g.fillEllipse(wx, wy, ww, wh);
+        // Spokes
+        g.lineStyle(1, 0x8b6914, 0.8);
+        const n = big ? 8 : 6;
+        for (let i = 0; i < n; i++) {
+            const a = (i / n) * Math.PI * 2;
+            g.beginPath();
+            g.moveTo(wx, wy);
+            g.lineTo(wx + Math.cos(a) * ww / 2, wy + Math.sin(a) * wh / 2);
+            g.strokePath();
+        }
+        // Hub
+        g.fillStyle(0x8b6914);
+        g.fillCircle(wx, wy, 2 * s);
+        g.fillStyle(0x2a1208);
+        g.fillCircle(wx, wy, 1 * s);
+    };
+
+    // ─── Far-side wheels (behind body, mostly hidden — just tops peeking) ───
+    drawWheel(sx - bodyW * 0.3,  sy - bodyD - bodyH * 0.1, true);
+    drawWheel(sx + bodyW * 0.05, sy - bodyD - bodyH * 0.3, false);
+
+    // ─── Wagon body — isometric box ───
+    // Top face
     g.fillStyle(0x6b3a18);
     g.fillPoints([
-        { x: sx - bodyW / 2, y: sy - bodyDepth },
-        { x: sx,             y: sy - bodyH / 2 - bodyDepth },
-        { x: sx + bodyW / 2, y: sy - bodyDepth },
-        { x: sx,             y: sy + bodyH / 2 - bodyDepth },
+        { x: sx - bodyW / 2, y: sy - bodyD },
+        { x: sx,             y: sy - bodyH / 2 - bodyD },
+        { x: sx + bodyW / 2, y: sy - bodyD },
+        { x: sx,             y: sy + bodyH / 2 - bodyD },
     ], true);
 
-    // Body — left face
-    g.fillStyle(0x5c2e10);
+    // Left face (near-side, lit)
+    g.fillStyle(0x7a4420);
     g.fillPoints([
-        { x: sx - bodyW / 2, y: sy - bodyDepth },
-        { x: sx,             y: sy + bodyH / 2 - bodyDepth },
+        { x: sx - bodyW / 2, y: sy - bodyD },
+        { x: sx,             y: sy + bodyH / 2 - bodyD },
         { x: sx,             y: sy + bodyH / 2 },
         { x: sx - bodyW / 2, y: sy },
     ], true);
 
-    // Body — right face
+    // Right face (near-side, shadow)
     g.fillStyle(0x4a2208);
     g.fillPoints([
-        { x: sx + bodyW / 2, y: sy - bodyDepth },
+        { x: sx + bodyW / 2, y: sy - bodyD },
         { x: sx + bodyW / 2, y: sy },
         { x: sx,             y: sy + bodyH / 2 },
-        { x: sx,             y: sy + bodyH / 2 - bodyDepth },
+        { x: sx,             y: sy + bodyH / 2 - bodyD },
     ], true);
 
     // Plank lines on left face
-    g.fillStyle(0x3a1a06, 0.4);
-    for (let i = 1; i < 3; i++) {
-        const t = i / 3;
-        const lx = sx - bodyW / 2 + (bodyW / 2) * t;
-        const ly = sy - bodyDepth + bodyDepth * t * 0.3;
-        g.fillRect(lx, ly, 1.5, bodyDepth);
+    g.lineStyle(1, 0x3a1a06, 0.25);
+    for (let i = 1; i <= 3; i++) {
+        const t = i / 4;
+        g.beginPath();
+        g.moveTo(sx - bodyW / 2, sy - bodyD + bodyD * t);
+        g.lineTo(sx, sy + bodyH / 2 - bodyD + bodyD * t);
+        g.strokePath();
+    }
+    // Plank lines on right face
+    for (let i = 1; i <= 3; i++) {
+        const t = i / 4;
+        g.beginPath();
+        g.moveTo(sx + bodyW / 2, sy - bodyD + bodyD * t);
+        g.lineTo(sx, sy + bodyH / 2 - bodyD + bodyD * t);
+        g.strokePath();
     }
 
-    // Canvas bonnet — isometric arch (elongated dome over wagon)
+    // ─── Canvas bonnet — simple rounded dome over the wagon ───
+    const bonnetH = 22 * s;
+
+    // Bonnet left face (canvas, lit)
     g.fillStyle(0xf0e2c0);
-    g.fillEllipse(sx, sy - bodyDepth - 12 * s, bodyW * 0.7, 28 * s);
-    // Bonnet shadow underneath
-    g.fillStyle(0xd4c8a0, 0.6);
-    g.fillEllipse(sx, sy - bodyDepth - 6 * s, bodyW * 0.65, 18 * s);
+    g.fillPoints([
+        { x: sx - bodyW / 2 + 6 * s, y: sy - bodyD },
+        { x: sx,                      y: sy + bodyH / 2 - bodyD },
+        { x: sx,                      y: sy + bodyH / 2 - bodyD - bonnetH },
+        { x: sx - bodyW / 2 + 6 * s,  y: sy - bodyD - bonnetH },
+    ], true);
 
-    // Bonnet ribs
-    g.lineStyle(1.5 * s, 0xc8b890, 0.5);
-    for (let i = -1; i <= 1; i++) {
-        g.strokeEllipse(sx + i * 8 * s, sy - bodyDepth - 10 * s, 8 * s, 22 * s);
+    // Bonnet right face (canvas, shadow)
+    g.fillStyle(0xd8cca8);
+    g.fillPoints([
+        { x: sx + bodyW / 2 - 6 * s, y: sy - bodyD },
+        { x: sx,                      y: sy + bodyH / 2 - bodyD },
+        { x: sx,                      y: sy + bodyH / 2 - bodyD - bonnetH },
+        { x: sx + bodyW / 2 - 6 * s,  y: sy - bodyD - bonnetH },
+    ], true);
+
+    // Bonnet top (bright)
+    g.fillStyle(0xfaf0e0);
+    g.fillPoints([
+        { x: sx - bodyW / 2 + 6 * s, y: sy - bodyD - bonnetH },
+        { x: sx,                      y: sy - bodyH / 2 - bodyD - bonnetH },
+        { x: sx + bodyW / 2 - 6 * s,  y: sy - bodyD - bonnetH },
+        { x: sx,                      y: sy + bodyH / 2 - bodyD - bonnetH },
+    ], true);
+
+    // Rounded top — ellipse to soften the top edge
+    g.fillStyle(0xfaf0e0, 0.7);
+    g.fillEllipse(sx, sy - bodyD - bonnetH + 2 * s, bodyW * 0.55, bodyH * 0.4);
+
+    // Wooden hoops (3 visible ribs across the canvas)
+    g.lineStyle(1.5 * s, 0x8b7040, 0.6);
+    for (let i = 0; i < 3; i++) {
+        const t = (i + 1) / 4;
+        const hx = (sx - bodyW / 2 + 6 * s) + t * (bodyW / 2 - 6 * s);
+        const hy = sy - bodyD + t * (bodyH / 2);
+        g.beginPath();
+        g.moveTo(hx, hy);
+        g.lineTo(hx, hy - bonnetH);
+        g.strokePath();
     }
 
-    // Wheels (isometric ellipses)
-    const wheelR = 8 * s;
-    // Back-left wheel
-    g.fillStyle(0x2a1208);
-    g.fillEllipse(sx - bodyW / 2 + 4 * s, sy + 2 * s, wheelR * 2, wheelR);
-    g.lineStyle(2, 0x4a2e14);
-    g.strokeEllipse(sx - bodyW / 2 + 4 * s, sy + 2 * s, wheelR * 2, wheelR);
-    // Front-right wheel
-    g.fillStyle(0x2a1208);
-    g.fillEllipse(sx + bodyW / 2 - 4 * s, sy + 2 * s, wheelR * 2, wheelR);
-    g.lineStyle(2, 0x4a2e14);
-    g.strokeEllipse(sx + bodyW / 2 - 4 * s, sy + 2 * s, wheelR * 2, wheelR);
+    // Open back — dark interior
+    g.fillStyle(0x1a0e04, 0.5);
+    g.fillPoints([
+        { x: sx - bodyW / 2 + 6 * s, y: sy - bodyD },
+        { x: sx - bodyW / 2 + 6 * s, y: sy - bodyD - bonnetH },
+        { x: sx - bodyW / 2 + 10 * s, y: sy - bodyD - bonnetH + 3 * s },
+        { x: sx - bodyW / 2 + 10 * s, y: sy - bodyD + 2 * s },
+    ], true);
 
-    // Tongue / yoke
-    g.fillStyle(0x4a2e10);
+    // ─── Near-side wheels — along the left face (viewer-facing side) ───
+    const lf0x = sx - bodyW / 2, lf0y = sy;
+    const lf1x = sx,             lf1y = sy + bodyH / 2;
+    const rearT = 0.25, frontT = 0.70;
+    drawWheel(lf0x + rearT * (lf1x - lf0x),  lf0y + rearT * (lf1y - lf0y) + 2 * s, true);
+    drawWheel(lf0x + frontT * (lf1x - lf0x), lf0y + frontT * (lf1y - lf0y) + 2 * s, false);
+
+    // ─── Tongue / yoke ─── from front of wagon toward oxen (upper-right)
+    g.lineStyle(2.5 * s, 0x5c3516);
     g.beginPath();
-    g.moveTo(sx, sy + bodyH / 2);
-    g.lineTo(sx + 30 * s, sy + bodyH / 2 + 15 * s);
-    g.lineTo(sx + 28 * s, sy + bodyH / 2 + 18 * s);
-    g.lineTo(sx - 2, sy + bodyH / 2 + 3);
-    g.fillPath();
+    g.moveTo(sx + bodyW / 2, sy - bodyD / 2);
+    g.lineTo(sx + bodyW / 2 + 22 * s, sy - bodyD - 10 * s);
+    g.strokePath();
+    // Yoke crossbar — sits across ox necks, perpendicular to trail
+    g.lineStyle(2 * s, 0x4a2e10);
+    const ykx = sx + bodyW / 2 + 22 * s;
+    const yky = sy - bodyD - 10 * s;
+    g.beginPath();
+    g.moveTo(ykx - 7 * s, yky - 3 * s);
+    g.lineTo(ykx + 7 * s, yky + 3 * s);
+    g.strokePath();
 }
 
 // ─── Isometric Ox ────────────────────────────────────────────────────────────
