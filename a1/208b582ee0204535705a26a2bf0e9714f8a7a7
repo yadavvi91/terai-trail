@@ -1,0 +1,23 @@
+src/ui/IsoDrawUtils.ts
+  9e62d1cbd7d80ef0 18-21,23,25,27-52,54-59,62-65,68-69,71-72,77,80,83,87-93,95-101,104-105,107,109-136,138-147,150-175,177-179
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.20",
+  "base_commit_sha": "a1208b582ee0204535705a26a2bf0e9714f8a7a7",
+  "prompts": {
+    "9e62d1cbd7d80ef0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97fe22b2-39d1-4a09-a3ee-fc4158cb49db",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 138,
+      "total_deletions": 55,
+      "accepted_lines": 137,
+      "overriden_lines": 0
+    }
+  }
+}
