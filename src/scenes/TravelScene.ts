@@ -140,18 +140,55 @@ export class TravelScene extends Scene {
         this.sunG = this.add.graphics();
         drawSun(this.sunG, GAME_WIDTH - 110, 80, 42);
 
-        // Clouds
-        const cloudPositions = [
-            { x: 150, y: 55, s: 0.85 },
-            { x: 480, y: 38, s: 0.7 },
-            { x: 780, y: 70, s: 1.0 },
-            { x: 1050, y: 45, s: 0.65 },
-        ];
-        cloudPositions.forEach((pos) => {
-            const g = this.add.graphics();
-            drawCloud(g, pos.x, pos.y, pos.s);
-            this.cloudLayers.push({ g, x: pos.x, speed: 0.008 + Math.random() * 0.006 });
-        });
+        // Clouds — dense overcast in bad weather, scattered in good weather.
+        // Spread across the sky including the top-left corner.
+        const w = this.currentWeather;
+        const isOvercast = (w === Weather.RAINY || w === Weather.SNOWY);
+        const cloudAlpha = isOvercast ? 0.95 : 0.9;
+        const cloudCount = isOvercast ? 20 : 10;
+
+        // Fixed cloud positions ensuring left side has coverage
+        const cloudPositions: { x: number; y: number }[] = [];
+        // Top-left quadrant — fill the empty sky
+        cloudPositions.push({ x: 80,  y: 70 });
+        cloudPositions.push({ x: 250, y: 110 });
+        cloudPositions.push({ x: 400, y: 60 });
+        // Center sky
+        cloudPositions.push({ x: 500, y: 90 });
+        cloudPositions.push({ x: 620, y: 55 });
+        // Right sky (less needed — sun and hills fill this area)
+        cloudPositions.push({ x: 750, y: 70 });
+        cloudPositions.push({ x: 900, y: 50 });
+        // Extra clouds for overcast — add more across the whole sky
+        if (isOvercast) {
+            cloudPositions.push({ x: 150, y: 140 });
+            cloudPositions.push({ x: 320, y: 85 });
+            cloudPositions.push({ x: 180, y: 40 });
+            cloudPositions.push({ x: 450, y: 130 });
+            cloudPositions.push({ x: 550, y: 45 });
+            cloudPositions.push({ x: 700, y: 110 });
+            cloudPositions.push({ x: 350, y: 150 });
+            cloudPositions.push({ x: 100, y: 100 });
+            cloudPositions.push({ x: 600, y: 120 });
+            cloudPositions.push({ x: 800, y: 85 });
+            cloudPositions.push({ x: 50,  y: 160 });
+            cloudPositions.push({ x: 480, y: 75 });
+            cloudPositions.push({ x: 250, y: 170 });
+        }
+
+        for (let i = 0; i < Math.min(cloudPositions.length, cloudCount); i++) {
+            const pos = cloudPositions[i];
+            const x = pos.x + (Math.random() - 0.5) * 40;
+            const y = pos.y + (Math.random() - 0.5) * 20;
+            const cs = isOvercast
+                ? 1.0 + Math.random() * 0.8
+                : 0.7 + Math.random() * 0.5;
+
+            const cg = this.add.graphics();
+            cg.setDepth(8.6);
+            drawCloud(cg, x, y, cs, cloudAlpha);
+            this.cloudLayers.push({ g: cg, x, speed: 0.006 + Math.random() * 0.008 });
+        }
     }
 
     private drawSkyGradient(weather: Weather, biome: Biome): void {
