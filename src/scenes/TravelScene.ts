@@ -62,6 +62,8 @@ export class TravelScene extends Scene {
     private isMoving: boolean = false;
     private walkFrame: number = 0;
     private walkTimer: number = 0;
+    private deerG!: Phaser.GameObjects.Graphics;
+    private deerTimer: number = 0;
 
     // HUD
     private dateText!: Phaser.GameObjects.Text;
@@ -684,6 +686,9 @@ export class TravelScene extends Scene {
         this.dustG.setDepth(7);
         this.wagonG = this.add.graphics();
         this.wagonG.setDepth(8);
+        // Animated deer — drawn on top of ground tiles but below wagon
+        this.deerG = this.add.graphics();
+        this.deerG.setDepth(5.5);
         this.redrawWagon();
     }
 
@@ -724,6 +729,60 @@ export class TravelScene extends Scene {
             const phase = isWalking ? (walkPhase + i * 0.2) % 1.0 : -1;
             drawIsoPerson(this.wagonG, wx - 24 - i * 14, wy + 12 + i * 7, 0.7, personColors[i], phase, true, roles[i]);
         }
+
+        // ─── Animated grazing deer ───
+        this.deerTimer += dt;
+        this.deerG.clear();
+        // Two deer in the grass area (left side of screen)
+        const deerPositions = [
+            { x: 280, y: GROUND_Y - 60, phase: 0 },
+            { x: 420, y: GROUND_Y - 130, phase: 0.4 },
+        ];
+        for (const dp of deerPositions) {
+            // Grazing cycle: head bobs down (grazing) then up (looking around)
+            // ~3 second cycle per deer
+            const cycle = ((this.deerTimer + dp.phase * 3000) % 3000) / 3000;
+            const headDip = cycle < 0.6
+                ? Math.sin(cycle / 0.6 * Math.PI) * 8  // grazing: head dips down
+                : 0;                                      // looking up
+            this.drawGrazingDeer(this.deerG, dp.x, dp.y, 0.7, headDip);
+        }
+    }
+
+    private drawGrazingDeer(
+        g: Phaser.GameObjects.Graphics, cx: number, cy: number,
+        s: number, headDip: number,
+    ): void {
+        // Small isometric deer facing right (southeast)
+        // Body
+        g.fillStyle(0xb07840);
+        g.fillEllipse(cx, cy, 20 * s, 10 * s);
+        // Neck (angled down when grazing)
+        g.fillStyle(0xb07840);
+        g.fillRect(cx + 6 * s, cy - 6 * s + headDip * s, 5 * s, 8 * s + headDip * s * 0.5);
+        // Head
+        g.fillEllipse(cx + 10 * s, cy - 6 * s + headDip * s, 7 * s, 5 * s);
+        // Eye
+        g.fillStyle(0x111111);
+        g.fillCircle(cx + 12 * s, cy - 7 * s + headDip * s, 0.8 * s);
+        // Ear
+        g.fillStyle(0xd09050);
+        g.fillEllipse(cx + 8 * s, cy - 10 * s + headDip * s * 0.5, 2.5 * s, 4 * s);
+        // Small antler
+        g.lineStyle(1 * s, 0x6b4520);
+        g.beginPath();
+        g.moveTo(cx + 9 * s, cy - 10 * s + headDip * s * 0.5);
+        g.lineTo(cx + 7 * s, cy - 16 * s + headDip * s * 0.3);
+        g.strokePath();
+        // Legs
+        g.fillStyle(0x8a5c28);
+        g.fillRect(cx - 5 * s, cy + 4 * s, 2 * s, 7 * s);
+        g.fillRect(cx - 1 * s, cy + 4 * s, 2 * s, 7 * s);
+        g.fillRect(cx + 3 * s, cy + 4 * s, 2 * s, 7 * s);
+        g.fillRect(cx + 7 * s, cy + 4 * s, 2 * s, 7 * s);
+        // White tail
+        g.fillStyle(0xf0e8d8);
+        g.fillCircle(cx - 10 * s, cy, 2 * s);
     }
 
     // ─── HUD ───────────────────────────────────────────────────────────────────
