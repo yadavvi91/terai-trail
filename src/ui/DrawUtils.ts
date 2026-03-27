@@ -414,54 +414,68 @@ export function drawHill(
     const seed = cx * 0.013 + width * 0.009;
     const h = width * 0.38;
 
-    // Build irregular hill outline using a dome of points with noise
-    const steps = 24;
-    const pts: Phaser.Types.Math.Vector2Like[] = [{ x: cx - width * 0.5, y: baseY + 4 }];
-    for (let i = 0; i <= steps; i++) {
-        const t = i / steps; // 0 = left edge, 1 = right edge
-        const angle = Math.PI * t; // 0 to π
-        const baseH = Math.sin(angle) * h;
-        // Add noise to height — more variation in the middle
-        const noise = seededNoise(seed + i * 2.3) * h * 0.18 * Math.sin(angle);
-        pts.push({
-            x: cx - width * 0.5 + t * width,
-            y: baseY - baseH - noise,
-        });
+    // Isometric hill facing the viewer (southeast / bottom-right).
+    // The peak is shifted LEFT so the RIGHT face (facing viewer) is the
+    // wider, gentler, visible slope and the LEFT face is steeper (away).
+    const peakShift = -0.15; // peak at 35% from left instead of 50%
+    const peakX = cx + width * peakShift;
+    const leftEdge = cx - width * 0.35;  // steeper left side (shorter run)
+    const rightEdge = cx + width * 0.55; // gentler right side (longer run)
+
+    // LEFT face outline — steep, fewer steps
+    const leftSteps = 8;
+    const leftPts: Phaser.Types.Math.Vector2Like[] = [{ x: leftEdge, y: baseY + 4 }];
+    for (let i = 0; i <= leftSteps; i++) {
+        const t = i / leftSteps;
+        const x = leftEdge + t * (peakX - leftEdge);
+        const profile = Math.sin(t * Math.PI * 0.5); // quarter sine — steep climb
+        const noise = seededNoise(seed + i * 2.3) * h * 0.08 * profile;
+        leftPts.push({ x, y: baseY - h * profile - noise });
     }
-    pts.push({ x: cx + width * 0.5, y: baseY + 4 });
+
+    // RIGHT face outline — gentle slope facing viewer
+    const rightSteps = 16;
+    const rightPts: Phaser.Types.Math.Vector2Like[] = [];
+    for (let i = 0; i <= rightSteps; i++) {
+        const t = i / rightSteps;
+        const x = peakX + t * (rightEdge - peakX);
+        const profile = Math.cos(t * Math.PI * 0.5); // quarter cosine — gentle descent
+        const noise = seededNoise(seed + i * 3.1) * h * 0.08 * profile;
+        rightPts.push({ x, y: baseY - h * profile - noise });
+    }
+    rightPts.push({ x: rightEdge, y: baseY + 4 });
+
+    // Combine into full outline
+    const allPts = [...leftPts, ...rightPts];
+    allPts.push({ x: leftEdge, y: baseY + 4 });
 
     // Base hill fill
     g.fillStyle(color);
-    g.fillPoints(pts, true);
+    g.fillPoints(allPts, true);
 
-    // Lighter highlight on the top-left (lit by sun)
-    const highlightPts: Phaser.Types.Math.Vector2Like[] = [{ x: cx - width * 0.25, y: baseY + 2 }];
-    for (let i = 0; i <= 12; i++) {
-        const t = i / 12;
-        const angle = Math.PI * (0.1 + t * 0.55);
-        highlightPts.push({
-            x: cx - width * 0.38 + t * width * 0.45,
-            y: baseY - Math.sin(angle) * h * 0.92,
-        });
+    // RIGHT face highlight — this is the face looking at the viewer, lit by sun
+    g.fillStyle(shadeColor(color, 0.15), 0.5);
+    const highlightPts: Phaser.Types.Math.Vector2Like[] = [{ x: peakX, y: baseY - h * 0.95 }];
+    for (let i = 0; i <= 10; i++) {
+        const t = i / 10;
+        const x = peakX + t * (rightEdge - peakX);
+        const profile = Math.cos(t * Math.PI * 0.5) * h * 0.85;
+        highlightPts.push({ x, y: baseY - profile });
     }
-    g.fillStyle(shadeColor(color, 0.12), 0.5);
+    highlightPts.push({ x: peakX, y: baseY + 2 });
     g.fillPoints(highlightPts, true);
 
-    // Darker shadow on the right flank
-    g.fillStyle(shadeColor(color, -0.15), 0.6);
-    g.fillTriangle(
-        cx + width * 0.06, baseY - h * 0.7,
-        cx + width * 0.5,  baseY + 4,
-        cx + width * 0.0,  baseY + 4,
-    );
-
-    // Grass tufts at the base of the hill
-    g.fillStyle(shadeColor(color, 0.2));
-    for (let i = 0; i < 6; i++) {
-        const tx = cx - width * 0.42 + i * width * 0.15;
-        const jitter = (seededNoise(seed + i * 1.7) - 0.5) * 12;
-        g.fillRect(tx + jitter, baseY + 1, 3, seededNoise(seed + i) * 8 + 4);
+    // LEFT face shadow — steep side facing away from viewer
+    g.fillStyle(shadeColor(color, -0.18), 0.6);
+    const shadowPts: Phaser.Types.Math.Vector2Like[] = [{ x: leftEdge, y: baseY + 4 }];
+    for (let i = 0; i <= leftSteps; i++) {
+        const t = i / leftSteps;
+        const x = leftEdge + t * (peakX - leftEdge);
+        const profile = Math.sin(t * Math.PI * 0.5);
+        shadowPts.push({ x, y: baseY - h * profile * 0.95 });
     }
+    shadowPts.push({ x: peakX, y: baseY + 2 });
+    g.fillPoints(shadowPts, true);
 }
 
 export function drawCloud(
