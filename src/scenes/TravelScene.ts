@@ -1010,10 +1010,10 @@ export class TravelScene extends Scene {
                 layer.baseY += dy;   // ground moves down
 
                 // Wrap: when tiles scroll off lower-left, teleport to upper-right
-                const maxLocalX = (10 - 1) * (TILE_WIDTH / 2); // rightmost tile local X ≈ 288
+                const maxLocalX = (24 - 1) * (TILE_WIDTH / 2); // rightmost tile local X for rows=24
                 if (layer.baseX + maxLocalX < -50) {
-                    layer.baseX += layer.width * 2;
-                    layer.baseY -= layer.width; // 2 * wrapDY correction
+                    layer.baseX += layer.width * 3;
+                    layer.baseY -= layer.width * 3 * 0.5; // 3 * wrapDY correction
                 }
                 layer.g.setPosition(layer.baseX, layer.baseY);
             });
