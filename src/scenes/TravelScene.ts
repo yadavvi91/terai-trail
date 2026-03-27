@@ -15,7 +15,8 @@ import { addMuteButton } from '../ui/MuteButton';
 import { SoundManager } from '../audio/SoundManager';
 
 const TICK_MS = 1200;
-const GROUND_Y = GAME_HEIGHT - 80;
+const GROUND_Y  = GAME_HEIGHT - 160;                         // 480 — moved trail higher to use more screen
+const HORIZON_Y = GROUND_Y - 5 * TILE_HEIGHT - 80;           // 240 — horizon follows ground up
 
 interface WeatherParticle {
     x: number;
@@ -44,6 +45,7 @@ export class TravelScene extends Scene {
     private cloudLayers: { g: Phaser.GameObjects.Graphics; x: number; speed: number }[] = [];
     private sunG!: Phaser.GameObjects.Graphics;
     private skyG!: Phaser.GameObjects.Graphics;
+    private groundFillG!: Phaser.GameObjects.Graphics;
     private scrollOffset: number = 0;
 
     // Biome/season/weather change tracking
@@ -101,7 +103,7 @@ export class TravelScene extends Scene {
         this.currentBiome = getBiome(gs0.milesTraveled);
         this.currentSeason = getSeason(gs0.currentDate.getMonth());
         this.currentWeather = gs0.weather;
-        this.cameras.main.setBackgroundColor(0x0d1a2e);  // safe dark fallback
+        this.cameras.main.setBackgroundColor(0x2a5a18);  // dark grass green — fills corners below isometric ground
 
         this.buildSky();
         this.buildParallax();
