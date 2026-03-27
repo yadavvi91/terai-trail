@@ -163,8 +163,24 @@ export class TravelScene extends Scene {
         const botG = (gradient.bottom >> 8) & 0xff;
         const botB = gradient.bottom & 0xff;
 
-        const skySteps = 14;
-        const stripH = GROUND_Y / skySteps;
+        // Diagonal sky strips matching the isometric 2:1 slope.
+        // Each strip is a parallelogram tilted at the same angle as the terrain.
+        const slope = 0.5; // isometric 2:1
+        const skySteps = 18;
+        const extend = 400; // extend strips beyond screen edges
+
+        // The ground fill edge is at y = HORIZON_Y + 40 - x * slope.
+        // At x=0 that's HORIZON_Y+40; at x=GAME_WIDTH that's HORIZON_Y+40-GAME_WIDTH*slope.
+        // The highest point of the sky is the top-left corner (0,0).
+        // We measure diagonal distance perpendicular to the slope direction.
+        // Strip boundaries are evenly spaced along the diagonal.
+
+        // Reference line: ground fill edge at x=0 → y = HORIZON_Y + 40
+        const groundEdgeAtZero = HORIZON_Y + 40;
+        // Top of sky at x=0 → y = -extend (well above screen)
+        const skyTopAtZero = -extend;
+        const totalRange = groundEdgeAtZero - skyTopAtZero;
+        const stripH = totalRange / skySteps;
 
         for (let i = 0; i < skySteps; i++) {
             const t = i / (skySteps - 1);
@@ -172,21 +188,55 @@ export class TravelScene extends Scene {
             const gv = Math.round(topG + t * (botG - topG));
             const b = Math.round(topB + t * (botB - topB));
             this.skyG.fillStyle((r << 16) | (gv << 8) | b);
-            this.skyG.fillRect(0, i * stripH, GAME_WIDTH, stripH + 2);
+
+            // Top and bottom y at x=0 for this strip (diagonal bands)
+            const y0top = skyTopAtZero + i * stripH;
+            const y0bot = skyTopAtZero + (i + 1) * stripH + 2; // +2 overlap
+
+            // Draw parallelogram: left edge at x=-extend, right edge at x=GAME_WIDTH+extend
+            // y shifts by -slope*x as we move right (same tilt as terrain)
+            this.skyG.beginPath();
+            this.skyG.moveTo(-extend, y0top + extend * slope);
+            this.skyG.lineTo(GAME_WIDTH + extend, y0top - (GAME_WIDTH + extend) * slope);
+            this.skyG.lineTo(GAME_WIDTH + extend, y0bot - (GAME_WIDTH + extend) * slope);
+            this.skyG.lineTo(-extend, y0bot + extend * slope);
+            this.skyG.closePath();
+            this.skyG.fillPath();
         }
 
-        // Horizon glow (Clear and Hot only)
+        // Horizon glow (Clear and Hot only) — also diagonal
         if (weather === Weather.CLEAR || weather === Weather.HOT) {
+            const glowY = groundEdgeAtZero - 12;
             this.skyG.fillStyle(0xf0c890, 0.18);
-            this.skyG.fillRect(0, GROUND_Y - 12, GAME_WIDTH, 28);
+            this.skyG.beginPath();
+            this.skyG.moveTo(-extend, glowY + extend * slope);
+            this.skyG.lineTo(GAME_WIDTH + extend, glowY - (GAME_WIDTH + extend) * slope);
+            this.skyG.lineTo(GAME_WIDTH + extend, (glowY + 28) - (GAME_WIDTH + extend) * slope);
+            this.skyG.lineTo(-extend, (glowY + 28) + extend * slope);
+            this.skyG.closePath();
+            this.skyG.fillPath();
+
+            const glow2Y = groundEdgeAtZero - 2;
             this.skyG.fillStyle(0xf0b060, 0.14);
-            this.skyG.fillRect(0, GROUND_Y - 2, GAME_WIDTH, 14);
+            this.skyG.beginPath();
+            this.skyG.moveTo(-extend, glow2Y + extend * slope);
+            this.skyG.lineTo(GAME_WIDTH + extend, glow2Y - (GAME_WIDTH + extend) * slope);
+            this.skyG.lineTo(GAME_WIDTH + extend, (glow2Y + 14) - (GAME_WIDTH + extend) * slope);
+            this.skyG.lineTo(-extend, (glow2Y + 14) + extend * slope);
+            this.skyG.closePath();
+            this.skyG.fillPath();
         }
 
-        // Oregon biome: grey-green overlay on top of weather gradient
+        // Oregon biome: grey-green overlay — covers entire sky area
         if (biome === Biome.OREGON) {
             this.skyG.fillStyle(OREGON_SKY_OVERLAY.color, OREGON_SKY_OVERLAY.alpha);
-            this.skyG.fillRect(0, 0, GAME_WIDTH, GROUND_Y);
+            this.skyG.beginPath();
+            this.skyG.moveTo(-extend, -extend);
+            this.skyG.lineTo(GAME_WIDTH + extend, -extend);
+            this.skyG.lineTo(GAME_WIDTH + extend, groundEdgeAtZero - (GAME_WIDTH + extend) * slope);
+            this.skyG.lineTo(-extend, groundEdgeAtZero + extend * slope);
+            this.skyG.closePath();
+            this.skyG.fillPath();
         }
     }
 
@@ -195,6 +245,7 @@ export class TravelScene extends Scene {
 
         this.skyG.clear();
         this.drawSkyGradient(gs.weather, this.currentBiome);
+        this.cameras.main.setBackgroundColor(SKY_GRADIENTS[gs.weather].bottom);
 
         // Sun: visible for CLEAR and HOT; bigger for HOT
         const showSun = gs.weather === Weather.CLEAR || gs.weather === Weather.HOT;
