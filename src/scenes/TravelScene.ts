@@ -308,25 +308,83 @@ export class TravelScene extends Scene {
     private static readonly HILL_SCROLL_SPEED = 1.0;  // same as ground tiles — hills are terrain, not distant parallax
 
     private buildParallax(): void {
-        // Far mountains — 2 sets tiled diagonally for seamless isometric scroll
-        const mtnW = GAME_WIDTH + 100;
-        for (let pass = 0; pass < 2; pass++) {
-            const g = this.add.graphics();
-            const baseX = pass * mtnW;
-            const baseY = -pass * mtnW * TravelScene.MTN_Y_RATIO;
-            this.drawMountainLayerForBiome(g, baseX, this.currentBiome);
-            this.mtnLayers.push({ g, baseX, baseY, width: mtnW, speed: 0.18 });
-        }
-
         // Near hills — 2 sets tiled diagonally
+        // Depth 6: ON TOP of ground fill — creates rolling bumps along the horizon.
+        // No mask — hills are sized so peaks extend a moderate amount above the
+        // ground fill edge, creating a natural rolling horizon.
         const hillW = GAME_WIDTH + 60;
+
         for (let pass = 0; pass < 2; pass++) {
             const g = this.add.graphics();
+            g.setDepth(6);
             const baseX = pass * hillW;
             const baseY = -pass * hillW * TravelScene.HILL_Y_RATIO;
             this.drawHillLayerForBiome(g, baseX, this.currentBiome, this.currentSeason);
             this.hillLayers.push({ g, baseX, baseY, width: hillW, speed: TravelScene.HILL_SCROLL_SPEED });
         }
+
+        // Ground fill — solid green backdrop below the hill baseline.
+        // Depth 4.5: above mountains, below ground tiles and hills.
+        const hillColor = BIOME_COLORS.HILL_COLORS[this.currentBiome][0];
+        this.groundFillG = this.add.graphics();
+        this.groundFillG.setDepth(4.5);
+        this.drawGroundFill(hillColor);
+
+        // Far mountains — depth 3 (BEHIND ground fill at 4.5).
+        // Ground fill covers their bases; only peaks are visible as silhouettes
+        // in the sky above the horizon. Uses drawHill for consistent isometric facing.
+        const mtnW = GAME_WIDTH + 100;
+        for (let pass = 0; pass < 2; pass++) {
+            const g = this.add.graphics();
+            g.setDepth(3);
+            const baseX = pass * mtnW;
+            const baseY = -pass * mtnW * TravelScene.MTN_Y_RATIO;
+            this.drawMountainSilhouettes(g, baseX, this.currentBiome);
+            this.mtnLayers.push({ g, baseX, baseY, width: mtnW, speed: 0.5 });
+        }
+    }
+
+    /** Draw the ground fill as a diagonal polygon matching the hill slope. */
+    private drawGroundFill(color: number): void {
+        const slope = TravelScene.HILL_Y_RATIO;
+        const extend = 500; // extend well past screen edges for full coverage
+        this.groundFillG.clear();
+        this.groundFillG.fillStyle(color);
+        this.groundFillG.beginPath();
+        // Diagonal top edge: left side at HORIZON_Y+40, right side slopes up
+        this.groundFillG.moveTo(-extend, HORIZON_Y + 40 + extend * slope);
+        this.groundFillG.lineTo(GAME_WIDTH + extend, HORIZON_Y + 40 - (GAME_WIDTH + extend) * slope);
+        this.groundFillG.lineTo(GAME_WIDTH + extend, GAME_HEIGHT + extend);
+        this.groundFillG.lineTo(-extend, GAME_HEIGHT + extend);
+        this.groundFillG.closePath();
+        this.groundFillG.fillPath();
+    }
+
+    /** Draw mountains as large isometric hills behind the ground fill.
+     *  Only peaks above the ground fill edge (HORIZON_Y+40) are visible in the sky. */
+    private drawMountainSilhouettes(g: Phaser.GameObjects.Graphics, offsetX: number, biome: Biome): void {
+        const back = BIOME_COLORS.MOUNTAIN_BACK[biome];
+        const front = BIOME_COLORS.MOUNTAIN_FRONT[biome];
+        const slope = TravelScene.MTN_Y_RATIO;
+        // Base pushed far below ground fill so only the very tips of peaks
+        // show as subtle distant silhouettes — NOT big triangles in the sky.
+        // h = width * 0.38, so width=300 → h=114. With base at +200,
+        // peak = HORIZON_Y+200-114 = HORIZON_Y+86. Fill at HORIZON_Y+40.
+        // Visible: only ~20-30px of rounded peak. Subtle!
+        const baseAt = (x: number) => HORIZON_Y + 200 - x * slope;
+
+        // Back range — wider shapes, just tips visible
+        drawHill(g, offsetX + 100,  baseAt(offsetX + 100),  340, back[0]);
+        drawHill(g, offsetX + 380,  baseAt(offsetX + 380),  300, back[1] ?? back[0]);
+        drawHill(g, offsetX + 650,  baseAt(offsetX + 650),  360, back[0]);
+        drawHill(g, offsetX + 920,  baseAt(offsetX + 920),  320, back[1] ?? back[0]);
+
+        // Front range — slightly closer, overlapping
+        drawHill(g, offsetX + 30,   baseAt(offsetX + 30) + 10,   260, front[0]);
+        drawHill(g, offsetX + 270,  baseAt(offsetX + 270) + 10,  240, front[1] ?? front[0]);
+        drawHill(g, offsetX + 500,  baseAt(offsetX + 500) + 10,  280, front[0]);
+        drawHill(g, offsetX + 740,  baseAt(offsetX + 740) + 10,  250, front[1] ?? front[0]);
+        drawHill(g, offsetX + 980,  baseAt(offsetX + 980) + 10,  240, front[0]);
     }
 
     private drawMountainLayerForBiome(g: Phaser.GameObjects.Graphics, offsetX: number, biome: Biome): void {
@@ -334,97 +392,138 @@ export class TravelScene extends Scene {
         const front = BIOME_COLORS.MOUNTAIN_FRONT[biome];
         const snowCap = biome !== Biome.OREGON;
 
-        // Back layer (farthest, tallest)
-        this.drawSoftMountain(g, offsetX + 200, GROUND_Y - 10, 320, 160, back[0], snowCap);
-        this.drawSoftMountain(g, offsetX + 500, GROUND_Y - 10, 360, 180, back[1], snowCap);
-        this.drawSoftMountain(g, offsetX + 850, GROUND_Y - 10, 300, 150, back[2], snowCap);
-        // Front layer (closer, shorter, overlapping)
-        this.drawSoftMountain(g, offsetX + 100, GROUND_Y - 5, 260, 110, front[0], snowCap);
-        this.drawSoftMountain(g, offsetX + 380, GROUND_Y - 5, 280, 120, front[1], snowCap);
-        this.drawSoftMountain(g, offsetX + 650, GROUND_Y - 5, 240, 100, front[2], snowCap);
-        this.drawSoftMountain(g, offsetX + 950, GROUND_Y - 5, 270, 115, front[3], snowCap);
+        // Draw mountain ranges along a diagonal baseline well BELOW the ground
+        // fill edge (HORIZON_Y + 40). Mountains are behind the ground fill (depth 3
+        // vs 4.5) so only peaks that rise above the fill edge are visible — small
+        // silhouettes on the horizon, not big shapes dominating the sky.
+        const slope = TravelScene.MTN_Y_RATIO;
+        // Base far below ground fill edge so only tips of peaks peek above horizon
+        const baseAt = (x: number) => HORIZON_Y + 160 - x * slope;
+
+        // Back range — taller peaks, tips just peek above horizon
+        this.drawMountainRange(g, offsetX, baseAt, back, snowCap, [
+            { x: 150, w: 280, h: 150 },
+            { x: 400, w: 240, h: 130 },
+            { x: 620, w: 300, h: 160 },
+            { x: 880, w: 260, h: 140 },
+        ]);
+
+        // Front range — shorter, even less visible above horizon
+        this.drawMountainRange(g, offsetX, (x) => baseAt(x) + 20, front, snowCap, [
+            { x: 80,  w: 220, h: 100 },
+            { x: 300, w: 200, h: 90 },
+            { x: 520, w: 240, h: 110 },
+            { x: 750, w: 210, h: 95 },
+            { x: 950, w: 220, h: 100 },
+        ]);
     }
 
-    /** Draw a single soft, isometric-style mountain (asymmetric — gentle left, steep right) */
-    private drawSoftMountain(
+    /** Draw a connected mountain range — peaks are connected by ridgelines, bases form a solid fill */
+    private drawMountainRange(
+        g: Phaser.GameObjects.Graphics,
+        offsetX: number,
+        baseAtFn: (x: number) => number,
+        colors: number[],
+        snowCap: boolean,
+        peaks: { x: number; w: number; h: number }[],
+    ): void {
+        if (peaks.length === 0) return;
+
+        // Draw each peak as an individual mountain facing the viewer (front view)
+        for (let i = 0; i < peaks.length; i++) {
+            const p = peaks[i];
+            const cx = offsetX + p.x;
+            const color = colors[i % colors.length];
+            this.drawFrontMountain(g, cx, baseAtFn(cx), p.w, p.h, color, snowCap);
+        }
+    }
+
+    /** Draw a 3D isometric mountain — two visible faces meeting at a center
+     *  ridge that runs from peak down to ground. Left face (dark/shadow),
+     *  right face (lit/facing viewer). Both faces end at ground level —
+     *  nothing hangs below the base line. Looks like a tent/wedge viewed
+     *  from the front-right in isometric perspective. */
+    private drawFrontMountain(
         g: Phaser.GameObjects.Graphics, cx: number, baseY: number,
         width: number, height: number, color: number, snowCap = true,
     ): void {
-        const hw = width / 2;
-        // Peak shifted right for isometric 3/4 perspective
-        const peakShift = hw * 0.2;
+        const peakX = cx;
+        const peakY = baseY - height;
+        const hw = width * 0.50;
 
-        // Main body — asymmetric arc (gentle left slope, steeper right slope)
-        g.fillStyle(color);
+        const leftBaseX  = cx - hw;
+        const leftBaseY  = baseY;
+        const rightBaseX = cx + hw;
+        const rightBaseY = baseY;
+        const ridgeBaseX = cx;
+        const ridgeBaseY = baseY;
+
+        const segs = 8;
+
+        // ── Left face (shadow — facing away from light) ──
+        const darkColor = Phaser.Display.Color.ValueToColor(color);
+        const darkR = Math.max(0, darkColor.red - 30);
+        const darkG = Math.max(0, darkColor.green - 30);
+        const darkB = Math.max(0, darkColor.blue - 20);
+        g.fillStyle(Phaser.Display.Color.GetColor(darkR, darkG, darkB));
         g.beginPath();
-        g.moveTo(cx - hw, baseY);
-        const segments = 24;
-        for (let i = 0; i <= segments; i++) {
-            const t = i / segments;
-            const x = cx - hw + width * t;
-            // Asymmetric profile: peak at ~0.6 instead of 0.5
-            const peakT = 0.6;
-            const profile = t < peakT
-                ? Math.sin((t / peakT) * Math.PI * 0.5)        // gentle rise
-                : Math.sin(0.5 * Math.PI + ((t - peakT) / (1 - peakT)) * Math.PI * 0.5); // steeper fall
-            const jitter = Math.sin(t * 17.3) * height * 0.03;
-            const y = baseY - height * profile + jitter;
-            g.lineTo(x, y);
+        g.moveTo(peakX, peakY);
+        for (let i = 1; i <= segs; i++) {
+            const t = i / segs;
+            const x = peakX + (leftBaseX - peakX) * t;
+            const y = peakY + (leftBaseY - peakY) * t;
+            const bulge = Math.sin(t * Math.PI) * width * 0.03;
+            g.lineTo(x - bulge, y);
         }
-        g.lineTo(cx + hw, baseY);
+        g.lineTo(ridgeBaseX, ridgeBaseY);
+        g.lineTo(ridgeBaseX, ridgeBaseY + 400);
+        g.lineTo(leftBaseX, leftBaseY + 400);
         g.closePath();
         g.fillPath();
 
-        // Lit face (left slope — facing the "sun" from upper-left)
-        g.fillStyle(0xffffff, 0.06);
+        // ── Right face (lit — facing the viewer / sun) ──
+        const litR = Math.min(255, darkColor.red + 15);
+        const litG = Math.min(255, darkColor.green + 15);
+        const litB = Math.min(255, darkColor.blue + 10);
+        g.fillStyle(Phaser.Display.Color.GetColor(litR, litG, litB));
         g.beginPath();
-        g.moveTo(cx - hw, baseY);
-        for (let i = 0; i <= 14; i++) {
-            const t = i / 14;
-            const x = cx - hw + width * 0.6 * t;
-            const profile = Math.sin((t) * Math.PI * 0.5);
-            const y = baseY - height * profile + Math.sin(t * 17.3) * height * 0.03;
-            g.lineTo(x, y);
+        g.moveTo(peakX, peakY);
+        for (let i = 1; i <= segs; i++) {
+            const t = i / segs;
+            const x = peakX + (rightBaseX - peakX) * t;
+            const y = peakY + (rightBaseY - peakY) * t;
+            const bulge = Math.sin(t * Math.PI) * width * 0.03;
+            g.lineTo(x + bulge, y);
         }
-        g.lineTo(cx + peakShift, baseY);
+        g.lineTo(ridgeBaseX, ridgeBaseY);
+        g.lineTo(ridgeBaseX, ridgeBaseY + 400);
+        g.lineTo(rightBaseX, rightBaseY + 400);
         g.closePath();
         g.fillPath();
 
-        // Shadow face (right slope — steeper, darker)
-        g.fillStyle(0x000000, 0.08);
+        // ── Center ridge line (peak → ground) ──
+        g.lineStyle(1.5, 0xffffff, 0.10);
         g.beginPath();
-        g.moveTo(cx + peakShift, baseY - height);
-        for (let i = 0; i <= 10; i++) {
-            const t = i / 10;
-            const x = cx + peakShift + (hw - peakShift) * t;
-            const profile = Math.cos(t * Math.PI * 0.5);
-            const y = baseY - height * profile;
-            g.lineTo(x, y);
-        }
-        g.lineTo(cx + hw, baseY);
-        g.lineTo(cx + peakShift, baseY);
-        g.closePath();
-        g.fillPath();
+        g.moveTo(peakX, peakY);
+        g.lineTo(ridgeBaseX, ridgeBaseY);
+        g.strokePath();
 
-        // Atmospheric haze at base
-        g.fillStyle(0x6a8ab0, 0.15);
-        g.fillRect(cx - hw, baseY - height * 0.2, width, height * 0.2);
-
-        // Snow dusting on peaks (subtle, shifted to match asymmetric peak)
+        // ── Snow cap — two-faced at the peak ──
         if (height > 100 && snowCap) {
-            g.fillStyle(0xdce8f4, 0.3);
+            const capH = height * 0.20;
+            const capW = width * 0.15;
+            g.fillStyle(0xeef4fa, 0.50);
             g.beginPath();
-            const snowL = cx + peakShift - hw * 0.3;
-            const snowR = cx + peakShift + hw * 0.15;
-            g.moveTo(snowL, baseY - height * 0.85);
-            for (let i = 0; i <= 10; i++) {
-                const t = i / 10;
-                const x = snowL + (snowR - snowL) * t;
-                const profile = Math.sin(t * Math.PI);
-                const y = baseY - height * (0.85 + 0.15 * profile) + Math.sin(t * 13) * 3;
-                g.lineTo(x, y);
-            }
-            g.lineTo(snowR, baseY - height * 0.85);
+            g.moveTo(peakX, peakY);
+            g.lineTo(peakX - capW, peakY + capH);
+            g.lineTo(peakX, peakY + capH * 1.2);
+            g.closePath();
+            g.fillPath();
+            g.fillStyle(0xffffff, 0.45);
+            g.beginPath();
+            g.moveTo(peakX, peakY);
+            g.lineTo(peakX + capW, peakY + capH);
+            g.lineTo(peakX, peakY + capH * 1.2);
             g.closePath();
             g.fillPath();
         }
@@ -433,24 +532,32 @@ export class TravelScene extends Scene {
     private drawHillLayerForBiome(g: Phaser.GameObjects.Graphics, offsetX: number, biome: Biome, _season: Season): void {
         const [c1, c2] = BIOME_COLORS.HILL_COLORS[biome];
 
-        drawHill(g, offsetX + 100,  GROUND_Y + 8, 240, c1);
-        drawHill(g, offsetX + 330,  GROUND_Y + 8, 200, c2);
-        drawHill(g, offsetX + 520,  GROUND_Y + 8, 260, c1);
-        drawHill(g, offsetX + 740,  GROUND_Y + 8, 220, c2);
-        drawHill(g, offsetX + 940,  GROUND_Y + 8, 180, c1);
-        drawHill(g, offsetX + 1080, GROUND_Y + 8, 200, c2);
+        // Diagonal base — slope matches HILL_Y_RATIO for seamless isometric tiling.
+        // Hill bases pushed below ground fill edge (+40) so peaks extend
+        // ~40-50px above it — visible rolling bumps at the horizon.
+        const slope = TravelScene.HILL_Y_RATIO;
+        const baseAt = (x: number) => HORIZON_Y + 90 - x * slope;
+
+        drawHill(g, offsetX + 100,  baseAt(offsetX + 100), 240, c1);
+        drawHill(g, offsetX + 330,  baseAt(offsetX + 330), 200, c2);
+        drawHill(g, offsetX + 520,  baseAt(offsetX + 520), 260, c1);
+        drawHill(g, offsetX + 740,  baseAt(offsetX + 740), 220, c2);
+        drawHill(g, offsetX + 940,  baseAt(offsetX + 940), 180, c1);
+        drawHill(g, offsetX + 1080, baseAt(offsetX + 1080), 200, c2);
 
         // Trees alongside trail — biome-appropriate colors
         const treeC1 = biome === Biome.OREGON ? 0x1a3a18 : 0x234d1a;
         const treeC2 = biome === Biome.OREGON ? 0x223a20 : 0x2a5820;
-        drawTree(g, offsetX + 60,  GROUND_Y + 4, 62, treeC1, false);
-        drawTree(g, offsetX + 90,  GROUND_Y - 4, 74, treeC2, false);
-        drawTree(g, offsetX + 280, GROUND_Y + 2, 55, treeC1, false);
-        drawTree(g, offsetX + 480, GROUND_Y - 2, 68, treeC2, false);
-        drawTree(g, offsetX + 510, GROUND_Y + 4, 58, treeC1, true);   // pine
-        drawTree(g, offsetX + 720, GROUND_Y - 4, 72, treeC2, false);
-        drawTree(g, offsetX + 900, GROUND_Y + 2, 60, treeC1, true);
-        drawTree(g, offsetX + 930, GROUND_Y - 6, 80, treeC2, false);
+        drawTree(g, offsetX + 60,  baseAt(offsetX + 60) + 4, 62, treeC1, false);
+        drawTree(g, offsetX + 90,  baseAt(offsetX + 90) - 4, 74, treeC2, false);
+        drawTree(g, offsetX + 280, baseAt(offsetX + 280) + 2, 55, treeC1, false);
+        drawTree(g, offsetX + 480, baseAt(offsetX + 480) - 2, 68, treeC2, false);
+        drawTree(g, offsetX + 510, baseAt(offsetX + 510) + 4, 58, treeC1, true);   // pine
+        drawTree(g, offsetX + 720, baseAt(offsetX + 720) - 4, 72, treeC2, false);
+        drawTree(g, offsetX + 900, baseAt(offsetX + 900) + 2, 60, treeC1, true);
+        drawTree(g, offsetX + 930, baseAt(offsetX + 930) - 6, 80, treeC2, false);
+
+        // Static deer removed — animated deer drawn separately in update loop
     }
 
     private refreshParallaxLayers(): void {
@@ -473,6 +580,10 @@ export class TravelScene extends Scene {
             layer.baseY = -pass * hillW * TravelScene.HILL_Y_RATIO;
             layer.g.setPosition(layer.baseX, layer.baseY);
         });
+
+        // Refresh ground fill to match current biome
+        const hillColor = BIOME_COLORS.HILL_COLORS[this.currentBiome][0];
+        this.drawGroundFill(hillColor);
     }
 
     // ─── Ground & trail ────────────────────────────────────────────────────────
