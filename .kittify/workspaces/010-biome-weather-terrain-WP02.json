@@ -1,0 +1,14 @@
+{
+  "wp_id": "WP02",
+  "feature_slug": "010-biome-weather-terrain",
+  "worktree_path": ".worktrees/010-biome-weather-terrain-WP02",
+  "branch_name": "010-biome-weather-terrain-WP02",
+  "base_branch": "010-biome-weather-terrain-WP01",
+  "base_commit": "590e56f99d77c0cc6ef92e72ca9cdff7f8d281b4",
+  "dependencies": [
+    "WP01"
+  ],
+  "created_at": "2026-03-26T20:25:58.285029+00:00",
+  "created_by": "implement-command",
+  "vcs_backend": "git"
+}
