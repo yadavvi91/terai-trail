@@ -1,0 +1,25 @@
+src/ui/TeraDrawUtils.ts
+  9e62d1cbd7d80ef0 1-1056
+tests/ui/TeraDrawUtils.test.ts
+  9e62d1cbd7d80ef0 1-97
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "30e59420841300b463f4949db8b04d00c360a2f3",
+  "prompts": {
+    "9e62d1cbd7d80ef0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97fe22b2-39d1-4a09-a3ee-fc4158cb49db",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 1153,
+      "total_deletions": 0,
+      "accepted_lines": 1153,
+      "overriden_lines": 0
+    }
+  }
+}
