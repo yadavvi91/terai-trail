@@ -1,0 +1,29 @@
+src/game/MilestoneData.ts
+  9e62d1cbd7d80ef0 1-89
+tests/game/GameState.test.ts
+  9e62d1cbd7d80ef0 1-207
+src/game/GameState.ts
+  9e62d1cbd7d80ef0 1-12,14-22,27-29,34-38,41-43,45,48-57,72-84,87-91,93-96,98,100-121,124-127,130-131,133,137,140-145,148-151,160-165,168-169,173
+tests/game/MilestoneData.test.ts
+  9e62d1cbd7d80ef0 1-110
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "e7404c522d8ea8b2aac529340569d569cddf41c5",
+  "prompts": {
+    "9e62d1cbd7d80ef0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97fe22b2-39d1-4a09-a3ee-fc4158cb49db",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 527,
+      "total_deletions": 50,
+      "accepted_lines": 526,
+      "overriden_lines": 0
+    }
+  }
+}
