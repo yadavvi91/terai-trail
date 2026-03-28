@@ -1,0 +1,25 @@
+src/audio/TeraiSoundManager.ts
+  9e62d1cbd7d80ef0 1-243
+tests/audio/TeraiSoundManager.test.ts
+  9e62d1cbd7d80ef0 1-170
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "0d3336e5126de710ce3ab182327a07f841b591ea",
+  "prompts": {
+    "9e62d1cbd7d80ef0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97fe22b2-39d1-4a09-a3ee-fc4158cb49db",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 413,
+      "total_deletions": 0,
+      "accepted_lines": 413,
+      "overriden_lines": 0
+    }
+  }
+}
