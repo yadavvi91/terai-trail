@@ -1,20 +1,38 @@
-import { Biome, Season, Weather } from './types';
+// ── Terai Trail — Constants ──
+
+import { SettlementPhase, Season, Weather, OriginDistrict, WorkPace, Rations } from './types';
 
 // Game dimensions
 export const GAME_WIDTH = 1024;
 export const GAME_HEIGHT = 768;
 
-// Colors
+// ── Color Palette (Terai forest / Indian earth tones) ──
 export const COLORS = {
-    SKY_BLUE: 0x4a90d9,
-    GRASS_GREEN: 0x3d8b37,
-    TRAIL_BROWN: 0x8b6914,
-    DARK_BROWN: 0x4a3728,
+    SKY_BLUE: 0x5a9fd4,
+    SKY_MONSOON: 0x4a5a6e,
+    SKY_WINTER: 0x8aaccc,
+    SAL_GREEN: 0x2d6b30,
+    JUNGLE_DARK: 0x1a4a1e,
+    ELEPHANT_GRASS: 0x8a9a3a,
+    CLEARED_DIRT: 0x9a7a50,
+    PLOWED_EARTH: 0x6a5030,
+    CROP_GOLD: 0xd4a830,
+    CROP_GREEN: 0x4a8a28,
+    MUD_WALL: 0xa08050,
+    THATCH: 0xc4a050,
+    BRICK: 0x8a4a2a,
+    WHITEWASH: 0xf0e8d0,
+    RIVER_BLUE: 0x3a7aaa,
+    MONSOON_GREY: 0x5a6a7a,
+    SWAMP_GREEN: 0x3a5a30,
     PARCHMENT: 0xf5e6c8,
+    DARK_BROWN: 0x4a3728,
     BLOOD_RED: 0xcc3333,
     WHITE: 0xffffff,
     BLACK: 0x000000,
     GOLD: 0xffd700,
+    SAFFRON: 0xff9933,
+    NAVY: 0x000080,
 } as const;
 
 // Hex color strings for text
@@ -23,10 +41,11 @@ export const HEX_COLORS = {
     WHITE: '#ffffff',
     BLACK: '#000000',
     DARK_BROWN: '#4a3728',
-    TRAIL_BROWN: '#8b6914',
     BLOOD_RED: '#cc3333',
     GOLD: '#ffd700',
-    GREEN: '#3d8b37',
+    SAFFRON: '#ff9933',
+    SAL_GREEN: '#2d6b30',
+    CROP_GOLD: '#d4a830',
 } as const;
 
 // Text styles
@@ -59,104 +78,129 @@ export const TEXT_STYLES = {
     },
 } as const;
 
-// Professions
-export enum Profession {
-    BANKER = 'Banker',
-    CARPENTER = 'Carpenter',
-    FARMER = 'Farmer',
-}
-
-export const PROFESSION_DATA = {
-    [Profession.BANKER]: { startingMoney: 1600, bonus: 'None', scoreMultiplier: 1 },
-    [Profession.CARPENTER]: { startingMoney: 800, bonus: 'Wagon repair', scoreMultiplier: 2 },
-    [Profession.FARMER]: { startingMoney: 400, bonus: '3x score', scoreMultiplier: 3 },
+// ── Origin Districts (replaces Professions) ──
+export const ORIGIN_DISTRICT_DATA = {
+    [OriginDistrict.LAHORE]: {
+        startingCredits: 500,
+        bonusTools: 0,
+        clearingRateBonus: 0,
+        description: 'Lahore — City folk. More government credits, but less farming experience.',
+    },
+    [OriginDistrict.SIALKOT]: {
+        startingCredits: 350,
+        bonusTools: 3,
+        clearingRateBonus: 0,
+        description: 'Sialkot — Craftsmen. Fewer credits, but extra tools from metalworking tradition.',
+    },
+    [OriginDistrict.LYALLPUR]: {
+        startingCredits: 300,
+        bonusTools: 0,
+        clearingRateBonus: 0.15,
+        description: 'Lyallpur — Farming families. Least credits, but clear land 15% faster.',
+    },
 } as const;
 
-// Store prices
-export const STORE_PRICES = {
-    OXEN: 40,
-    FOOD: 0.20,
-    CLOTHING: 10,
-    AMMO: 2,
-    SPARE_PARTS: 10,
+// ── Supply Depot Prices (Government Relief Camp) ──
+export const DEPOT_PRICES = {
+    FOOD: 0.50,
+    BULLOCKS: 80,
+    SHELTER_MATERIALS: 15,
+    TOOLS: 12,
+    MEDICINE: 20,
 } as const;
 
-// Travel
-export const MILES_PER_DAY = {
-    STOPPED: 0,
-    STEADY: 12,
-    STRENUOUS: 16,
-    GRUELING: 20,
+// ── Settlement Rates ──
+export const TOTAL_ACRES = 100;
+export const START_DATE = new Date(1952, 2, 1); // March 1, 1952
+export const PARTY_SIZE = 5;
+
+export const ACRES_PER_DAY = {
+    [WorkPace.RESTING]: 0,
+    [WorkPace.STEADY]: 0.3,
+    [WorkPace.HARD_LABOR]: 0.5,
+    [WorkPace.GRUELING]: 0.8,
 } as const;
 
 export const FOOD_PER_PERSON_PER_DAY = {
-    FILLING: 3,
-    MEAGER: 2,
-    BARE_BONES: 1,
+    [Rations.FILLING]: 3,
+    [Rations.MEAGER]: 2,
+    [Rations.BARE_BONES]: 1,
 } as const;
 
-// Biome and seasonal color palettes
-export const BIOME_COLORS = {
-    // Hill color pairs [primary, secondary] per biome
+// ── Health Effects ──
+export const HEALTH = {
+    STARVATION_DAMAGE: 3,
+    GRUELING_DAMAGE: 2,
+    REST_HEALING: 3,
+    MONSOON_SICKNESS_CHANCE: 0.15,
+    MAX_HEALTH: 100,
+} as const;
+
+// ── Phase Colors (replaces Biome Colors) ──
+export const PHASE_COLORS = {
+    GROUND: {
+        [SettlementPhase.JUNGLE_CLEARING]: 0x1a4a1e,
+        [SettlementPhase.FIRST_PLANTING]: 0x6a5030,
+        [SettlementPhase.ESTABLISHED_FARM]: 0x4a8a28,
+    },
+    GROUND_ALT: {
+        [SettlementPhase.JUNGLE_CLEARING]: [0x1a4a1e, 0x1e5522, 0x224a28, 0x1a4a1e] as number[],
+        [SettlementPhase.FIRST_PLANTING]: [0x6a5030, 0x7a5a38, 0x6a5030, 0x5a4828] as number[],
+        [SettlementPhase.ESTABLISHED_FARM]: [0x4a8a28, 0x3a7a20, 0x4a8a28, 0x5a9a30] as number[],
+    },
     HILL_COLORS: {
-        [Biome.PRAIRIE]:   [0x3a8028, 0x2d7020] as [number, number],
-        [Biome.MOUNTAINS]: [0x2d6428, 0x337030] as [number, number],
-        [Biome.OREGON]:    [0x1e4a1a, 0x234520] as [number, number],
-    },
-    // Mountain back layer colors per biome (3 mountains)
-    MOUNTAIN_BACK: {
-        [Biome.PRAIRIE]:   [0x6a7ea8, 0x5a7098, 0x607898] as [number, number, number],
-        [Biome.MOUNTAINS]: [0x6a7ea8, 0x5a7098, 0x607898] as [number, number, number],
-        [Biome.OREGON]:    [0x2d5a27, 0x1e4a1a, 0x2a5225] as [number, number, number],
-    },
-    // Mountain front layer colors per biome (4 mountains)
-    MOUNTAIN_FRONT: {
-        [Biome.PRAIRIE]:   [0x4a6080, 0x506a88, 0x4a6080, 0x506a88] as [number, number, number, number],
-        [Biome.MOUNTAINS]: [0x4a6080, 0x506a88, 0x4a6080, 0x506a88] as [number, number, number, number],
-        [Biome.OREGON]:    [0x1a3a18, 0x223a20, 0x1a3a18, 0x223a20] as [number, number, number, number],
-    },
-    // Seasonal grass color for isometric ground tiles
-    SEASON_GRASS: {
-        [Season.SPRING]:       0x3a8028,
-        [Season.EARLY_SUMMER]: 0x6a8028,
-        [Season.LATE_SUMMER]:  0x8a7028,
-        [Season.FALL]:         0x7a5020,
-    },
-    // Seasonal grass color variations (for tile variety)
-    SEASON_GRASS_ALT: {
-        [Season.SPRING]:       [0x3a8028, 0x2d7020, 0x347530, 0x3a8028] as number[],
-        [Season.EARLY_SUMMER]: [0x6a8028, 0x5a7020, 0x648028, 0x6a8028] as number[],
-        [Season.LATE_SUMMER]:  [0x8a7028, 0x7a6020, 0x847028, 0x8a7028] as number[],
-        [Season.FALL]:         [0x7a5020, 0x6a4018, 0x745020, 0x7a5020] as number[],
+        [SettlementPhase.JUNGLE_CLEARING]: [0x1a4a1e, 0x1e5522] as [number, number],
+        [SettlementPhase.FIRST_PLANTING]: [0x2d6b30, 0x337030] as [number, number],
+        [SettlementPhase.ESTABLISHED_FARM]: [0x3a8028, 0x2d7020] as [number, number],
     },
 } as const;
 
-// Sky gradients per weather type (top → bottom hex colors)
+// ── Season Colors ──
+export const SEASON_COLORS = {
+    GRASS: {
+        [Season.SPRING]: 0x3a8028,
+        [Season.MONSOON]: 0x2a7020,
+        [Season.POST_MONSOON]: 0x6a8028,
+        [Season.WINTER]: 0x7a7038,
+    },
+    GRASS_ALT: {
+        [Season.SPRING]: [0x3a8028, 0x2d7020, 0x347530, 0x3a8028] as number[],
+        [Season.MONSOON]: [0x2a7020, 0x1e6018, 0x2a6828, 0x2a7020] as number[],
+        [Season.POST_MONSOON]: [0x6a8028, 0x5a7020, 0x648028, 0x6a8028] as number[],
+        [Season.WINTER]: [0x7a7038, 0x6a6030, 0x747038, 0x7a7038] as number[],
+    },
+} as const;
+
+// ── Sky Gradients per Weather ──
 export const SKY_GRADIENTS: Record<Weather, { top: number; bottom: number }> = {
-    [Weather.CLEAR]: { top: 0x0d3a6e, bottom: 0x70b4d8 },  // deep blue
-    [Weather.RAINY]: { top: 0x1a2030, bottom: 0x4a5a6e },  // dark grey-blue
-    [Weather.HOT]:   { top: 0x1a3a5e, bottom: 0xd0a870 },  // pale blue → warm horizon
-    [Weather.SNOWY]: { top: 0x7090a8, bottom: 0xc8d8e0 },  // white-grey
+    [Weather.CLEAR]: { top: 0x0d3a6e, bottom: 0x70b4d8 },
+    [Weather.HUMID]: { top: 0x1a3a5e, bottom: 0xb0c4aa },
+    [Weather.MONSOON_RAIN]: { top: 0x1a2030, bottom: 0x4a5a6e },
+    [Weather.FLOODING]: { top: 0x0a1520, bottom: 0x3a4a5e },
+    [Weather.DRY_HEAT]: { top: 0x1a3a5e, bottom: 0xd0a870 },
+    [Weather.FOG]: { top: 0x7a8a8a, bottom: 0xa0b0a8 },
 };
 
-// Oregon biome: semi-transparent grey-green overlay applied on top of the sky gradient
-export const OREGON_SKY_OVERLAY = { color: 0x4a6040, alpha: 0.35 } as const;
+// ── Shivalik Hills backdrop ──
+export const SHIVALIK_COLORS = {
+    BACK: [0x5a7a5a, 0x4a6a4a, 0x507050] as [number, number, number],
+    FRONT: [0x3a5a3a, 0x405a40, 0x3a5a3a, 0x405a40] as [number, number, number, number],
+} as const;
 
-export const TOTAL_TRAIL_MILES = 2000;
-export const PARTY_SIZE = 5;
-export const MAX_CARRY_FROM_HUNT = 100;
-export const HUNTING_DURATION_MS = 60000;
+// ── Foraging (replaces Hunting) ──
+export const MAX_CARRY_FROM_FORAGE = 100;
+export const FORAGING_DURATION_MS = 60000;
 
-// Scene keys
+// ── Scene Keys ──
 export const SCENES = {
     BOOT: 'BootScene',
     TITLE: 'TitleScene',
     PARTY_CREATION: 'PartyCreationScene',
-    STORE: 'StoreScene',
-    TRAVEL: 'TravelScene',
-    HUNTING: 'HuntingScene',
-    RIVER_CROSSING: 'RiverCrossingScene',
+    SUPPLY_DEPOT: 'SupplyDepotScene',
+    SETTLEMENT: 'SettlementScene',
+    FORAGING: 'ForagingScene',
+    MONSOON: 'MonsoonScene',
     EVENT: 'EventScene',
-    LANDMARK: 'LandmarkScene',
+    MILESTONE: 'MilestoneScene',
     GAME_OVER: 'GameOverScene',
 } as const;

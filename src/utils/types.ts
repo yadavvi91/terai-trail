@@ -1,3 +1,5 @@
+// ── Terai Trail — Core Types ──
+
 export enum MemberStatus {
     HEALTHY = 'Healthy',
     SICK = 'Sick',
@@ -5,12 +7,15 @@ export enum MemberStatus {
     DEAD = 'Dead',
 }
 
-export enum Pace {
-    STOPPED = 'Stopped',
+export enum WorkPace {
+    RESTING = 'Resting',
     STEADY = 'Steady',
-    STRENUOUS = 'Strenuous',
+    HARD_LABOR = 'Hard Labor',
     GRUELING = 'Grueling',
 }
+
+// Keep Pace as alias for backward compatibility during migration
+export const Pace = WorkPace;
 
 export enum Rations {
     FILLING = 'Filling',
@@ -20,46 +25,61 @@ export enum Rations {
 
 export enum Weather {
     CLEAR = 'Clear',
-    RAINY = 'Rainy',
-    SNOWY = 'Snowy',
-    HOT = 'Hot',
+    HUMID = 'Humid',
+    MONSOON_RAIN = 'Monsoon Rain',
+    FLOODING = 'Flooding',
+    DRY_HEAT = 'Dry Heat',
+    FOG = 'Fog',
 }
 
-export enum Biome {
-    PRAIRIE   = 'PRAIRIE',
-    MOUNTAINS = 'MOUNTAINS',
-    OREGON    = 'OREGON',
+export enum SettlementPhase {
+    JUNGLE_CLEARING = 'JUNGLE_CLEARING',
+    FIRST_PLANTING = 'FIRST_PLANTING',
+    ESTABLISHED_FARM = 'ESTABLISHED_FARM',
 }
 
 export enum Season {
-    SPRING       = 'SPRING',
-    EARLY_SUMMER = 'EARLY_SUMMER',
-    LATE_SUMMER  = 'LATE_SUMMER',
-    FALL         = 'FALL',
+    SPRING = 'SPRING',
+    MONSOON = 'MONSOON',
+    POST_MONSOON = 'POST_MONSOON',
+    WINTER = 'WINTER',
 }
 
-export interface PartyMember {
+export enum OriginDistrict {
+    LAHORE = 'Lahore',
+    SIALKOT = 'Sialkot',
+    LYALLPUR = 'Lyallpur',
+}
+
+export enum FamilyRole {
+    SARDAR = 'Sardar',
+    WIFE = 'Wife',
+    ELDER = 'Elder',
+    CHILD = 'Child',
+}
+
+export interface FamilyMember {
     name: string;
     health: number;
     status: MemberStatus;
+    role: FamilyRole;
     disease?: string;
 }
 
 export interface Supplies {
     food: number;
-    oxen: number;
-    clothing: number;
-    ammo: number;
-    spareParts: number;
-    money: number;
+    bullocks: number;
+    shelterMaterials: number;
+    tools: number;
+    medicine: number;
+    governmentCredits: number;
 }
 
-export interface Landmark {
+export interface Milestone {
     name: string;
-    miles: number;
-    isRiver: boolean;
-    isFort: boolean;
+    acresRequired: number;
     description: string;
+    isCelebration: boolean;
 }
 
 export interface GameEvent {
@@ -72,4 +92,14 @@ export interface GameEvent {
 export interface EventChoice {
     text: string;
     outcome: () => void;
+}
+
+export interface SettlementFlags {
+    shelterBuilt: boolean;
+    wellDug: boolean;
+    ddtArrived: boolean;
+    cropsPlanted: boolean;
+    gurdwaraFounded: boolean;
+    schoolBuilt: boolean;
+    canalDug: boolean;
 }
