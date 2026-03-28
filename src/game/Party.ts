@@ -1,18 +1,30 @@
-import { PartyMember, MemberStatus } from '../utils/types';
-import { PARTY_SIZE } from '../utils/constants';
+// ── Terai Trail — Family Party ──
+
+import { FamilyMember, FamilyRole, MemberStatus } from '../utils/types';
+import { PARTY_SIZE, HEALTH } from '../utils/constants';
+
+const DEFAULT_ROLES: FamilyRole[] = [
+    FamilyRole.SARDAR,
+    FamilyRole.WIFE,
+    FamilyRole.ELDER,
+    FamilyRole.CHILD,
+    FamilyRole.CHILD,
+];
 
 export class Party {
-    public members: PartyMember[];
+    public members: FamilyMember[];
 
-    constructor(names: string[]) {
-        this.members = names.slice(0, PARTY_SIZE).map(name => ({
+    constructor(names: string[], roles?: FamilyRole[]) {
+        const assignedRoles = roles ?? DEFAULT_ROLES;
+        this.members = names.slice(0, PARTY_SIZE).map((name, i) => ({
             name: name.trim() || 'Unknown',
-            health: 100,
+            health: HEALTH.MAX_HEALTH,
             status: MemberStatus.HEALTHY,
+            role: assignedRoles[i] ?? FamilyRole.CHILD,
         }));
     }
 
-    public getAlive(): PartyMember[] {
+    public getAlive(): FamilyMember[] {
         return this.members.filter(m => m.status !== MemberStatus.DEAD);
     }
 
@@ -26,19 +38,34 @@ export class Party {
         return alive.reduce((sum, m) => sum + m.health, 0) / alive.length;
     }
 
-    public applyDailyHealthEffects(food: number, partySize: number): number {
-        let foodConsumed = 0;
+    /**
+     * Apply daily health effects. foodPerPerson = lbs of food each person gets.
+     * Returns total food consumed across all alive members.
+     */
+    public applyDailyHealthEffects(foodPerPerson: number): number {
+        let totalFoodConsumed = 0;
         this.members.forEach(member => {
             if (member.status === MemberStatus.DEAD) return;
-            foodConsumed += food > 0 ? 1 : 0;
-            if (food <= 0) {
-                member.health = Math.max(0, member.health - 5);
+
+            totalFoodConsumed += foodPerPerson;
+
+            // Starvation
+            if (foodPerPerson <= 0) {
+                member.health = Math.max(0, member.health - HEALTH.STARVATION_DAMAGE);
             }
+
+            // Update status
             if (member.health <= 0) {
                 member.status = MemberStatus.DEAD;
                 member.health = 0;
+            } else if (member.health < 30) {
+                member.status = MemberStatus.VERY_SICK;
+            } else if (member.health < 60) {
+                member.status = MemberStatus.SICK;
+            } else {
+                member.status = MemberStatus.HEALTHY;
             }
         });
-        return Math.min(foodConsumed, partySize);
+        return totalFoodConsumed;
     }
 }
