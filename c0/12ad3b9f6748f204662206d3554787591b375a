@@ -1,0 +1,27 @@
+index.html
+  9e62d1cbd7d80ef0 8
+package.json
+  9e62d1cbd7d80ef0 2-3
+tests/e2e/smoke.test.ts
+  9e62d1cbd7d80ef0 1-57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "c012ad3b9f6748f204662206d3554787591b375a",
+  "prompts": {
+    "9e62d1cbd7d80ef0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97fe22b2-39d1-4a09-a3ee-fc4158cb49db",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 60,
+      "total_deletions": 3,
+      "accepted_lines": 60,
+      "overriden_lines": 0
+    }
+  }
+}
