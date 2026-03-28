@@ -1,6 +1,6 @@
 /**
- * WP13 — Settlement Scene: Core gameplay. Static camera, evolving tiles.
- * Replaces TravelScene — no scrolling, settlement grows in place.
+ * WP13 — Settlement Scene: Core gameplay. Isometric diamond grid, animated figures.
+ * Static camera, evolving tiles — settlement grows as jungle is cleared.
  */
 import { Scene } from 'phaser';
 import {
@@ -14,15 +14,38 @@ import { getPhase, getSeason } from '../utils/phase';
 import { rollEvent } from '../game/EventManager';
 import { getMilestone, getNextMilestone } from '../game/MilestoneData';
 import {
-    drawSalTree, drawShivalikHills,
-    drawIsoSalTree, drawIsoHut, drawIsoField, drawIsoWell, drawIsoGurdwara,
+    drawSalTree, drawShivalikHills, drawElephantGrass,
+    drawIsoDiamondTile3D, drawIsoSalTree, drawIsoHut,
+    drawIsoField, drawIsoWell, drawIsoGurdwara,
     drawIsoSikhPerson,
 } from '../ui/TeraDrawUtils';
+
+// ── Iso grid constants ──
+const TILE_W = 96;
+const TILE_H = 48;
+const GRID_COLS = 8;
+const GRID_ROWS = 4;
+const GRID_TOTAL = GRID_COLS * GRID_ROWS;
+const GRID_ORIGIN_X = GAME_WIDTH / 2;
+const GRID_ORIGIN_Y = 340;
+const TILE_DEPTH = 6;
+
+/** Convert grid (col, row) to screen (x, y) center of the diamond tile. */
+function isoToScreen(col: number, row: number): { x: number; y: number } {
+    return {
+        x: GRID_ORIGIN_X + (col - row) * (TILE_W / 2),
+        y: GRID_ORIGIN_Y + (col + row) * (TILE_H / 2),
+    };
+}
 
 export class SettlementScene extends Scene {
     private tickTimer: number = 0;
     private isPaused: boolean = false;
     private lastAcresChecked: number = 0;
+
+    // Event pacing
+    private daysSinceStart: number = 0;
+    private daysSinceLastEvent: number = 99; // allow first event after grace period
 
     // HUD texts
     private dateText!: Phaser.GameObjects.Text;
@@ -36,9 +59,13 @@ export class SettlementScene extends Scene {
     private paceText!: Phaser.GameObjects.Text;
     private progressBar!: Phaser.GameObjects.Graphics;
 
-    // Landscape graphics
-    private landscapeG!: Phaser.GameObjects.Graphics;
+    // Landscape & tile graphics
     private tileG!: Phaser.GameObjects.Graphics;
+
+    // Animated figures
+    private figureGraphics: Phaser.GameObjects.Graphics[] = [];
+    private lastAliveCount: number = -1;
+    private lastClearedTiles: number = -1;
 
     constructor() {
         super(SCENES.SETTLEMENT);
@@ -49,36 +76,45 @@ export class SettlementScene extends Scene {
         this.tickTimer = 0;
         this.isPaused = false;
         this.lastAcresChecked = Math.floor(gs.acresCleared);
+        this.daysSinceStart = 0;
+        this.daysSinceLastEvent = 99;
+        this.lastAliveCount = -1;
+        this.lastClearedTiles = -1;
+        this.figureGraphics = [];
 
         this.drawBackground();
         this.createHUD();
         this.createControls();
+
+        // Tile layer (on top of background)
+        this.tileG = this.add.graphics();
+
         this.drawSettlement();
         this.updateHUD();
     }
 
     private drawBackground(): void {
-        const groundY = GAME_HEIGHT - 160;
-
         // Sky
         this.cameras.main.setBackgroundColor(COLORS.SKY_BLUE);
 
-        // Shivalik hills
+        // Shivalik hills — distant backdrop
         const hillsG = this.add.graphics();
-        drawShivalikHills(hillsG, groundY - 80, GAME_WIDTH, [0x5a7a5a, 0x4a6a4a, 0x507050], 0.5);
+        drawShivalikHills(hillsG, 160, GAME_WIDTH, [0x5a7a5a, 0x4a6a4a, 0x507050], 0.5);
 
-        // Jungle border (sal trees along edges)
-        this.landscapeG = this.add.graphics();
+        // Jungle border — sal trees along left and right edges
+        const borderG = this.add.graphics();
+        for (let i = 0; i < 4; i++) {
+            drawSalTree(borderG, 30 + i * 35, 320 + i * 20, 0.7 - i * 0.05);
+            drawSalTree(borderG, GAME_WIDTH - 30 - i * 35, 320 + i * 20, 0.7 - i * 0.05);
+        }
+        // Elephant grass along borders
         for (let i = 0; i < 6; i++) {
-            drawSalTree(this.landscapeG, 20 + i * 30, groundY - 10, 0.6);
-            drawSalTree(this.landscapeG, GAME_WIDTH - 20 - i * 30, groundY - 10, 0.6);
+            drawElephantGrass(borderG, 20 + i * 40, 380 + i * 15, 0.5);
+            drawElephantGrass(borderG, GAME_WIDTH - 20 - i * 40, 380 + i * 15, 0.5);
         }
 
-        // Ground plane
-        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 80, GAME_WIDTH, 160, COLORS.CLEARED_DIRT);
-
-        // Tile area for evolving settlement
-        this.tileG = this.add.graphics();
+        // Ground plane below the iso grid
+        this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 60, GAME_WIDTH, 180, COLORS.CLEARED_DIRT);
     }
 
     drawSettlement(): void {
@@ -86,54 +122,120 @@ export class SettlementScene extends Scene {
         const phase = getPhase(gs.acresCleared);
         this.tileG.clear();
 
-        const gridX = 200, gridY = GAME_HEIGHT - 200;
-        const cols = 10, rows = 5;
-        const clearedTiles = Math.floor(gs.acresCleared / (TOTAL_ACRES / (cols * rows)));
+        const clearedTiles = Math.min(GRID_TOTAL, Math.floor(gs.acresCleared / (TOTAL_ACRES / GRID_TOTAL)));
 
-        // Draw tile grid
-        for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) {
-                const tileIndex = r * cols + c;
-                const tx = gridX + c * 60;
-                const ty = gridY + r * 30;
+        // Draw tile grid in back-to-front order for proper overlap
+        for (let r = 0; r < GRID_ROWS; r++) {
+            for (let c = 0; c < GRID_COLS; c++) {
+                const tileIndex = r * GRID_COLS + c;
+                const { x: tx, y: ty } = isoToScreen(c, r);
 
                 if (tileIndex < clearedTiles) {
-                    // Cleared tile
-                    const groundColor = PHASE_COLORS.GROUND[phase];
-                    this.tileG.fillStyle(groundColor, 0.8);
-                    this.tileG.fillRect(tx, ty, 56, 26);
+                    // ── Cleared tile ──
+                    const groundColors = PHASE_COLORS.GROUND_ALT[phase];
+                    const topColor = groundColors[(r + c) % groundColors.length];
+                    const leftColor = 0x5a4428;
+                    const rightColor = 0x4a3820;
 
-                    // Add structures at milestones
-                    if (gs.acresCleared >= 5 && tileIndex === 5) {
-                        drawIsoHut(this.tileG, tx + 28, ty + 13, 0.4);
+                    drawIsoDiamondTile3D(this.tileG, tx, ty, TILE_W, TILE_H,
+                        topColor, leftColor, rightColor, TILE_DEPTH, 0.9);
+
+                    // Structures at milestone tiles
+                    if (gs.acresCleared >= 5 && tileIndex === 3) {
+                        drawIsoHut(this.tileG, tx, ty - TILE_DEPTH, 0.8);
                     }
-                    if (gs.acresCleared >= 10 && tileIndex === 10) {
-                        drawIsoWell(this.tileG, tx + 28, ty + 13, 0.4);
+                    if (gs.acresCleared >= 10 && tileIndex === 7) {
+                        drawIsoWell(this.tileG, tx, ty - TILE_DEPTH, 0.7);
                     }
-                    if (gs.acresCleared >= 50 && tileIndex === 25) {
-                        drawIsoGurdwara(this.tileG, tx + 28, ty + 13, 0.3);
+                    if (gs.acresCleared >= 50 && tileIndex === 16) {
+                        drawIsoGurdwara(this.tileG, tx, ty - TILE_DEPTH, 0.5);
                     }
-                    if (gs.acresCleared >= 30 && tileIndex > 15 && tileIndex < 25) {
-                        drawIsoField(this.tileG, tx + 28, ty + 13, 0.4, COLORS.CROP_GOLD);
+                    if (gs.acresCleared >= 30 && tileIndex >= 10 && tileIndex <= 15) {
+                        drawIsoField(this.tileG, tx, ty - TILE_DEPTH, 0.7, COLORS.CROP_GOLD);
                     }
                 } else {
-                    // Jungle tile
-                    this.tileG.fillStyle(COLORS.JUNGLE_DARK, 0.6);
-                    this.tileG.fillRect(tx, ty, 56, 26);
-                    if (tileIndex % 3 === 0) {
-                        drawIsoSalTree(this.tileG, tx + 28, ty + 13, 0.25);
+                    // ── Jungle tile ──
+                    drawIsoDiamondTile3D(this.tileG, tx, ty, TILE_W, TILE_H,
+                        COLORS.JUNGLE_DARK, 0x0a3010, 0x0a2a0e, TILE_DEPTH, 0.7);
+
+                    // Sal trees on jungle tiles (alternating)
+                    if ((r + c) % 2 === 0) {
+                        drawIsoSalTree(this.tileG, tx, ty - TILE_DEPTH - 4, 0.55);
                     }
                 }
             }
         }
 
-        // Family figures
+        // ── Animated family figures ──
+        this.updateFigures(gs, clearedTiles);
+    }
+
+    private updateFigures(gs: GameState, clearedTiles: number): void {
         const aliveCount = gs.getAliveMemberCount();
-        for (let i = 0; i < Math.min(aliveCount, 3); i++) {
-            const fx = 340 + i * 40;
-            const fy = GAME_HEIGHT - 180;
-            const type = i === 0 ? 'man' as const : i === 1 ? 'woman' as const : 'child' as const;
-            drawIsoSikhPerson(this.tileG, fx, fy, 0.6, { type });
+
+        // Only rebuild figures when count changes
+        if (aliveCount !== this.lastAliveCount) {
+            // Destroy old figure graphics + tweens
+            this.figureGraphics.forEach(fg => {
+                this.tweens.killTweensOf(fg);
+                fg.destroy();
+            });
+            this.figureGraphics = [];
+            this.lastAliveCount = aliveCount;
+
+            // Create new figure graphics
+            const types: ('man' | 'woman' | 'child')[] = ['man', 'woman', 'child', 'child', 'child'];
+            for (let i = 0; i < Math.min(aliveCount, 5); i++) {
+                const fg = this.add.graphics();
+                fg.setDepth(10 + i);
+                const type = types[i] ?? 'child';
+                drawIsoSikhPerson(fg, 0, 0, 0.9, { type });
+                this.figureGraphics.push(fg);
+            }
+        }
+
+        // Position figures on cleared tiles near the frontier
+        if (clearedTiles !== this.lastClearedTiles || aliveCount !== this.lastAliveCount) {
+            this.lastClearedTiles = clearedTiles;
+
+            this.figureGraphics.forEach((fg, i) => {
+                // Place near the frontier of clearing
+                const tileIdx = Math.max(0, Math.min(clearedTiles - 1, clearedTiles - 1 - i));
+                const row = Math.floor(tileIdx / GRID_COLS);
+                const col = tileIdx % GRID_COLS;
+                const { x: tx, y: ty } = isoToScreen(col, row);
+
+                // Offset each figure slightly so they don't stack
+                const offsetX = (i - 1) * 20;
+                const offsetY = -TILE_DEPTH - 5;
+
+                fg.setPosition(tx + offsetX, ty + offsetY);
+
+                // Restart tweens
+                this.tweens.killTweensOf(fg);
+
+                // Bob animation
+                this.tweens.add({
+                    targets: fg,
+                    y: ty + offsetY - 4,
+                    duration: 500 + i * 120,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut',
+                });
+
+                // Gentle side-to-side sway (simulates working)
+                if (gs.workPace !== WorkPace.RESTING) {
+                    this.tweens.add({
+                        targets: fg,
+                        x: tx + offsetX + 8,
+                        duration: 800 + i * 150,
+                        yoyo: true,
+                        repeat: -1,
+                        ease: 'Sine.easeInOut',
+                    });
+                }
+            });
         }
     }
 
@@ -141,23 +243,23 @@ export class SettlementScene extends Scene {
         const hudY = 10;
         const col1 = 15, col2 = 200, col3 = 400, col4 = 600;
 
-        this.dateText = this.add.text(col1, hudY, '', { ...TEXT_STYLES.HUD });
-        this.seasonText = this.add.text(col1, hudY + 18, '', { ...TEXT_STYLES.HUD });
-        this.phaseText = this.add.text(col2, hudY, '', { ...TEXT_STYLES.HUD });
-        this.acresText = this.add.text(col2, hudY + 18, '', { ...TEXT_STYLES.HUD });
-        this.foodText = this.add.text(col3, hudY, '', { ...TEXT_STYLES.HUD });
-        this.toolsText = this.add.text(col3, hudY + 18, '', { ...TEXT_STYLES.HUD });
-        this.medicineText = this.add.text(col4, hudY, '', { ...TEXT_STYLES.HUD });
-        this.healthText = this.add.text(col4, hudY + 18, '', { ...TEXT_STYLES.HUD });
+        this.dateText = this.add.text(col1, hudY, '', { ...TEXT_STYLES.HUD }).setDepth(20);
+        this.seasonText = this.add.text(col1, hudY + 18, '', { ...TEXT_STYLES.HUD }).setDepth(20);
+        this.phaseText = this.add.text(col2, hudY, '', { ...TEXT_STYLES.HUD }).setDepth(20);
+        this.acresText = this.add.text(col2, hudY + 18, '', { ...TEXT_STYLES.HUD }).setDepth(20);
+        this.foodText = this.add.text(col3, hudY, '', { ...TEXT_STYLES.HUD }).setDepth(20);
+        this.toolsText = this.add.text(col3, hudY + 18, '', { ...TEXT_STYLES.HUD }).setDepth(20);
+        this.medicineText = this.add.text(col4, hudY, '', { ...TEXT_STYLES.HUD }).setDepth(20);
+        this.healthText = this.add.text(col4, hudY + 18, '', { ...TEXT_STYLES.HUD }).setDepth(20);
 
         // Progress bar
-        this.progressBar = this.add.graphics();
+        this.progressBar = this.add.graphics().setDepth(20);
 
         // Pace display
         this.paceText = this.add.text(GAME_WIDTH / 2, 55, '', {
             ...TEXT_STYLES.HUD,
             fontSize: '12px',
-        }).setOrigin(0.5);
+        }).setOrigin(0.5).setDepth(20);
     }
 
     private updateHUD(): void {
@@ -204,7 +306,7 @@ export class SettlementScene extends Scene {
                 fontSize: '13px',
                 backgroundColor: '#4a3728',
                 padding: { x: 8, y: 4 },
-            }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+            }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(20);
 
             btn.on('pointerdown', () => {
                 gs.workPace = pace;
@@ -218,7 +320,7 @@ export class SettlementScene extends Scene {
             fontSize: '13px',
             backgroundColor: '#2d6b30',
             padding: { x: 10, y: 4 },
-        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+        }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(20);
         forageBtn.on('pointerdown', () => this.scene.start(SCENES.FORAGING));
 
         // Speed button
@@ -227,7 +329,7 @@ export class SettlementScene extends Scene {
             fontSize: '13px',
             backgroundColor: '#4a3728',
             padding: { x: 10, y: 4 },
-        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+        }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(20);
         speedBtn.on('pointerdown', () => {
             const spd = gs.cycleSpeed();
             speedBtn.setText(`${spd}x`);
@@ -239,7 +341,7 @@ export class SettlementScene extends Scene {
             fontSize: '13px',
             backgroundColor: '#4a3728',
             padding: { x: 8, y: 4 },
-        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+        }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(20);
         rationBtn.on('pointerdown', () => {
             const rations = [Rations.FILLING, Rations.MEAGER, Rations.BARE_BONES];
             const idx = rations.indexOf(gs.rations);
@@ -274,6 +376,8 @@ export class SettlementScene extends Scene {
     private processDailyTick(): void {
         const gs = GameState.getInstance();
         gs.advanceDay();
+        this.daysSinceStart++;
+        this.daysSinceLastEvent++;
 
         const season = getSeason(gs.currentDate.getMonth());
         const phase = getPhase(gs.acresCleared);
@@ -338,20 +442,25 @@ export class SettlementScene extends Scene {
             this.lastAcresChecked = currentAcres;
         }
 
-        // Random events (~15% chance per day)
-        if (Math.random() < 0.15) {
+        // Random events — with grace period and cooldown
+        // Grace: no events for first 10 days
+        // Cooldown: at least 5 days between events
+        // Frequency: 8% per day (down from 15%)
+        if (this.daysSinceStart > 10 && this.daysSinceLastEvent >= 5 && Math.random() < 0.08) {
             const event = rollEvent(phase, season, gs.flags);
             if (event) {
                 this.isPaused = true;
+                this.daysSinceLastEvent = 0;
                 gs.resetSpeed();
                 this.scene.start(SCENES.EVENT, { event });
                 return;
             }
         }
 
-        // Monsoon challenge (~10% chance during monsoon days)
-        if (season === 'MONSOON' && Math.random() < 0.02) {
+        // Monsoon challenge (~2% chance during monsoon, with cooldown)
+        if (season === 'MONSOON' && this.daysSinceLastEvent >= 5 && Math.random() < 0.02) {
             this.isPaused = true;
+            this.daysSinceLastEvent = 0;
             gs.resetSpeed();
             this.scene.start(SCENES.MONSOON);
             return;
@@ -363,6 +472,12 @@ export class SettlementScene extends Scene {
     }
 
     shutdown(): void {
+        // Clean up figure graphics and tweens
+        this.figureGraphics.forEach(fg => {
+            this.tweens.killTweensOf(fg);
+            fg.destroy();
+        });
+        this.figureGraphics = [];
         this.input.removeAllListeners();
     }
 }

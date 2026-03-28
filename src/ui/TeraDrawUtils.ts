@@ -669,6 +669,63 @@ export function drawCropField(
     }
 }
 
+/**
+ * Isometric diamond tile — the building block for the settlement grid.
+ * 2:1 width:height ratio diamond.
+ */
+export function drawIsoDiamondTile(
+    g: Phaser.GameObjects.Graphics,
+    cx: number, cy: number,
+    tileW: number, tileH: number,
+    color: number, alpha: number = 1,
+): void {
+    g.fillStyle(color, alpha);
+    g.fillPoints([
+        { x: cx, y: cy - tileH / 2 },       // top
+        { x: cx + tileW / 2, y: cy },         // right
+        { x: cx, y: cy + tileH / 2 },         // bottom
+        { x: cx - tileW / 2, y: cy },         // left
+    ], true);
+}
+
+/**
+ * Isometric diamond tile with a raised "side" to give 3D depth.
+ */
+export function drawIsoDiamondTile3D(
+    g: Phaser.GameObjects.Graphics,
+    cx: number, cy: number,
+    tileW: number, tileH: number,
+    topColor: number, leftColor: number, rightColor: number,
+    depth: number = 4, alpha: number = 1,
+): void {
+    // Left side face
+    g.fillStyle(leftColor, alpha);
+    g.fillPoints([
+        { x: cx - tileW / 2, y: cy },
+        { x: cx, y: cy + tileH / 2 },
+        { x: cx, y: cy + tileH / 2 + depth },
+        { x: cx - tileW / 2, y: cy + depth },
+    ], true);
+
+    // Right side face
+    g.fillStyle(rightColor, alpha);
+    g.fillPoints([
+        { x: cx + tileW / 2, y: cy },
+        { x: cx, y: cy + tileH / 2 },
+        { x: cx, y: cy + tileH / 2 + depth },
+        { x: cx + tileW / 2, y: cy + depth },
+    ], true);
+
+    // Top face
+    g.fillStyle(topColor, alpha);
+    g.fillPoints([
+        { x: cx, y: cy - tileH / 2 },
+        { x: cx + tileW / 2, y: cy },
+        { x: cx, y: cy + tileH / 2 },
+        { x: cx - tileW / 2, y: cy },
+    ], true);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // WP08/09 — ISOMETRIC VERSIONS
 // ═══════════════════════════════════════════════════════════════════════════════
