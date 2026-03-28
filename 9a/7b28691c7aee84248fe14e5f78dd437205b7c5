@@ -1,0 +1,25 @@
+tests/game/EventManager.test.ts
+  9e62d1cbd7d80ef0 1-165
+src/game/EventManager.ts
+  9e62d1cbd7d80ef0 1-4,7-88,90-110,112,119,125-126,128,130-135,137-143,146-147,149-150,152-156,158,162-166,169,171-175,177-181,184-185,187-188,190-194,196-197,200-204,207,209-216,218-223,225-226,228-242,244-254,256-264,266-276,278-280,282-283,285-292,294-299,301-311,313-320,322-330,332-346,348-362,364-388,390-402,404-409,412-413
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "9a7b28691c7aee84248fe14e5f78dd437205b7c5",
+  "prompts": {
+    "9e62d1cbd7d80ef0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97fe22b2-39d1-4a09-a3ee-fc4158cb49db",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 541,
+      "total_deletions": 272,
+      "accepted_lines": 541,
+      "overriden_lines": 0
+    }
+  }
+}
