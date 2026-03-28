@@ -2,14 +2,14 @@ import Phaser, { AUTO, Game } from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './utils/constants';
 
 import { BootScene } from './scenes/BootScene';
-import { TitleScene } from './scenes/TitleScene';
+import { TeraiTitleScene } from './scenes/TeraiTitleScene';
 import { PartyCreationScene } from './scenes/PartyCreationScene';
-import { StoreScene } from './scenes/StoreScene';
-import { TravelScene } from './scenes/TravelScene';
-import { HuntingScene } from './scenes/HuntingScene';
-import { RiverCrossingScene } from './scenes/RiverCrossingScene';
+import { SupplyDepotScene } from './scenes/SupplyDepotScene';
+import { SettlementScene } from './scenes/SettlementScene';
+import { ForagingScene } from './scenes/ForagingScene';
+import { MonsoonScene } from './scenes/MonsoonScene';
 import { EventScene } from './scenes/EventScene';
-import { LandmarkScene } from './scenes/LandmarkScene';
+import { MilestoneScene } from './scenes/MilestoneScene';
 import { GameOverScene } from './scenes/GameOverScene';
 
 const config: Phaser.Types.Core.GameConfig = {
@@ -32,14 +32,14 @@ const config: Phaser.Types.Core.GameConfig = {
     },
     scene: [
         BootScene,
-        TitleScene,
+        TeraiTitleScene,
         PartyCreationScene,
-        StoreScene,
-        TravelScene,
-        HuntingScene,
-        RiverCrossingScene,
+        SupplyDepotScene,
+        SettlementScene,
+        ForagingScene,
+        MonsoonScene,
         EventScene,
-        LandmarkScene,
+        MilestoneScene,
         GameOverScene,
     ],
 };
