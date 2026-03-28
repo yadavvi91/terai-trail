@@ -6,6 +6,7 @@ import { Scene } from 'phaser';
 import { SCENES, GAME_WIDTH, GAME_HEIGHT, COLORS, TEXT_STYLES, HEX_COLORS } from '../utils/constants';
 import { MemberStatus } from '../utils/types';
 import { GameState } from '../game/GameState';
+import { TeraiSoundManager } from '../audio/TeraiSoundManager';
 
 export class MonsoonScene extends Scene {
     private rainParticles: { x: number; y: number; speed: number }[] = [];
@@ -17,6 +18,7 @@ export class MonsoonScene extends Scene {
 
     create(): void {
         const gs = GameState.getInstance();
+        TeraiSoundManager.getInstance().playMonsoonThunder();
 
         // Dark stormy sky
         this.cameras.main.setBackgroundColor(0x1a2030);

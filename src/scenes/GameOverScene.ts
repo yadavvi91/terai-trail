@@ -7,6 +7,7 @@ import { MemberStatus } from '../utils/types';
 import { GameState } from '../game/GameState';
 import { drawGurdwara, drawCropField, drawSalTree, drawThatchHut } from '../ui/TeraDrawUtils';
 import { getAllMilestones } from '../game/MilestoneData';
+import { TeraiSoundManager } from '../audio/TeraiSoundManager';
 
 export class GameOverScene extends Scene {
     constructor() {
@@ -16,10 +17,14 @@ export class GameOverScene extends Scene {
     create(data: { victory: boolean }): void {
         const gs = GameState.getInstance();
         const victory = data?.victory ?? false;
+        const sound = TeraiSoundManager.getInstance();
+        sound.stopAmbience();
 
         if (victory) {
+            sound.startVictoryMusic();
             this.showVictory(gs);
         } else {
+            sound.startFuneralMusic();
             this.showDefeat(gs);
         }
     }

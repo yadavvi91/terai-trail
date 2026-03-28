@@ -13,6 +13,7 @@ import {
     drawWildBoar, drawPeacock, drawTiger,
     drawIsoSikhPerson,
 } from '../ui/TeraDrawUtils';
+import { TeraiSoundManager } from '../audio/TeraiSoundManager';
 
 interface ForageTarget {
     type: 'boar' | 'deer' | 'peacock' | 'fish';
@@ -38,6 +39,7 @@ export class ForagingScene extends Scene {
     }
 
     create(): void {
+        TeraiSoundManager.getInstance().stopMusic();
         this.foodCollected = 0;
         this.timeRemaining = FORAGING_DURATION_MS;
         this.targets = [];
@@ -181,6 +183,7 @@ export class ForagingScene extends Scene {
 
     private triggerTigerDanger(): void {
         this.dangerActive = true;
+        TeraiSoundManager.getInstance().playTigerGrowl();
 
         const bg = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, 600, 200, 0x000000, 0.85).setInteractive();
         const tigerG = this.add.graphics();

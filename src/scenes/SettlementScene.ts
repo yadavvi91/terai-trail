@@ -13,6 +13,7 @@ import { GameState } from '../game/GameState';
 import { getPhase, getSeason } from '../utils/phase';
 import { rollEvent } from '../game/EventManager';
 import { getMilestone, getNextMilestone } from '../game/MilestoneData';
+import { TeraiSoundManager } from '../audio/TeraiSoundManager';
 import {
     drawSalTree, drawShivalikHills, drawElephantGrass,
     drawIsoDiamondTile3D, drawIsoSalTree, drawIsoHut,
@@ -81,6 +82,11 @@ export class SettlementScene extends Scene {
         this.lastAliveCount = -1;
         this.lastClearedTiles = -1;
         this.figureGraphics = [];
+
+        // Audio
+        const sound = TeraiSoundManager.getInstance();
+        sound.startSettlementMusic();
+        sound.startJungleAmbience();
 
         this.drawBackground();
         this.createHUD();
@@ -392,6 +398,11 @@ export class SettlementScene extends Scene {
         const districtBonus = 1 + districtData.clearingRateBonus;
         const acresCleared = baseRate * seasonMod * toolBonus * districtBonus;
         gs.clearAcres(acresCleared);
+
+        // Axe chop SFX when actively working
+        if (gs.workPace !== WorkPace.RESTING && Math.random() < 0.3) {
+            TeraiSoundManager.getInstance().playAxeChop();
+        }
 
         // Consume food
         const aliveCount = gs.getAliveMemberCount();

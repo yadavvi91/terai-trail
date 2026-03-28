@@ -4,6 +4,7 @@
 import { Scene } from 'phaser';
 import { SCENES, GAME_WIDTH, GAME_HEIGHT, COLORS, TEXT_STYLES, HEX_COLORS } from '../utils/constants';
 import { drawSalTree, drawElephantGrass, drawShivalikHills, drawIsoBullockCart, drawIsoBullock } from '../ui/TeraDrawUtils';
+import { TeraiSoundManager } from '../audio/TeraiSoundManager';
 
 export class TeraiTitleScene extends Scene {
     private cartX: number = -100;
@@ -14,6 +15,12 @@ export class TeraiTitleScene extends Scene {
     }
 
     create(): void {
+        // Initialize audio on first user-triggered scene
+        const sound = TeraiSoundManager.getInstance();
+        sound.init();
+        sound.startSettlementMusic();
+        sound.startJungleAmbience();
+
         this.cartX = -100;
         const groundY = GAME_HEIGHT - 90;
 

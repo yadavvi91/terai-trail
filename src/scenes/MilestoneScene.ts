@@ -8,6 +8,7 @@ import { MemberStatus } from '../utils/types';
 import { GameState } from '../game/GameState';
 import { getMilestone } from '../game/MilestoneData';
 import { drawThatchHut, drawWell, drawGurdwara, drawCropField } from '../ui/TeraDrawUtils';
+import { TeraiSoundManager } from '../audio/TeraiSoundManager';
 
 export class MilestoneScene extends Scene {
     constructor() {
@@ -15,6 +16,8 @@ export class MilestoneScene extends Scene {
     }
 
     create(data: { acres: number }): void {
+        TeraiSoundManager.getInstance().playCelebration();
+
         const gs = GameState.getInstance();
         const acres = data?.acres ?? Math.floor(gs.acresCleared);
         const milestone = getMilestone(acres);

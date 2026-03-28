@@ -6,6 +6,7 @@ import { Scene } from 'phaser';
 import { SCENES, GAME_WIDTH, GAME_HEIGHT, COLORS, HEX_COLORS, TEXT_STYLES } from '../utils/constants';
 import { GameEvent } from '../utils/types';
 import { drawSalTree, drawElephantGrass } from '../ui/TeraDrawUtils';
+import { TeraiSoundManager } from '../audio/TeraiSoundManager';
 
 export class EventScene extends Scene {
     constructor() {
@@ -18,6 +19,14 @@ export class EventScene extends Scene {
             this.scene.start(SCENES.SETTLEMENT);
             return;
         }
+
+        // Play event-specific SFX
+        const sound = TeraiSoundManager.getInstance();
+        if (event.id === 'malaria') sound.playMosquitoBuzz();
+        else if (event.id === 'snake_bite') sound.playSnakeHiss();
+        else if (event.id === 'tiger_attack') sound.playTigerGrowl();
+        else if (event.id === 'flood' || event.id === 'monsoon_damage') sound.playMonsoonThunder();
+        else if (event.id === 'elephant_raid') sound.playBullockMoo();
 
         // Background
         this.cameras.main.setBackgroundColor(COLORS.JUNGLE_DARK);
