@@ -1,0 +1,35 @@
+src/scenes/MilestoneScene.ts
+  9e62d1cbd7d80ef0 11,19-20
+src/scenes/GameOverScene.ts
+  9e62d1cbd7d80ef0 10,20-21,24,27
+src/scenes/MonsoonScene.ts
+  9e62d1cbd7d80ef0 9,21
+src/scenes/ForagingScene.ts
+  9e62d1cbd7d80ef0 16,42,186
+src/scenes/TeraiTitleScene.ts
+  9e62d1cbd7d80ef0 7,18-23
+src/scenes/SettlementScene.ts
+  9e62d1cbd7d80ef0 16,86-90,402-406
+src/scenes/EventScene.ts
+  9e62d1cbd7d80ef0 9,23-30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "745ed5fbee0fde66ab9d40be0dbfc3dd13e80b0c",
+  "prompts": {
+    "9e62d1cbd7d80ef0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97fe22b2-39d1-4a09-a3ee-fc4158cb49db",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Vishal Yadav <yadavvi91@gmail.com>",
+      "messages": [],
+      "total_additions": 40,
+      "total_deletions": 0,
+      "accepted_lines": 40,
+      "overriden_lines": 0
+    }
+  }
+}
