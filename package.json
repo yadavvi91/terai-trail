@@ -1,6 +1,6 @@
 {
-    "name": "caulk-the-wagon",
-    "description": "The Oregon Trail — a web-based game built with Phaser 3 and TypeScript.",
+    "name": "terai-trail",
+    "description": "The Terai Trail — a settlement survival game about post-Partition Sikh refugees in Pilibhit (1952). Built with Phaser 3 and TypeScript.",
     "version": "0.1.0",
     "repository": {
         "type": "git",
